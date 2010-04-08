@@ -1,0 +1,29 @@
+.TH IBSRP 8 "Sept 17, 2008" "Pragmatic Infiniband Utilities" "Infiniband Diagnostics"
+
+.SH NAME
+ibsrp \- start point to point SRP targets with an SM on the link if necessary
+
+.SH SYNOPSIS
+.B ibsrp.conf
+
+.SH DESCRIPTION
+.PP
+ibsrp is an init script which will bring up point to point links with OpenSM
+and srp_daemon.
+
+.SH FILES
+.PP
+@PIU_CONFIG_PATH@/ibsrp.conf
+.TP
+\fBIBSRP_NUM_TARGETS\fR
+Specify the number of SRP targets to be found
+
+
+.SH OPTIONS
+
+<NONE>
+
+.SH AUTHOR
+.TP
+Ira Weiny
+.RI < weiny2@llnl.gov >

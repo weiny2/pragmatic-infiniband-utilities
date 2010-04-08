@@ -1,0 +1,40 @@
+.TH IBBOUNCELINKS 8 "August 23, 2007" "Pragmatic Infiniband Utilities" "Infiniband Diagnostics"
+
+.SH NAME
+ibbouncelinks.pl \- run ibportstate disable/enable on all ports except the port
+which is currently connected to the node you are running on.
+
+.SH SYNOPSIS
+.B ibbouncelinks.pl
+   [-h -t <timeout> -i <host1,host2,...> -R -S <guid>]
+
+.SH DESCRIPTION
+.PP
+ibbouncelinks.pl can be used to disable then reenable all the links of a
+fabric.  This is most currently usefull for when switching from SDR to DDR
+across an entire cluster.
+
+.SH OPTIONS
+
+.PP
+.TP
+\fB\-R\fR
+Recalculate the ibnetdiscover information, ie do not use the cached
+information.  This option is slower but should be used if the diag tools have
+not been used for a long time or if there are other reasons to believe the
+fabric has changed.
+.TP
+\fB\-S <guid>\fR
+output only the switch specified by <guid>
+.TP
+\fB\-t\fR
+After disabling and renabling the link the script will pause to see the link change
+states.  Use this option to change that pause time.
+.TP
+\fB\-i\fR
+Specify a comma separated list of hosts, of which the links will be ignored.
+
+.SH AUTHOR
+.TP
+Ira Weiny
+.RI < weiny2@llnl.gov >

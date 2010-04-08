@@ -1,0 +1,199 @@
+#!/usr/bin/perl
+#
+#  Copyright (C) 2007 The Regents of the University of California.
+#  Produced at Lawrence Livermore National Laboratory (cf, DISCLAIMER).
+#  Written by Ira Weiny weiny2@llnl.gov
+#  UCRL-CODE-235440
+#  
+#  This file is part of pragmatic-infiniband-tools (PIU), usefull tools to manage
+#  Infiniband Clusters.
+#  For details, see http://www.llnl.gov/linux/.
+#  
+#  PIU is free software; you can redistribute it
+#  and/or modify it under the terms of the GNU General Public License as
+#  published by the Free Software Foundation; either version 2 of the License,
+#  or (at your option) any later version.
+#  
+#  PIU is distributed in the hope that it will be
+#  useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
+#  Public License for more details.
+#  
+#  You should have received a copy of the GNU General Public License along with
+#  PIU; if not, write to the Free Software
+#  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA.
+#
+
+use strict;
+use Getopt::Std;
+use IBswcountlimits;
+use Hostlist;
+
+my $def_sa_timeout_ms = 500;
+my $sa_timeout_ms = $def_sa_timeout_ms;
+my @mlid_list = ();
+my %mgid_map = ();
+my %host_errors = ();
+
+# =========================================================================
+#
+sub usage_and_exit
+{
+   my $prog = $_[0];
+   print "Usage: $prog [-hmr -t <ms>] [<Mlid>]\n";
+   print "   find a list of nodes which are members of the multicast group specified by Mlid\n";
+   print "   -m Report only those nodes which are \"up\" but not in the multicast group\n";
+   print "   -t <msec>  Specify the timeout value to saquery (default $def_sa_timeout_ms)\n";
+   print "   -r Report a list of Mlids in the subnet\n";
+   print "   -n <node> given a node report which groups it belongs to\n";
+   print "   -g report MGID info as well\n";
+   print "   -C <ca> Ca name to use\n";
+   print "   -P <port> Ca port number to use\n";
+   exit 0;
+}
+
+my $argv0 = `basename $0`;
+chomp $argv0;
+my $report_missing = "no";
+my $report_list = "no";
+my @node_name = ();
+my $report_mgid = "no";
+my $ca_name = "";
+my $ca_port = "";
+my $saq_opts = "";
+if (!getopts("hmt:rn:gC:P:")) { usage_and_exit $argv0; }
+if (defined $Getopt::Std::opt_h) { usage_and_exit $argv0; }
+if (defined $Getopt::Std::opt_m) { $report_missing = "yes"; }
+if (defined $Getopt::Std::opt_t) { $sa_timeout_ms = $Getopt::Std::opt_t; }
+if (defined $Getopt::Std::opt_r) { $report_list = "yes"; }
+if (defined $Getopt::Std::opt_n) { push (@node_name, $Getopt::Std::opt_n); }
+if (defined $Getopt::Std::opt_g) { $report_mgid = "yes"; }
+if (defined $Getopt::Std::opt_C) { $ca_name = $Getopt::Std::opt_C; }
+if (defined $Getopt::Std::opt_P) { $ca_port = $Getopt::Std::opt_P; }
+
+my $mlid_single = $ARGV[0];
+
+if ($ca_name != "") {
+	$saq_opts = "-C $ca_name";
+}
+if ($ca_port != "") {
+	$saq_opts = "$saq_opts -P $ca_port";
+}
+
+# find all mcast mlids and mgids
+my $loc_mgid = 0;
+my $data = `saquery $saq_opts -t $sa_timeout_ms -g`;
+my @lines = split("\n", $data);
+foreach my $line (@lines) {
+   if ($line =~ /MGID\.*(.*)/) {
+      $loc_mgid = $1;
+   }
+   if ($line =~ /Mlid\.*(0x.*)/) {
+      if ($mlid_single eq "") {
+         push (@mlid_list, $1);
+      }
+      $mgid_map{$1} = $loc_mgid;
+      $loc_mgid = 0;
+   }
+}
+
+$mlid_single =~ tr/[a-f]/[A-F]/;
+if ($mlid_single ne "") {
+   push (@mlid_list, $mlid_single);
+}
+
+if ($report_list eq "yes") {
+   print "Valid Mlid's are:\n";
+   foreach my $mlid (@mlid_list) {
+      print "       $mlid\n";
+   }
+   print "\n";
+   usage_and_exit $argv0;
+}
+
+my $cluster = `nodeattr -v cluster`;
+chomp $cluster;
+
+sub get_hosts_in_mlid
+{
+   my $mlid = $_[0];
+   my $cluster = $_[1];
+   my @hosts = ();
+
+   my $data = `saquery $saq_opts -t $sa_timeout_ms -m $mlid`;
+   my @lines = split("\n", $data);
+   foreach my $line (@lines) {
+      if ($line =~ /.*PortGid.*\(($cluster.*)\)/) {
+         push (@hosts, $1);
+      } else {
+         if ($line =~ /.*PortGid\.*(.*) \((.*)\)/) {
+            $host_errors{$1} = $2;
+         }
+      }
+   }
+   return (@hosts);
+}
+
+# get the uphosts information if we need it.
+my $uphosts = undef;
+my @uphosts = undef;
+if ($report_missing eq "yes") {
+   $uphosts = `whatsup -u`;
+   @uphosts = Hostlist::expand($uphosts);
+}
+
+# =========================================================================
+#
+sub main
+{
+   $IBswcountlimits::auth_check;
+   foreach my $mlid (@mlid_list) {
+      my @mlid_hosts = get_hosts_in_mlid($mlid, $cluster);
+      my $in_cnt = scalar @mlid_hosts;
+
+      if (scalar @node_name > 0) {
+         if (Hostlist::within(\@node_name, \@mlid_hosts)) {
+            print "$mlid ";
+         }
+         if ($report_mgid eq "yes") {
+            if (Hostlist::within(\@node_name, \@mlid_hosts)) {
+               print "($mgid_map{$mlid})\n";
+            }
+         }
+      } else {
+         my @hosts = Hostlist::mk_gend("cluster");
+         my @hosts_not_in_mlid = Hostlist::diff(\@hosts, \@mlid_hosts);
+         my $not_cnt = scalar @hosts_not_in_mlid;
+
+         print "$mlid";
+         if ($report_mgid eq "yes") {
+            print " ($mgid_map{$mlid})";
+         }
+         print "\n";
+         if ($report_missing eq "yes") {
+            my @hosts_missing = Hostlist::diff(\@uphosts, \@mlid_hosts);
+            my $missing_cnt = scalar @hosts_missing;
+            my $r = Hostlist::compress_to_quadrics (@hosts_missing);
+            print "   $missing_cnt host(s) up but not in group: $r\n";
+         } else {
+            my $hosts_in_mlid = Hostlist::compress_to_quadrics (@mlid_hosts);
+            print "   In  $in_cnt: $hosts_in_mlid\n";
+
+            my $hosts_not_in_mlid = Hostlist::compress_to_quadrics (@hosts_not_in_mlid);
+            print "   Out $not_cnt: $hosts_not_in_mlid\n";
+         }
+      }
+   }
+   if (scalar @node_name > 0) {
+      print "\n";
+   }
+   if (scalar %host_errors > 0) {
+      printf (STDERR "Warning the following \"non-standard\" node descriptors were found:\n");
+      foreach my $host (keys %host_errors) {
+         printf (STDERR "   $host == $host_errors{$host}\n");
+      }
+   }
+}
+main
+
+

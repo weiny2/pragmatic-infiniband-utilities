@@ -1,0 +1,174 @@
+#!/bin/sh
+#
+#  Copyright (C) 2007 The Regents of the University of California.
+#  Produced at Lawrence Livermore National Laboratory (cf, DISCLAIMER).
+#  Written by Ira Weiny weiny2@llnl.gov
+#  UCRL-CODE-235440
+#  
+#  This file is part of pragmatic-infiniband-tools (PIU), usefull tools to manage
+#  Infiniband Clusters.
+#  For details, see http://www.llnl.gov/linux/.
+#  
+#  PIU is free software; you can redistribute it
+#  and/or modify it under the terms of the GNU General Public License as
+#  published by the Free Software Foundation; either version 2 of the License,
+#  or (at your option) any later version.
+#  
+#  PIU is distributed in the hope that it will be
+#  useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
+#  Public License for more details.
+#  
+#  You should have received a copy of the GNU General Public License along with
+#  PIU; if not, write to the Free Software
+#  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA.
+#
+
+argv0=`basename $0`
+function usage
+{
+   echo "Usage: $argv0 [-haAvb] [-s <size>] [-n <iters>] "
+   echo "              <node0>[:<dev>:<port>] <node1>[:<dev>:<port>]"
+   echo "   Test the verbs connection between 2 nodes"
+   echo ""
+   echo "   -h Display this help"
+   echo "   -v run verbs test only"
+   echo "   -b run ib_rdma_bw test only"
+   echo "   -r <ib_rdma_bw> use specified ib_rdma_bw executable"
+   echo "   -s <size> specify the -s option to ib_rdma_bw test"
+   echo "   -n <iters> specify the -n option to ib_rdma_bw test"
+   echo ""
+   echo "      The options below run significantly slower but send more data"
+   echo ""
+   echo "   -a Run a series of RDMA BW tests with various packet sizes (short)"
+   echo "   -A Run a series of RDMA BW tests with various packet sizes (long)"
+   echo ""
+   echo "   Examples:"
+   echo "      $argv0 e1 e2"
+   echo "         Run test between node 1 and 2 using first device found, port 1"
+   echo "      $argv0 e1::2 e2"
+   echo "         Run test between node 1 using first device found, port 2 and"
+   echo "         default device, port 1 on node 2"
+   echo "      $argv0 e1 e2:mlx4_1:2"
+   echo "         Run test between default device, port 1 on node 1 and "
+   echo "         node 1, device mlx4_1, port 2"
+}
+
+# process command line
+rdma_bw="ib_rdma_bw"
+data_amount=""
+data_size=1024
+iters=10000
+band_width_test="true"
+verbs_test="true"
+while getopts "haAs:n:bvr:d:i:" flag
+do
+   case $flag in
+      "h") usage; exit 0;;
+      "a") data_amount="variable";;
+      "A") data_amount="Variable";;
+      "s") data_size=$OPTARG;;
+      "n") iters=$OPTARG;;
+      "v") band_width_test="false";;
+      "b") verbs_test="false";;
+      "r")
+            rdma_bw=$OPTARG;
+            if [ ! -x $rdma_bw ]; then
+               echo "ERROR: $rdma_bw is not executable or does not exist"
+               echo ""
+               usage; exit 1
+            fi
+            echo "Using rdma bw test: $rdma_bw"
+            ;;
+      *) usage; exit 1;;
+   esac
+done
+
+shift $(($OPTIND - 1))
+
+if [ "$1" == "" ] || [ "$2" == "" ]; then
+   usage
+   exit 1
+fi
+
+host1=`echo $1 | sed -e "s/\([^:]*\):.*/\1/"`
+host2=`echo $2 | sed -e "s/\([^:]*\):.*/\1/"`
+host1_dev_opts=`echo $1 | awk -F: '{ if ($2) printf "-d "; printf $2; if ($3) printf " -i "; printf $3; print "" }'`
+host2_dev_opts=`echo $2 | awk -F: '{ if ($2) printf "-d "; printf $2; if ($3) printf " -i "; printf $3; print "" }'`
+
+# make sure servers/clients are not runing
+function clean_up
+{
+   echo ""
+   echo " ***** Cleaning up...  *****"
+   pdsh -S -w $host1 killall ibv_rc_pingpong &> /dev/null
+   pdsh -S -w $host2 killall ibv_rc_pingpong &> /dev/null
+
+   pdsh -S -w $host1 killall ib_rdma_bw &> /dev/null
+   pdsh -S -w $host2 killall ib_rdma_bw &> /dev/null
+}
+
+# a basic ping pong test
+function basic_verbs
+{
+   echo ""
+   echo " ***** Starting Basic verbs tests...  *****"
+   echo ""
+   echo "       Server $host1 ($host1_dev_opts) <== Client $host2 ($host2_dev_opts)"
+   pdsh -S -w $host1 ibv_rc_pingpong $host1_dev_opts &
+   sleep 1
+   pdsh -S -w $host2 ibv_rc_pingpong $host2_dev_opts $host1
+   echo ""
+   echo "       Server $host2 ($host2_dev_opts) <== Client $host1 ($host1_dev_opts) "
+   pdsh -S -w $host2 ibv_rc_pingpong $host2_dev_opts &
+   sleep 1
+   pdsh -S -w $host1 ibv_rc_pingpong $host1_dev_opts $host2
+   sleep 1
+}
+
+# RDMA bandwidth tests
+function rdma_bw
+{
+   echo ""
+   echo " ***** Starting RDMA bandwidth tests...  *****"
+   echo "     ( parameters: $data_amount -b )"
+   echo ""
+   echo "       Server $host1 ($host1_dev_opts) <== Client $host2 ($host2_dev_opts) "
+   pdsh -S -w $host1 $rdma_bw $host1_dev_opts $data_amount -b &
+   sleep 1
+   pdsh -S -w $host2 $rdma_bw $host2_dev_opts $data_amount -b $host1
+   sleep 1
+}
+
+# MAIN
+clean_up
+if [ "$data_amount" == "variable" ] || [ "$data_amount" == "Variable" ]; then
+   if [ "$data_amount" == "Variable" ]; then
+      total_data_size=100000000000
+      msg_sizes="10 100 1000 10000 100000 1000000 10000000 100000000"
+   else
+      total_data_size=10000000
+      msg_sizes="1000 10000 100000 1000000"
+   fi
+   for msg_size in $msg_sizes; do
+      num_msg=$((total_data_size/msg_size))
+      if [ $num_msg -gt 10000 ]; then
+         num_msg=10000
+      fi
+      if [ $num_msg -lt 2 ]; then
+         num_msg=2
+      fi
+      data_amount="-s $msg_size -n $num_msg"
+      rdma_bw
+   done
+else
+   if [ "$verbs_test" == "true" ]; then
+      basic_verbs
+   fi
+   if [ "$band_width_test" == "true" ]; then
+   	data_amount="-s $data_size -n $iters"
+   	rdma_bw
+   fi
+fi
+clean_up
+

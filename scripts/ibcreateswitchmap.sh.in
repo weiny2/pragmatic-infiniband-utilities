@@ -1,0 +1,123 @@
+#!/bin/bash
+
+# Purpose: To idetify the GUIDs of the swithes that are attached
+#          to the nodes on a IB cluster
+#
+#          This script assumes that nodes are plugged in order
+#          ie. nodes 0-11 are on switch1, nodes 12-23 are on 
+#          switch2 and so on
+#
+#          This is useless on a 288 node cluster
+#          Use something like voltaire-create-switch-map.pl
+
+sbindir=@PIU_SBIN_PATH@
+
+export PATH=/sbin:/bin:/usr/sbin:/usr/bin
+
+declare -r prog=${0##*/}
+declare -r long_opts="cluster:,first:,last:,nodes:,prefix:,start:,help"
+declare -r short_opts="c:f:l:n:p:s:h"
+declare -r getopt="/usr/bin/getopt -u -q -a"
+declare -r usage="\
+WARNING: this script is highly untested and is provided here as a starting point\n\
+\n\
+\n\
+USAGE: $prog [OPTIONS]\n\
+\n\
+	-c, --cluster	Cluster name\n\
+\n\
+	-f, --first	First node number\n\
+\n\
+	-l, --last	Last node number\n\
+\n\
+	-n, --nodes	Number of nodes per switch\n\
+\n\
+	-p, --prefix	Switch prefix name\n\
+\n\
+	-s, --start	First switch number\n\
+\n\
+	-h, --help	This message
+\n\
+EXAMPLE: for a cluster named Atlas with 1152 nodes\n\
+using 24 port leaf swithes to connect to top level swithes\n\
+\n\
+	$prog -c atlas -f 0 -l 1151 -n 12 -p SW -s 1\n\
+\n\
+\n"
+
+die () {
+    echo -e "$prog: $@" >&2
+    exit 1
+}
+
+umask 022
+
+CLUSTER=""
+FIRST_NODE=""
+LAST_NODE=""
+NODES_PER_SWITCH=""
+SWITCH_PREFIX=""
+SWITCH_COUNT=""
+
+GETOPT=`$getopt -o $short_opts -l $long_opts -n $prog -- $@`
+
+if [ $? != 0 ] ; then
+    die "$usage"
+fi
+
+eval set -- "$GETOPT"
+while true; do
+    case "$1" in
+        -c|--cluster)	CLUSTER=$2 ; shift 2 ;;
+        -f|--first)	FIRST_NODE=$2 ; shift 2 ;;
+        -l|--last)	LAST_NODE=$2 ; shift 2 ;;
+        -n|--nodes)	NODES_PER_SWITCH=$2 ; shift 2 ;;
+        -p|--prefix)	SWITCH_PREFIX=$2 ; shift 2 ;;
+        -s|--start)	SWITCH_COUNT=$2 ; shift 2 ;;
+        -h|--help)	die "$usage"     ;;
+	--)		shift ; break    ;;
+	*)		die "$usage"     ;;
+    esac
+done
+
+# Make sure you set all the variables
+if [ -z "$CLUSTER" ] || [ -z "$FIRST_NODE" ] || [ -z "$LAST_NODE" ] || [ -z "$NODES_PER_SWITCH" ] || [ -z "$SWITCH_PREFIX" ] || [ -z "$SWITCH_COUNT" ] ; then
+	die "$usage"
+fi
+
+# check if we have the new iblinkinfo
+iblinkinfo_exe="$sbindir/iblinkinfo"
+if [ ! -x $iblinkinfo_exe ]; then
+	# if not fall back to the previous version
+	iblinkinfo_exe="iblinkinfo.pl -R"
+fi
+
+file=`mktemp -t ibcreateswitch.XXXXXX`
+$iblinkinfo_exe -l > $file
+
+for NODE_NUMBER in `seq ${FIRST_NODE} ${NODES_PER_SWITCH} ${LAST_NODE}`
+do
+	GUID=""
+	# what is the last node number on this switch
+	LAST=$((${NODE_NUMBER}+${NODES_PER_SWITCH}-1))
+	if [ "${LAST}" -ge "${LAST_NODE}" ] ; then
+		LAST="${LAST_NODE}"
+	fi
+	
+	# find a node that is up on this switch and find out what the
+	# guid of that switch is
+	for NODE in `seq ${NODE_NUMBER} ${LAST}`
+	do
+		NODE_NAME="${CLUSTER}${NODE}"
+		if ( grep \"${NODE_NAME}\" $file > /dev/null ); then
+			GUID=`grep \"${NODE_NAME}\" $file | \
+				awk '{print $1}'`
+			echo "$GUID \"${SWITCH_PREFIX}${SWITCH_COUNT}\""
+			break
+		fi
+	done
+
+	SWITCH_COUNT=$(($SWITCH_COUNT+1))
+done
+
+rm $file

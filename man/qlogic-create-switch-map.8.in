@@ -1,0 +1,63 @@
+.TH QLOGIC-CREATE-SWITCH-MAP 8 "August 23, 2007" "Pragmatic Infiniband Utilities" "Infiniband Diagnostics"
+
+.SH NAME
+qlogic-create-switch-map.pl \- Read the GUIDs from a Voltaire switch (IP connected) and create a switch map
+
+
+.SH SYNOPSIS
+.B qlogic-create-switch-map.pl
+   [-h] [-r <rack>] [-l <line_card_desc>] [-s <spine_card_desc>] <switch_ip_name>
+
+.SH DESCRIPTION
+.PP
+qlogic-create-switch-map.pl connects to a specified qlogic switch,
+retrieves the guids used by that switch, and creates a switch map snipit
+suitable for the Open Fabrics diagnostic suite.  See ibnetdiscover from that
+suite of tools for the switch map format.
+
+.SH OPTIONS
+
+.PP
+.TP
+\fB\-r <rack>\fR
+Specify a rack location to be inserted in the output
+.TP
+\fB\-l <line_card_desc>\fR
+Specify an additional line card description
+.TP
+\fB\-s <spine_card_desc>\fR
+Specify an additional spine card description
+.TP
+\fB\-u <username>\fR
+Specify a username for switch login
+.TP
+\fB\-p <password>\fR
+Specify a password for switch login
+.TP
+\fB\-c <conf>\fR
+Specify a different config file
+
+
+.SH CONFIG FILES
+
+.TP
+\fB@PIU_CONFIG_PATH@/qlogic-create-switch-map.conf\fR
+Used to specify username and password information to connect to the switch.
+File format:
+.br
+Username <username>
+.br
+Password <password>
+.br
+LineDesc <line_card_desc>
+.br
+SpineDesc <spine_card_desc>
+.br
+Rack <rack_location>
+
+
+
+.SH AUTHOR
+.TP
+Ira Weiny
+.RI < weiny2@llnl.gov >

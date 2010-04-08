@@ -1,0 +1,37 @@
+.TH IBNODESINMCAST 8 "March 14, 2008" "Pragmatic Infiniband Utilities" "Infiniband Diagnostics"
+
+.SH NAME
+ibnodeinmcast \- list node membership and mcast group information
+
+.SH SYNOPSIS
+.B ibnodeinmcast
+   [-hmr -t <ms>] [<Mlid>]
+
+.SH DESCRIPTION
+.PP
+ibnodeinmcast can be used to report multicast group information.
+
+.SH OPTIONS
+
+.PP
+.TP
+\fB\-m\fR
+Report only those nodes which are "up" but not in the multicast group
+specified.  Detection of "up" nodes is through the use of "whatsup".
+.TP
+\fB\-t <msec>\fR
+Specify the timeout value to saquery (default 500)
+.TP
+\fB\-r\fR
+Report a list of Mlids in the subnet
+.TP
+\fB\-n <node>\fR
+gien a node report which groups it belongs to
+.TP
+\fB\-g\fR
+report MGID info as well
+
+.SH AUTHOR
+.TP
+Ira Weiny
+.RI < weiny2@llnl.gov >

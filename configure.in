@@ -1,0 +1,80 @@
+dnl Process this file with autoconf to produce a configure script.
+
+AC_INIT(pragmatic-infiniband-utilities)
+AC_META
+AC_CONFIG_AUX_DIR(config)
+AC_CONFIG_SRCDIR([META])
+AM_INIT_AUTOMAKE($PROJECT, $VERSION)
+
+dnl Checks for programs
+AC_PROG_CC
+AC_PROG_LIBTOOL
+
+dnl check for bash
+AC_PATH_PROG([BASH], [bash], [],
+	AC_MSG_ERROR([bash not found.  bash is required for some scripts]))
+
+AC_ARG_ENABLE(genders,
+[  --disable-genders disable genders use],
+   [case $enableval in
+     yes) genders=yes ;;
+     no)  genders=no ;;
+   esac],
+   genders=yes)
+
+AC_CHECK_LIB(ibmad, mad_dump_int, [],
+        AC_MSG_ERROR([mad_dump_int() not found. PIU requires libibmad.]))
+AC_CHECK_LIB(osmcomp, cl_thread_init, [],
+        AC_MSG_ERROR([cl_thread_init() not found. PIU requires libosmcomp.]), [-lopensm -losmvendor])
+AC_CHECK_LIB(osmvendor, osmv_query_sa, [],
+        AC_MSG_ERROR([osmv_query_sa() not found. PIU requires libosmvendor.]), [-lopensm])
+AC_CHECK_LIB(opensm, osm_log_init_v2, [],
+        AC_MSG_ERROR([osm_log_init_v2() not found. PIU requires libopensm.]))
+AC_CHECK_LIB(rdmacm, rdma_connect, [],
+        AC_MSG_ERROR([rdma_connect() not found. PIU requires librdmacm.]))
+AC_CHECK_LIB(ibnetdisc, ibnd_discover_fabric, [],
+        AC_MSG_ERROR([ibnd_discover_fabric() not found. PIU requires libibnetdisc.]))
+
+if test $genders = yes; then
+AC_CHECK_LIB(genders, genders_handle_create, [],
+        AC_MSG_ERROR([genders_handle_create() not found.  To disable genders use --disable-genders]))
+ENABLE_GENDERS=1
+AC_DEFINE_UNQUOTED(ENABLE_GENDERS, ["$ENABLE_GENDERS"], [Use genders processing])
+AC_SUBST(ENABLE_GENDERS)
+LIBGENDERS=-lgenders
+AC_SUBST(LIBGENDERS)
+fi
+
+PIU_CONFIG_PATH_TMP1="`eval echo ${sysconfdir}`"
+PIU_CONFIG_PATH_TMP2="`echo $PIU_CONFIG_PATH_TMP1 | sed 's/^NONE/$ac_default_prefix/'`"
+PIU_CONFIG_PATH="`eval echo $PIU_CONFIG_PATH_TMP2`"
+AC_SUBST(PIU_CONFIG_PATH)
+
+PIU_SBIN_PATH_TMP1="`eval echo ${sbindir}`"
+PIU_SBIN_PATH_TMP2="`echo $PIU_SBIN_PATH_TMP1 | sed 's/^NONE/$ac_default_prefix/'`"
+PIU_SBIN_PATH="`eval echo $PIU_SBIN_PATH_TMP2`"
+AC_SUBST(PIU_SBIN_PATH)
+
+dnl support debug mode
+AC_ARG_ENABLE(debug,
+[  --enable-debug Turn on debug mode],
+[case "${enableval}" in
+  yes) debug=true ;;
+  no)  debug=false ;;
+  *) AC_MSG_ERROR(bad value ${enableval} for --enable-debug) ;;
+esac],[debug=false])
+AM_CONDITIONAL(DEBUG, test x$debug = xtrue)
+
+AC_CONFIG_FILES([Makefile
+               pragmatic-infiniband-utilities.spec
+               scripts/voltaire-create-switch-map.pl
+               scripts/qlogic-create-switch-map.pl
+               scripts/ibcheckfabric
+               scripts/ibtrackerrors
+               scripts/ibcreateswitchmap.sh
+               man/voltaire-create-switch-map.8
+               man/qlogic-create-switch-map.8
+               scripts/ibsrp
+               man/ibsrp.8
+               ])
+AC_OUTPUT

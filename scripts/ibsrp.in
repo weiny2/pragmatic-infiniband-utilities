@@ -1,0 +1,244 @@
+#!/bin/bash
+
+# chkconfig: 2345 25 75
+# description: Activates/Deactivates direct connected InfiniBand SRP Interfaces
+
+. /etc/rc.d/init.d/functions
+
+initsysconfdir=@PIU_CONFIG_PATH@/sysconfig
+
+log_cmd="logger -s -t ibsrp -p daemon.err"
+
+# Defaults for config paramenters
+IBSRP_NUM_TARGETS=1
+SRP_SETTLE_TIMEOUT=1
+
+# pick up our conf file if available
+if [ -f $initsysconfdir/ibsrp.conf ]; then
+   . $initsysconfdir/ibsrp.conf
+else
+   # warn if not...
+   $log_cmd "WARNING: $initsysconfdir/ibsrp.conf not found; using defaults"
+fi
+
+LOG_DIR="/var/log/ibsrp"
+PID_DIR="/var/run/ibsrp"
+
+is_module()
+{
+    local RC
+
+    /sbin/lsmod | grep -w "$1" > /dev/null 2>&1
+    RC=$?
+
+    return $RC        
+}
+
+startOpenSMCA2CA()
+{
+    for ch_adaptor in `ibstat -l`; do
+        ibstat $ch_adaptor | grep Port | grep -v GUID | cut -d ":" -f 1 | cut -d " " -f 2 | \
+            while read port
+        do
+           # find if this port is connected to a CA or a switch
+           smpquery -C $ch_adaptor -P $port -D nodeinfo 0,$port 2> /dev/null | grep NodeType | grep "Channel Adapter" > /dev/null
+           ca=`echo $?`
+           if [ "$ca" == "1" ]; then
+               $log_cmd "Port $port is not connected to a Channel Adaptor...  Skipping"
+               continue
+           fi
+
+           # check for an SM on the other end of the link.
+           smpquery -C $ch_adaptor -P $port -D portinfo 0,$port 2> /dev/null | grep IsSM
+           sm=`echo $?`
+           if [ "$sm" == "0" ]; then
+               # if the other end provides an SM we don't need to bother
+               $log_cmd "Port $port is connected to a Channel Adaptor which is SM capable...  Skipping OpenSM start"
+               continue
+           fi
+
+           port_guid=`smpquery -C $ch_adaptor -P $port -D nodeinfo 0 | grep PortGuid | sed -e "s/^PortGuid:\.*\(.*\)/\1/"`
+           if [ "$port_guid" != "" ] ; then
+               $log_cmd "Starting OpenSM on port $port (guid $port_guid)"
+               opensm -B -g $port_guid -s 300 -f $LOG_DIR/opensm-$port.log > /dev/null
+               rc=`echo $?`
+               if [ "$rc" != "0" ]; then
+                    $log_cmd "Failed to start opensm on port $port, guid $port_guid"
+                    echo_failure
+                    exit 1
+               fi
+           fi
+        done
+        pidof opensm > $PID_DIR/opensm.pid
+    done
+}
+
+kill_daemons()
+{
+    if [ -f $PID_DIR/opensm.pid ]; then
+        for pid in `cat $PID_DIR/opensm.pid`; do
+            kill $pid
+        done
+        rm -rf $PID_DIR/opensm.pid
+    fi
+
+    if [ -f $PID_DIR/srp_daemon.pid ]; then
+        for pid in `cat $PID_DIR/srp_daemon.pid`; do
+            kill $pid
+        done
+        rm -rf $PID_DIR/srp_daemon.pid
+    fi
+}
+
+start()
+{
+    $log_cmd "Starting..."
+
+    if [ -f $PID_DIR/opensm.pid ] || [ -f $PID_DIR/srp_daemon.pid ]; then
+	$log_cmd "ibsrp is already running..."
+	echo_failure
+	echo ""
+	exit 1
+    fi
+
+#---------------------------------------------------------------
+# Load the srp module
+#---------------------------------------------------------------
+
+    /sbin/modprobe ib_srp
+    if [ "$?" != "0" ]; then
+    	$log_cmd "kernel module \"ib_srp\" failed to load; ensure your IB card is working and check modprobe.conf for proper configuration"
+	echo_failure
+	echo ""
+	exit 1
+    fi
+
+#---------------------------------------------------------------
+# Run opensm on each port with SRP
+#---------------------------------------------------------------
+    startOpenSMCA2CA
+
+
+#---------------------------------------------------------------
+# for each umad device, assign all srp targets detected on that
+# device to its port.
+#---------------------------------------------------------------
+
+    # wait for SRP target to become available.
+    sleep $SRP_SETTLE_TIMEOUT
+
+    num_targets_found=0
+    for a in /dev/infiniband/umad*
+      do
+      # check for SRP target on this port
+      srp_daemon -d $a -a -o 2> /dev/null | grep "IO Unit Info" > /dev/null 2>&1
+      if [ "$?" == "0" ]; then
+         let num_targets_found=$num_targets_found+1
+         $log_cmd "Starting srp_daemon on $a"
+         srp_daemon -e -n -d $a > /dev/null 2> /dev/null &
+      else
+         $log_cmd "srp target not found on $a... Skipping"
+      fi
+    done
+
+    pidof srp_daemon > $PID_DIR/srp_daemon.pid
+
+    if [ $num_targets_found != $IBSRP_NUM_TARGETS ]; then
+       $log_cmd "Failed to find all SRP target ports; $num_targets_found found; $IBSRP_NUM_TARGETS expected"
+       echo_failure
+       echo ""
+       exit 1
+    fi
+
+    echo_success
+    echo ""
+}
+
+stop()
+{
+    $log_cmd "Stopping..."
+    kill_daemons
+    sleep 1
+    /sbin/modprobe -r ib_srp
+    echo_success
+}
+
+status()
+{
+    echo "ib_srp module:"
+    is_module ib_srp
+    if [ "$?" == "0" ]; then
+        echo "   loaded with tablesize = " `cat /sys/module/ib_srp/parameters/srp_sg_tablesize`
+    else
+        echo "   ERROR: not loaded"
+    fi
+
+    echo "opensm(s):"
+    if [ -f $PID_DIR/opensm.pid ]; then
+        for pid in `cat $PID_DIR/opensm.pid`; do
+            ps -f -p $pid > /dev/null 2> /dev/null
+            if [ "$?" == "0" ]; then
+                guid=`ps --no-headers -f -p $pid | sed -e "s/.*-g \(.*\) -s.*/\1/"`
+		for d in `ls /sys/class/infiniband`; do
+		    for p in `ls /sys/class/infiniband/$d/ports`; do
+			g=`ibstat $d $p | grep "Port GUID" | sed -e "s/Port GUID: \(.*\)/\1/"`
+			if [ "$g" == "$guid" ]; then
+			    device=$d
+			    port=$p
+			    break
+			fi
+		    done
+		done
+                echo "   opensm running on $device port $port (guid=$guid)"
+            else
+                echo "   ERROR: opensm (pid=$pid) failed"
+            fi
+        done
+    else
+        echo "   not running"
+    fi
+
+    echo "srp_daemon(s):"
+    if [ -f $PID_DIR/srp_daemon.pid ]; then
+        for pid in `cat $PID_DIR/srp_daemon.pid`; do
+            ps -f -p $pid > /dev/null 2> /dev/null
+            if [ "$?" == "0" ]; then
+                umad=`ps --no-headers -f -p $pid | sed -e "s/.*-d \(.*\)/\1/"`
+		base=`basename $umad`
+		device=`cat /sys/class/infiniband_mad/$base/ibdev`
+		port=`cat /sys/class/infiniband_mad/$base/port`
+                echo "   srp_daemon running on $device port $port ($umad)"
+            else
+                echo "   ERROR: srp_daemon (pid=$pid) failed"
+            fi
+        done
+    else
+        echo "   not running"
+    fi
+}
+
+if [ ! -d $PID_DIR ]; then
+    mkdir -p $PID_DIR
+fi
+
+if [ ! -d $LOG_DIR ]; then
+    mkdir -p $LOG_DIR
+fi
+ 
+case "$1" in
+    start)
+      start ;;
+    stop)
+      stop ;;
+    restart)
+      stop
+      start ;;
+    status)
+      status ;;
+    *)
+      echo "Usage $0 (start|stop|restart|status) "
+      exit 1
+esac
+
+exit 0
+

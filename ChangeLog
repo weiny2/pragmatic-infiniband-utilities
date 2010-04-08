@@ -1,0 +1,354 @@
+- Wed Apr 07 2010 Ira Weiny <weiny2@llnl.gov>
+
+	* : ibtraceroute: clean up error when no nodes are specified
+	* : ibtraceroute: add "-m" option
+	* : ibtraceroute: Default one node to "local" node
+	* : ibtraceroute: fixed exit codes on lookup failure.
+
+- Wed Mar 31 2010 Ira Weiny <weiny2@llnl.gov>
+
+	* : tag 1.0.4-2
+
+- Tue Mar 30 2010 Ira Weiny <weiny2@llnl.gov>
+
+	* : Added --hosts option to slurm_topology
+	* : cleaned up output of slurm_topology
+		 - ordered switches
+		 - grouped levels
+		 - printed missing and looked for "compute" nodes
+
+- Fri Feb 19 2010 Ira Weiny <weiny2@llnl.gov>
+
+	* : tag 1.0.4
+	* : Added ibhcacounters
+
+- Thu Feb 18 2010 Ira Weiny <weiny2@llnl.gov>
+
+	* : tag 1.0.3-2
+
+- Tue Feb 09 2010 Ira Weiny <weiny2@llnl.gov>
+
+	* : Added -g/-q option to slurm_topology
+
+- Thu Feb 04 2010 Ira Weiny <weiny2@llnl.gov>
+
+	* : Added -n option to slurm_topology
+
+- Tue Dec 10 2009 Ira Weiny <weiny2@llnl.gov>
+
+	* : tag 1.0.3
+	* : change ibsrp log dir to "/var/log/ibsrp"
+	* : Remove modprobing of IB cards from ibsrp init script.  depmod and
+	    modprobe should deal with "modprobe ib_srp" correctly.
+	* : changed the unloading of ib_srp module and the stopping of the daemons
+
+- Tue Nov 17 2009 Ira Weiny <weiny2@llnl.gov>
+
+	* : tag 1.0.2
+	* : Initial checkin of ibgraphfabric C version.
+	* : Remove unused assignment in slurm_topology
+
+- Tue Oct 27 2009 Ira Weiny <weiny2@llnl.gov>
+
+	* : bump version to 1.0.1 as slurm_topology now requires libibnetdisc
+	* : Add slurm_topology utility
+
+- Fri Oct 16 2009 Ira Weiny <weiny2@llnl.gov>
+
+	* : improve ibbouncelinks.pl
+		Add QDR skip option. (including lengthening timeout for QDR ports)
+		Update help message
+		pretify output with progress "."
+
+- Thu Oct 08 2009 Ira Weiny <weiny2@llnl.gov>
+
+	* : add device and port support to node specification in ibcheckverbs
+
+- Fri Oct 02 2009 Ira Weiny <weiny2@llnl.gov>
+
+	* : add -m option to ibtrackerrors and ibcheckfabric
+
+- Wed Sep 30 2009 Ira Weiny <weiny2@llnl.gov>
+
+	* : add support for --clear-errors in ibqueryerrors to ibtrackerrors 
+
+- Tue Sep 22 2009 Ira Weiny <weiny2@llnl.gov>
+
+	* : Add experimental ibcreateswitchmap.sh
+	* : Fix check_wiring_coastal.pl
+
+- Tue Aug 25 2009 Ira Weiny <weiny2@llnl.gov>
+
+	* : Add -C and -P option to ibnodesinmcast
+
+- Wed Jul 22 2009 Ira Weiny <weiny2@llnl.gov>
+
+	* : tag 1.0.0-1 tag
+	* : move all executables to sbin
+
+- Thu Jul 09 2008 Al Chu <chu11@llnl.gov>
+
+	* : Add check_wiring_coastal.pl.
+
+	* : Rename check_wiring.pl to check_wiring_peloton.pl.
+
+- Wed Jul 08 2009 Ira Weiny <weiny2@llnl.gov>
+
+	* : ibsrp.in: made timeouts configurable
+	* : ibsrp.in: set defaults for parameters and print warning if the config
+					file is not found
+
+- Tue Jul 07 2009 Ira Weiny <weiny2@llnl.gov>
+
+	* : ibsrp.in: clean up start, stop, and status
+	* : ibsrp.in: remove settings for MAX_SECT_DDN
+
+- Mon Jun 29 2009 Ira Weiny <weiny2@llnl.gov>
+
+	* : add ibcreateswitchmap.sh
+	* : add qlogic-create-switch-map.pl
+
+- Mon Jun 01 2009 Ira Weiny <weiny2@llnl.gov>
+
+	* : default the use of iblinkinfo out of directory PIU is configured to
+	    for better testing.
+	* : convert ibcheckfabric and ibtrackerrors to use the new iblinkinfo
+	    and ibqueryerrors tools IF available.
+
+- Mon Apr 20 2009 Ira Weiny <weiny2@llnl.gov>
+
+	* : tag 0.0.9-2 tag
+	* : move ibsrp.conf to $sysconfidir/sysconfig which is inline with
+	other init script config locations
+	* : fix up messages in ibsrp
+
+- Fri Apr 17 2009 Ira Weiny <weiny2@llnl.gov>
+
+	* : tag 0.0.9-1 tag
+	* : Remove srp_daemon.conf as this file now comes from srptools
+
+- Tue Apr 08 2009 Ira Weiny <weiny2@llnl.gov>
+
+	* : tag 0.0.8-8 tag
+
+- Tue Mar 31 2009 Ira Weiny <weiny2@llnl.gov>
+
+	* : Fix all auth_check's in perl scripts
+	* : Fix ibnodesinmcast for new GID format from saquery
+
+- Thu Mar 26 2009 Ira Weiny <weiny2@llnl.gov>
+
+	* : tag 0.0.8-7 tag
+	* : ibbouncelinks.pl: added IBswcountlimits qualifier to auth_check to
+		satisfy strict checking.
+
+- Fri Mar 20 2009 Ira Weiny <weiny2@llnl.gov>
+
+	* : tag 0.0.8-6 tag
+
+- Tue Mar 17 2009 Ira Weiny <weiny2@llnl.gov>
+
+	* : ibsrp: Add IBSRP_NUM_RETRIES to ibsrp.conf
+	* : ibsrp: improve error checking in tuneSRP
+	* : ibsrp: improve logging
+	* : ibsrp: make logger log to std error and deamon.err
+
+- Fri Oct 31 2008 Ira Weiny <weiny2@llnl.gov>
+
+	* : tag 0.0.8-5 tag
+	* : ibtrackerrors: Add a lockfile and associated options to ensure that only
+	    one ibtrackerrors instance is run on a node at a time.
+	* : simple_rdma: change where ib_query_qp is called to ensure the QP is in
+	    RTS state before the query.  This was done to help with some kernel
+		 debugging.
+
+- Thu Sep 18 2008 Ira Weiny <weiny2@llnl.gov>
+	* : tag 0.0.8-4 tag
+
+- Thu Sep 18 2008 Ira Weiny <weiny2@llnl.gov>
+
+	* : ibsrp: make "start" safe to use on a running system.
+	* : ibsrp: move a couple more options to the conf file
+
+- Wed Sep 17 2008 Ira Weiny <weiny2@llnl.gov>
+
+	* : tag 0.0.8-3 tag
+	* : cleaned up config path in *.in files
+	* : ibsrp.conf: Default file added
+	* : srp_daemon.conf: Default file added
+	* : ibsrp: added @sysconfig@/ibsrp.conf file which specifies the number of SRP
+       Targets we are looking for
+	* : ibsrp: Cleaned up output from commands
+	* : Add ibsrp man page
+
+- Thu Sep 04 2008 Ira Weiny <weiny2@llnl.gov>
+
+	* : tag 0.0.8-2 tag
+	* : ibsrp: Added more logging messages
+	* : ibsrp: Fixed a bug in how the IB cards were detected
+
+- Thu Aug 28 2008 Ira Weiny <weiny2@llnl.gov>
+
+	* : tag 0.0.8-1 tag
+	* : Add ibsrp to support point to point SRP targets with Lustre.
+
+- Thu Jul 10 2008 Ira Weiny <weiny2@llnl.gov>
+
+	* : tag 0.0.7-3 tag
+
+- Wed Jul 09 2008 Al Chu <chu11@llnl.gov>
+
+	* : Add check_wiring.pl and lfts_sort.pl to Makefile.am.
+	
+- Mon Jul 07 2008 Ira Weiny <weiny2@llnl.gov>
+
+	* : tag 0.0.7-2 tag
+
+- Tue Jun 30 2008 Al Chu <chu11@llnl.gov>
+
+	* : Fix check_wiring -R option.
+
+- Mon Jun 30 2008 Ira Weiny <weiny2@llnl.gov>
+
+	* : tag 0.0.7-1 tag
+	* : add -q option to simple_rdma to cause a query_qp call for kernel debug
+	    testing.
+
+- Tue Jun 25 2008 Al Chu <chu11@llnl.gov>
+
+	* : add check_wiring.pl script.
+	
+- Tue Jun 24 2008 Al Chu <chu11@llnl.gov>
+
+	* : rename dump_lfts_sort.pl to lfts_sort.pl.
+
+- Tue Jun 24 2008 Al Chu <chu11@llnl.gov>
+
+	* : add -p option to guid_routing_order.pl.
+	
+- Fri Jun 13 2008 Ira Weiny <weiny2@llnl.gov>
+
+	* : tag 0.0.6-1 tag
+
+- Thu Jun 12 2008 Al Chu <chu11@llnl.gov>
+
+	* : add dump_lfts_sort.pl script.
+
+- Fri May 23 2008 Ira Weiny <weiny2@llnl.gov>
+
+	* : add -i and -g option to ibgraphlinks.pl
+	* : Improved ordering of nodes in ibgraphlinks.pl
+
+- Mon Apr 14 2008 Ira Weiny <weiny2@llnl.gov>
+
+	* : scripts/ibnodesinmcast
+		Add mgid output to -n option when -g is also specifyied.
+
+- Fri Apr 04 2008 Ira Weiny <weiny2@llnl.gov>
+
+	* : scripts/ibcheckverbs:
+		Cleaned up "cleaing up" output
+		improve help message
+		add -r,-b,-v,-n options
+		changed the -s option
+		improve command line processing
+		minor other improvements
+
+- Tue Apr 01 2008 Ira Weiny <weiny2@llnl.gov>
+
+	* : fix ibcheckverbs usage message
+
+- Mon Mar 17 2008 Ira Weiny <weiny2@llnl.gov>
+
+	* : remove check_lft_balance_llnl.pl made it to the mainline
+	infiniband-diags package.
+
+- Fri Mar 14 2008 Ira Weiny <weiny2@llnl.gov>
+
+	* : 0.0.5-1 tag
+	* : man page updates
+	* : remove check_balance.sh (superceded by check_lft_balance_llnl.pl)
+	* : Fix all UCRL codes
+
+- Tue Mar 3 2008 Al Chu <chu11@llnl.gov>
+
+	* : add check_lft_balance_llnl.pl
+
+- Tue Mar 4 2008 Ira Weiny <weiny2@llnl.gov>
+
+	* : checkin changes generated from perltidy
+	* : add perltidy.sh
+
+- Tue Feb 25 2008 Ira Weiny <weiny2@llnl.gov>
+
+	* : add ibgraphlinks.pl
+
+- Tue Feb 5 2008 Ira Weiny <weiny2@llnl.gov>
+
+	* : 0.0.4-1 tag
+	* : ibgetname
+		Initial creation
+	* : ibcheckverbs
+		Code Clean up
+		Add -a and -A options to allow for better RDMA bandwidth testing.
+
+- Wed Jan 30 2008 Ira Weiny <weiny2@llnl.gov>
+
+	* : ibgraphfabric
+		Add File
+
+- Mon Nov 26 2007 Ira Weiny <weiny2@llnl.gov>
+
+	* : 0.0.3-1 tag
+	* : ibnodeinmcast
+		Add some error handling for when "non-standard" node descriptors are
+		found
+	* : ibnodeinmcast
+		Add -g option to report mgids as well as mlids
+	* : ibnodeinmcast
+		Changed default behavior to print all mcast groups and membership info.
+		Add r and n options
+
+- Wed Oct 18 2007 Ira Weiny <weiny2@llnl.gov>
+
+	* : 0.0.2-4 tag
+
+- Wed Oct 15 2007 Ira Weiny <weiny2@llnl.gov>
+
+	* : change ibcheckverbs to search for ib_rdma_bw
+
+- Wed Oct 10 2007 Ira Weiny <weiny2@llnl.gov>
+
+	* : change the spec file to add the BuildRequires for the crlf build
+
+- Wed Aug 29 2007 Ira Weiny <weiny2@llnl.gov>
+
+	* : change the name to pragmatic-infiniband-utilities (PIU), since Jim
+		Garlick could not bring himself to use the previous perfect name
+	* : change get[l,g]id to ibget[l,g]id because getgid could be confused with
+		the system call.
+
+- Tue Aug 28 2007 Ira Weiny <weiny2@llnl.gov>
+
+	* : 0.0.2-2 tag
+	* : add dist to spec file for automatic chaos 4 build.
+
+- Mon Aug 27 2007 Ira Weiny <weiny2@llnl.gov>
+
+	* : 0.0.2-1 tag
+	* : floccinaucinihilipilification.spec.in: cleaned up requirements
+
+- Fri Aug 24 2007 Ira Weiny <weiny2@llnl.gov>
+
+	* : floccinaucinihilipilification.spec.in: additional requirements
+	* : src/ibswwatch.c: removed tool as it is unecessary
+	* : Clean up copyright headers in preparation for release
+
+- Thu Aug 23 2007 Ira Weiny <weiny2@llnl.gov>
+
+	* : Initial project creation "floccinaucinihilipilification"
+
+- Thu Aug 23 2007 Al Chu <chu11@llnl.gov>
+
+	* : found the perfect name for this project on wikipedia!
+

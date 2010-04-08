@@ -1,0 +1,18 @@
+Pragmatic Infiniband Utilities (PIU)
+
+PIU is a set of utilities for InfiniBand fabric management.  PIU extends the
+standard infiniband-diags by integrating support for the following cluster
+management tools.
+
+   whatsup (https://computing.llnl.gov/linux/whatsup.html)
+   Genders (https://computing.llnl.gov/linux/genders.html)
+   pdsh (https://computing.llnl.gov/linux/pdsh.html)
+   SLURM (https://computing.llnl.gov/linux/slurm/)
+   dot and dotty (http://hoagland.org/Dot.html)
+
+PIU is distributed under the Gnu General Public License, version 2.
+
+For questions contact Ira Weiny (weiny2@llnl.gov)
+
+UCRL-CODE-235440
+

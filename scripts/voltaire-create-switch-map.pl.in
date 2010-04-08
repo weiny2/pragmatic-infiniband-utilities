@@ -1,0 +1,140 @@
+#!/usr/bin/perl
+#
+#  Copyright (C) 2007 The Regents of the University of California.
+#  Produced at Lawrence Livermore National Laboratory (cf, DISCLAIMER).
+#  Written by Ira Weiny weiny2@llnl.gov
+#  UCRL-CODE-235440
+#  
+#  This file is part of pragmatic-infiniband-tools (PIU), usefull tools to manage
+#  Infiniband Clusters.
+#  For details, see http://www.llnl.gov/linux/.
+#  
+#  PIU is free software; you can redistribute it
+#  and/or modify it under the terms of the GNU General Public License as
+#  published by the Free Software Foundation; either version 2 of the License,
+#  or (at your option) any later version.
+#  
+#  PIU is distributed in the hope that it will be
+#  useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
+#  Public License for more details.
+#  
+#  You should have received a copy of the GNU General Public License along with
+#  PIU; if not, write to the Free Software
+#  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA.
+#
+
+use strict;
+
+use Getopt::Std;
+
+my $def_switch_conf = "@PIU_CONFIG_PATH@/voltaire-create-switch-map.conf";
+
+sub usage_and_exit
+{
+   my $prog = $_[0];
+   print "Usage: $prog [-h] [-r <rack>] [-l <line_card_desc>] [-s <spine_card_desc>]\n";
+   print "       [-u <username>] [-p <password>]\n";
+   print "       [-c <conf>] <switch_ip_name>\n";
+   print "   Read the GUIDs from a Voltaire switch (IP connected) and create a switch map\n";
+   print "   -h This help message\n";
+   print "   -r <rack> rack location.\n";
+   print "   -l <line_card_desc> Line card description (eg \"ISR9288/ISR9096 sLB-24D\")\n";
+   print "   -s <spine_card_desc> spine card description (eg \"ISR9288 sFB-12D\")\n";
+   print "   -u <username> specify a username for switch login\n";
+   print "   -p <password> specify a password for switch login\n";
+   print "   -c <conf> specify a different config file (def: $def_switch_conf)\n";
+   print "   <switch_ip_name> The IP or hostname of the switch\n";
+   exit 0;
+}
+
+my $argv0 = `basename $0`;
+chomp $argv0;
+my $script_dir = `dirname $0`;
+chomp $script_dir;
+my $rack = undef;
+my $line_card_desc = undef;
+my $spine_card_desc = undef;
+my $switch_conf = $def_switch_conf;
+my $username = undef;
+my $password = undef;
+
+if (!getopts("hr:l:s:c:u:p:")) { usage_and_exit $argv0; }
+if (defined $Getopt::Std::opt_h) { usage_and_exit $argv0; }
+if (defined $Getopt::Std::opt_r) { $rack = "R $Getopt::Std::opt_r "; }
+if (defined $Getopt::Std::opt_l) { $line_card_desc = " $Getopt::Std::opt_l"; }
+if (defined $Getopt::Std::opt_s) { $spine_card_desc = " $Getopt::Std::opt_s"; }
+if (defined $Getopt::Std::opt_c) { $switch_conf = $Getopt::Std::opt_c; }
+if (defined $Getopt::Std::opt_u) { $username = $Getopt::Std::opt_u; }
+if (defined $Getopt::Std::opt_p) { $password = $Getopt::Std::opt_p; }
+
+my $switch_ip_name = $ARGV[0];
+
+if ($switch_ip_name eq "") {
+   printf(STDERR "ERROR: No switch specified\n");
+   exit 1
+}
+
+# read the conf file
+my $data = `cat $switch_conf`;
+my @lines = split("\n", $data);
+foreach my $line (@lines) {
+   if ($line =~ /^Username\s*(.*)$/) { $username=$1; }
+   if ($line =~ /^Password\s*(.*)$/) { $password=$1; }
+   if ($line =~ /^LineDesc\s*(.*)$/) { $line_card_desc=" $1"; }
+   if ($line =~ /^SpineDesc\s*(.*)$/) { $spine_card_desc=" $1"; }
+   if ($line =~ /^Rack\s*(.*)$/) { $rack="R $1 "; }
+}
+
+if ( "$username" eq "" || "$password" eq "" ) {
+   printf(STDERR "ERROR: no username and/or password found for switch login\n");
+   exit 1
+}
+
+sub main
+{
+   my $data = `$script_dir/voltaire-get-guids.exp $username $password $switch_ip_name`;
+   my @lines = split("\n", $data);
+   my $line_card = 0;
+   my $spine_card = 0;
+   my $guid = "";
+   printf("# $switch_ip_name\n");
+   foreach my $line (@lines) {
+      if ($line =~ /^Line\s*(.*)/) {
+         if ($line_card == 0) {
+            printf("# Line cards\n");
+         }
+         $line_card = $1;
+         $spine_card = 0;
+      }
+      if ($line =~ /^Spine\s*(.*)/) {
+         $line_card = 0;
+         if ($spine_card == 0) {
+            printf("# Spine cards\n");
+         }
+         $spine_card = $1;
+      }
+      if ($line =~ /^\d\s*([[:xdigit:]]*) \s*.*/) {
+         $guid = $1;
+         my $label = "L";
+         my $number = 0;
+         my $desc = "";
+         if ($line_card != 0) {
+            $label = "L";
+            $number = $line_card;
+            $desc = $line_card_desc;
+         }
+         if ($spine_card != 0) {
+            $label = "SP";
+            $number = $spine_card;
+            $desc = $spine_card_desc;
+         }
+         printf("0x%016s \"%s (%s%s %d)%s\"\n",
+            $guid, $switch_ip_name, $rack, $label, $number, $desc);
+      }
+   }
+}
+main();
+
+exit 0
+

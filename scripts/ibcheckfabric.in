@@ -1,0 +1,130 @@
+#!/usr/bin/perl
+#
+#  Copyright (C) 2007 The Regents of the University of California.
+#  Produced at Lawrence Livermore National Laboratory (cf, DISCLAIMER).
+#  Written by Ira Weiny weiny2@llnl.gov
+#  UCRL-CODE-235440
+#  
+#  This file is part of pragmatic-infiniband-tools (PIU), usefull tools to manage
+#  Infiniband Clusters.
+#  For details, see http://www.llnl.gov/linux/.
+#  
+#  PIU is free software; you can redistribute it
+#  and/or modify it under the terms of the GNU General Public License as
+#  published by the Free Software Foundation; either version 2 of the License,
+#  or (at your option) any later version.
+#  
+#  PIU is distributed in the hope that it will be
+#  useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
+#  Public License for more details.
+#  
+#  You should have received a copy of the GNU General Public License along with
+#  PIU; if not, write to the Free Software
+#  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA.
+#
+
+use strict;
+use Getopt::Std;
+use IBswcountlimits;
+
+my $sbindir="@PIU_SBIN_PATH@";
+
+sub usage_and_exit
+{
+   my $prog = $_[0];
+   print "Usage: $prog [-hce][-m <node-name-map>\n";
+	print "   Check the status of the IB fabric\n";
+	print "   -c clear the IB errors after checking them\n";
+	print "   -e just check the IB errors\n";
+	print "   -m <node-name-map> specify a different node name map file\n";
+	print "\n";
+	exit 0
+}
+
+my $argv0 = `basename $0`;
+my $check_errors = undef;
+my $map_file = "";
+my $clear_errors = "";
+$IBswcountlimits::auth_check;
+chomp $argv0;
+if (!getopts("hcem:")) { usage_and_exit $argv0; }
+if (defined $Getopt::Std::opt_h) { usage_and_exit $argv0; }
+if (defined $Getopt::Std::opt_c) { $check_errors = "yes"; $clear_errors = "-c"; }
+if (defined $Getopt::Std::opt_e) { $check_errors = "yes"; }
+if (defined $Getopt::Std::opt_m) { $map_file = "--node-name-map $Getopt::Std::opt_m"; }
+
+if ($check_errors eq "yes")
+{
+   print "Collecting port error information...\n";
+   my $errors = `$sbindir/ibtrackerrors $map_file $clear_errors`;
+   print $errors;
+}
+
+# check if we have the new iblinkinfo
+my $link_info_exe = "$sbindir/iblinkinfo";
+if ( -x $link_info_exe ) {
+	# this supports the map file option so add it here
+	$link_info_exe = "$link_info_exe $map_file";
+} else  {
+	# if not fall back to the previous version
+	$link_info_exe = "iblinkinfo.pl -R";
+}
+
+
+# check link stats
+print "Collecting port information...\n";
+print "Running: $link_info_exe\n";
+my $link_info_data = `$link_info_exe -l`;
+my @lines = split("\n", $link_info_data);
+
+my $down_port_cnt = 0;
+my $disabled_port_cnt = 0;
+my @disabled_ports = ();
+my $oneX_cnt = 0;
+my @oneX_ports = ();
+my $fourX_cnt = 0;
+my $twelveX_cnt = 0;
+my $sdr_cnt = 0;
+my $ddr_cnt = 0;
+my $qdr_cnt = 0;
+foreach my $line (@lines) {
+   # check for down links
+   if ($line =~ /.*Down.*/) { $down_port_cnt++; }
+   if ($line =~ /.*Disabled.*/) { $disabled_port_cnt++; push (@disabled_ports, $line); }
+   # check for link line width
+   if ($line =~ /.*1X.*/)  { $oneX_cnt++; push (@oneX_ports, $line); }
+   if ($line =~ /.*4X.*/)  { $fourX_cnt++; }
+   if ($line =~ /.*12X.*/) { $twelveX_cnt++; }
+   # check for link speed
+   if ($line =~ /.*2.5 Gbps.*/)  { $sdr_cnt++; }
+   if ($line =~ /.*5.0 Gbps.*/)  { $ddr_cnt++; }
+   if ($line =~ /.*10.0 Gbps.*/) { $qdr_cnt++; }
+}
+
+# print results
+$sdr_cnt = $sdr_cnt - $down_port_cnt;
+print "Switch Port Stats:\n";
+if ($down_port_cnt != 0)     { print "   $down_port_cnt down port(s)\n"; }
+if ($disabled_port_cnt != 0)
+{
+   print "   $disabled_port_cnt disabled port(s)\n";
+   foreach my $port (@disabled_ports) {
+      print "   $port\n";
+   }
+}
+if ($oneX_cnt != 0)
+{
+   print "   $oneX_cnt port(s) at 1X\n";
+   foreach my $port (@oneX_ports) {
+      print "   $port\n";
+   }
+}
+if ($fourX_cnt != 0)         { print "   $fourX_cnt port(s) at 4X\n"; }
+if ($twelveX_cnt != 0)       { print "   $twelveX_cnt port(s) at 12X\n"; }
+if ($sdr_cnt != 0)           { print "   $sdr_cnt port(s) at 2.5 Gbps (SDR) [Active]\n"; }
+if ($ddr_cnt != 0)           { print "   $ddr_cnt port(s) at 5.0 Gbps (DDR)\n"; }
+if ($qdr_cnt != 0)           { print "   $qdr_cnt port(s) at 10.0 Gbps (QDR)\n"; }
+
+#print "Node Port Stats:\n";
+
