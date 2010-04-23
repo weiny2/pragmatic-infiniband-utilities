@@ -508,7 +508,7 @@ static void load_expected_host_list(void)
 	genders_t genders;
 	char **node_list;
 	int node_list_len;
-	int i;
+	int i, n;
 
 	if (expected_hosts) {
 		g_expected_host_list = hostlist_create(expected_hosts);
@@ -526,15 +526,15 @@ static void load_expected_host_list(void)
 		fprintf(stderr, "ERROR: genders nodelist create failed: %s\n",
 			genders_errormsg(genders));
 
-	if (genders_query(genders, node_list,
-			  node_list_len, g_query) < 0)
+	if ((n = genders_query(genders, node_list,
+			  node_list_len, g_query)) < 0)
 		fprintf(stderr,
 			"ERROR: genders query failed: %s\n",
 			genders_errormsg(genders));
 
 	g_expected_host_list = hostlist_create(NULL);
 
-	for (i = 0 ; i < node_list_len; i++)
+	for (i = 0 ; i < n; i++)
 		hostlist_push_host(g_expected_host_list, node_list[i]);
 
 	genders_nodelist_destroy(genders, node_list);

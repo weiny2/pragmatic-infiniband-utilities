@@ -1,5 +1,5 @@
 /*****************************************************************************\
- *  $Id: hostlist.h 7428 2008-05-23 16:08:31Z grondo $
+ *  $Id$
  *****************************************************************************
  *  Copyright (C) 2002 The Regents of the University of California.
  *  Produced at Lawrence Livermore National Laboratory (cf, DISCLAIMER).
