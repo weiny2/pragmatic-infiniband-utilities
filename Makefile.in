@@ -42,7 +42,8 @@ sbin_PROGRAMS = src/simple_rdma$(EXEEXT) src/rdma_cm_query$(EXEEXT) \
 DIST_COMMON = README $(am__configure_deps) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in \
 	$(srcdir)/pragmatic-infiniband-utilities.spec.in \
-	$(top_srcdir)/configure $(top_srcdir)/man/ibsrp.8.in \
+	$(top_srcdir)/config/config.h.in $(top_srcdir)/configure \
+	$(top_srcdir)/man/ibsrp.8.in \
 	$(top_srcdir)/man/qlogic-create-switch-map.8.in \
 	$(top_srcdir)/man/voltaire-create-switch-map.8.in \
 	$(top_srcdir)/scripts/ibcheckfabric.in \
@@ -63,6 +64,7 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
  configure.lineno configure.status.lineno
 mkinstalldirs = $(install_sh) -d
+CONFIG_HEADER = $(top_builddir)/config/config.h
 CONFIG_CLEAN_FILES = pragmatic-infiniband-utilities.spec \
 	scripts/voltaire-create-switch-map.pl \
 	scripts/qlogic-create-switch-map.pl scripts/ibcheckfabric \
@@ -91,7 +93,7 @@ src_slurm_topology_OBJECTS = $(am_src_slurm_topology_OBJECTS)
 src_slurm_topology_LDADD = $(LDADD)
 sbinSCRIPT_INSTALL = $(INSTALL_SCRIPT)
 SCRIPTS = $(sbin_SCRIPTS)
-DEFAULT_INCLUDES = -I. -I$(srcdir)
+DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)/config
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
 am__depfiles_maybe = depfiles
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
@@ -234,6 +236,7 @@ INCLUDES = -I$(includedir)/infiniband \
 
 @DEBUG_FALSE@DBGFLAGS = 
 @DEBUG_TRUE@DBGFLAGS = -ggdb -D_DEBUG_
+ACLOCAL_AMFLAGS = -I config
 AM_CFLAGS = -Wall $(DBGFLAGS)
 mySCRIPTS = scripts/ibgetgid \
 				scripts/ibgetlid \
@@ -316,6 +319,23 @@ $(top_srcdir)/configure:  $(am__configure_deps)
 	cd $(srcdir) && $(AUTOCONF)
 $(ACLOCAL_M4):  $(am__aclocal_m4_deps)
 	cd $(srcdir) && $(ACLOCAL) $(ACLOCAL_AMFLAGS)
+
+config/config.h: config/stamp-h1
+	@if test ! -f $@; then \
+	  rm -f config/stamp-h1; \
+	  $(MAKE) config/stamp-h1; \
+	else :; fi
+
+config/stamp-h1: $(top_srcdir)/config/config.h.in $(top_builddir)/config.status
+	@rm -f config/stamp-h1
+	cd $(top_builddir) && $(SHELL) ./config.status config/config.h
+$(top_srcdir)/config/config.h.in:  $(am__configure_deps) 
+	cd $(top_srcdir) && $(AUTOHEADER)
+	rm -f config/stamp-h1
+	touch $@
+
+distclean-hdr:
+	-rm -f config/config.h config/stamp-h1
 pragmatic-infiniband-utilities.spec: $(top_builddir)/config.status $(srcdir)/pragmatic-infiniband-utilities.spec.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 scripts/voltaire-create-switch-map.pl: $(top_builddir)/config.status $(top_srcdir)/scripts/voltaire-create-switch-map.pl.in
@@ -774,7 +794,7 @@ distclean: distclean-am
 	-rm -rf ./$(DEPDIR)
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
-	distclean-libtool distclean-tags
+	distclean-hdr distclean-libtool distclean-tags
 
 dvi: dvi-am
 
@@ -827,11 +847,11 @@ uninstall-man: uninstall-man8
 	clean-generic clean-libtool clean-sbinPROGRAMS ctags dist \
 	dist-all dist-bzip2 dist-gzip dist-shar dist-tarZ dist-zip \
 	distcheck distclean distclean-compile distclean-generic \
-	distclean-libtool distclean-tags distcleancheck distdir \
-	distuninstallcheck dvi dvi-am html html-am info info-am \
-	install install-am install-data install-data-am install-exec \
-	install-exec-am install-exec-hook install-info install-info-am \
-	install-man install-man8 install-sbinPROGRAMS \
+	distclean-hdr distclean-libtool distclean-tags distcleancheck \
+	distdir distuninstallcheck dvi dvi-am html html-am info \
+	info-am install install-am install-data install-data-am \
+	install-exec install-exec-am install-exec-hook install-info \
+	install-info-am install-man install-man8 install-sbinPROGRAMS \
 	install-sbinSCRIPTS install-strip installcheck installcheck-am \
 	installdirs maintainer-clean maintainer-clean-generic \
 	mostlyclean mostlyclean-compile mostlyclean-generic \

@@ -5,6 +5,7 @@ AC_META
 AC_CONFIG_AUX_DIR(config)
 AC_CONFIG_SRCDIR([META])
 AM_INIT_AUTOMAKE($PROJECT, $VERSION)
+AC_CONFIG_HEADERS([config/config.h])
 
 dnl Checks for programs
 AC_PROG_CC

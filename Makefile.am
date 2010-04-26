@@ -7,6 +7,8 @@ else
 DBGFLAGS =
 endif
 
+ACLOCAL_AMFLAGS = -I config
+
 AM_CFLAGS = -Wall $(DBGFLAGS)
 
 sbin_PROGRAMS = src/simple_rdma \
