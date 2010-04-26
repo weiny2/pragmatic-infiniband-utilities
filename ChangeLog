@@ -1,3 +1,9 @@
+- Mon Apr 26 2010 Ira Weiny <weiny2@llnl.gov>
+
+	* : tag 1.0.4-4
+	* : Update all the autoconf stuff to build without autoconf
+	* : Check in "configure" support
+
 - Fri Apr 23 2010 Ira Weiny <weiny2@llnl.gov>
 
 	* : tag 1.0.4-3
