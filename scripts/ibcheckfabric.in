@@ -104,6 +104,12 @@ foreach my $line (@lines) {
 
 # print results
 $sdr_cnt = $sdr_cnt - $down_port_cnt;
+# some switches do not report "2.5 Gbps" for "Down" ports
+# So the above math is wrong.  Just peg this out if the down ports
+# reported is greater than the SDR ports.
+if ($sdr_cnt < 0) {
+	$sdr_cnt = 0;
+}
 print "Switch Port Stats:\n";
 if ($down_port_cnt != 0)     { print "   $down_port_cnt down port(s)\n"; }
 if ($disabled_port_cnt != 0)
