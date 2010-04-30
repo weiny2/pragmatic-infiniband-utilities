@@ -18,21 +18,26 @@ across an entire cluster.
 
 .PP
 .TP
-\fB\-R\fR
-Recalculate the ibnetdiscover information, ie do not use the cached
-information.  This option is slower but should be used if the diag tools have
-not been used for a long time or if there are other reasons to believe the
-fabric has changed.
-.TP
 \fB\-S <guid>\fR
-output only the switch specified by <guid>
+bounce only the switch specified by <guid>
 .TP
-\fB\-t\fR
-After disabling and renabling the link the script will pause to see the link change
-states.  Use this option to change that pause time.
+\fB\-t <timeout>\fR
+Set the timeout the script will use to determine if a port has gone active again.
 .TP
 \fB\-i\fR
 Specify a comma separated list of hosts, of which the links will be ignored.
+.TP
+\fB\-s\fR
+Specify we are going TO SDR mode.  This will casued ibbouncelinks to skip ports which are already at SDR.
+.TP
+\fB\-d\fR
+Specify we are going TO DDR mode.  This will casued ibbouncelinks to skip ports which are already at DDR.
+.TP
+\fB\-q\fR
+Specify we are going TO QDR mode.  This will casued ibbouncelinks to skip ports which are already at QDR.
+.TP
+\fB\-O <guid:port>\fR
+Bounce the link of a single port specified by <guid:port>\n".
 
 .SH AUTHOR
 .TP
