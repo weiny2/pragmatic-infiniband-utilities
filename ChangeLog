@@ -1,5 +1,7 @@
 - Mon May 03 2010 Ira Weiny <weiny2@llnl.gov>
 
+	* : Add whatsup check to ibnodesinmcast
+	* : Add pdsh check to ibcheckverbs
 	* : Update and add man pages (ibcheckverbs, slurm_topology)
 	* : ibgraphfabric.pl: Remove in favor of ibgraphfabric
 	* : ibbouncelinks.pl: Remove obsolete "-R" option

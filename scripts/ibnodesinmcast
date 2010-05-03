@@ -138,6 +138,11 @@ sub get_hosts_in_mlid
 my $uphosts = undef;
 my @uphosts = undef;
 if ($report_missing eq "yes") {
+   my $rc = system("which whatsup > /dev/null 2>&1");
+   if ($rc ne "0") {
+      printf STDERR "Error: -m option requires \"whatsup\" command\n";
+      exit (1);
+   }
    $uphosts = `whatsup -u`;
    @uphosts = Hostlist::expand($uphosts);
 }
