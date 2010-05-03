@@ -1,3 +1,11 @@
+- Mon May 03 2010 Ira Weiny <weiny2@llnl.gov>
+
+	* : ibgraphfabric.pl: Remove in favor of ibgraphfabric
+	* : ibbouncelinks.pl: Remove obsolete "-R" option
+			Update docs
+			increase timeout for QDR links
+	* : ibcheckfabric: Fix issue with new iblinkinfo output
+
 - Mon Apr 26 2010 Ira Weiny <weiny2@llnl.gov>
 
 	* : tag 1.0.4-4

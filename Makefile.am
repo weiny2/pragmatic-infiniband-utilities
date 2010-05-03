@@ -24,7 +24,6 @@ mySCRIPTS = scripts/ibgetgid \
 				scripts/ibcheckfabric \
 				scripts/ibnodesinmcast \
 				scripts/ibbouncelinks.pl \
-				scripts/ibgraphfabric.pl \
 				scripts/voltaire-create-switch-map.pl \
 				scripts/voltaire-get-guids.exp \
 				scripts/qlogic-create-switch-map.pl \
