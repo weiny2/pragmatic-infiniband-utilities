@@ -47,7 +47,7 @@ if {$force_conservative} {
 
 if { $switch == "" } {
    puts "ERROR: No switch specified"
-   puts "usage: voltaire-get-guids.exp <user> <password> <switch>"
+   puts "usage: qlogic-get-guids.exp <user> <password> <switch>"
    exit 1
 }
 
