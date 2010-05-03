@@ -91,6 +91,13 @@ if [ "$1" == "" ] || [ "$2" == "" ]; then
    exit 1
 fi
 
+which pdsh > /dev/null
+rc=$?
+if [ "$rc" != "0" ]; then
+   echo "Error: pdsh is required for ibcheckverbs"
+   exit 1
+fi
+
 host1=`echo $1 | sed -e "s/\([^:]*\):.*/\1/"`
 host2=`echo $2 | sed -e "s/\([^:]*\):.*/\1/"`
 host1_dev_opts=`echo $1 | awk -F: '{ if ($2) printf "-d "; printf $2; if ($3) printf " -i "; printf $3; print "" }'`
