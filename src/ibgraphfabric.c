@@ -3,6 +3,7 @@
  * Copyright (c) 2007 Xsigo Systems Inc.  All rights reserved.
  * Copyright (c) 2008 Lawrence Livermore National Lab.  All rights reserved.
  * Copyright (c) 2009 HNR Consulting.  All rights reserved.
+ * Copyright (c) 2010 Lawrence Livermore National Lab.  All rights reserved.
  *
  * This software is available to you under a choice of one of two
  * licenses.  You may choose to be licensed under the terms of the GNU
@@ -54,7 +55,6 @@
 #include <infiniband/ibnetdisc.h>
 #include <infiniband/mad.h>
 
-
 char *argv0 = NULL;
 
 static char *node_name_map_file = NULL;
@@ -66,12 +66,16 @@ ib_portid_t sm_portid = { 0 };
 
 char *node_guid_str = NULL;
 char *root_regex = NULL;
-//char *node_node_red = NULL;
 char *ignore_regex = NULL;
 char *cluster_name = NULL;
 uint64_t node_guid = 0;
 char *dr_path = NULL;
 int combine_edges = 0;
+char *fromname = NULL;
+char *toname = NULL;
+
+ibnd_node_t *fromnode = NULL;
+ibnd_node_t *tonode = NULL;
 
 #define HTSZ 137
 #define HASHGUID(guid) (((uint32_t)(((uint32_t)(guid) * 101) ^ ((uint32_t)((guid) >> 32) * 103))) % HTSZ)
@@ -342,6 +346,19 @@ static void print_dot_file(ibnd_fabric_t *fabric)
 }
 
 /** =========================================================================
+*/
+static ibnd_node_t *find_node(ibnd_fabric_t *fabric, char *name)
+{
+	ibnd_node_t node;
+	for (node = fabric->nodes; node; node->next) {
+		if (strcmp(node->nodedesc, name) == 0) {
+			return (node);
+		}
+	}
+	return (NULL);
+}
+
+/** =========================================================================
  */
 static int
 usage(void)
@@ -360,9 +377,7 @@ usage(void)
 "  -g <cluster_name> DON'T print GUID's on nodes if labeled <cluster_name>N\n"
 "  -r <regex> regex to identify root switches\n"
 "  -i <regex> regex to identify nodes to ignore\n"
-
-/* not done yet */
-//"  -M <node[,node]> plot routes from node to node in red\n"
+"  -M <node1:node2> plot route(s) from node1 to node2 in red\n"
 
 "  --node-name-map <map> specify alternate node name map\n"
 "  --Ca, -C <ca>         Ca name to use\n"
@@ -392,7 +407,7 @@ int main(int argc, char **argv)
 	int ibd_timeout = 200;
 
         char  ch = 0;
-        static char const str_opts[] = "hS:G:D:r:ei:g:n:C:P:t:v";
+        static char const str_opts[] = "hS:G:D:r:ei:g:n:C:P:t:vM:";
         static const struct option long_opts [] = {
            {"help", 0, 0, 'h'},
 	   {"node-name-map", 1, 0, 1},
@@ -424,11 +439,14 @@ int main(int argc, char **argv)
 			case 'e':
 				combine_edges = 1;
 				break;
-			/* Not implemented yet
 			case 'M':
-				node_node_red = strdup(optarg);
+			{
+				char *tmp = strdup(optarg);
+				fromname = strdup(strtok(tmp, ":"));
+				toname = strdup(strtok(NULL, ":"));
+				free(tmp);
 				break;
-			*/
+			}
 			case 'i':
 				ignore_regex = strdup(optarg);
 				break;
@@ -513,8 +531,31 @@ int main(int argc, char **argv)
 		goto close_port;
 	}
 
+	if (fromname && toname) {
+		fprintf(stderr, "Plotting from %s => to %s\n",
+			fromname, toname);
+		fromnode = find_node(fabric, fromname);
+		tonode = find_node(fabric, toname);
+		if (!fromnode || !tonode) {
+			if (!fromnode)
+				fprintf(stderr,
+					"Error: %s not found in fabric\n",
+					fromname);
+			if (!tonode)
+				fprintf(stderr,
+					"Error: %s not found in fabric\n",
+					toname);
+			free(fromname);
+			free(toname);
+			goto destroy_fabric;
+		}
+		free(fromname);
+		free(toname);
+	}
+
 	print_dot_file(fabric);
 
+destroy_fabric:
 	ibnd_destroy_fabric(fabric);
 
 close_port:
