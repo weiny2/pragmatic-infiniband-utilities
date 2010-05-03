@@ -1,5 +1,6 @@
 - Mon May 03 2010 Ira Weiny <weiny2@llnl.gov>
 
+	* : Update and add man pages (ibcheckverbs, slurm_topology)
 	* : ibgraphfabric.pl: Remove in favor of ibgraphfabric
 	* : ibbouncelinks.pl: Remove obsolete "-R" option
 			Update docs

@@ -262,6 +262,9 @@ mySCRIPTS = scripts/ibgetgid \
 
 man_MANS = man/ibbouncelinks.8 \
 				man/voltaire-create-switch-map.8 \
+				man/qlogic-create-switch-map.8 \
+				man/ibcheckverbs.8 \
+				man/slurm_topology.8 \
 				man/ibsrp.8
 
 sbin_SCRIPTS = $(mySCRIPTS)

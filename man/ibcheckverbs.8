@@ -1,0 +1,68 @@
+.TH IBCHECKVERBS 8 "May 03, 2010" "Pragmatic Infiniband Utilities" "Infiniband Diagnostics"
+
+.SH NAME
+ibcheckverbs \- Test the verbs connection between 2 nodes
+
+.SH SYNOPSIS
+.B ibcheckverbs [-haAvb] [-s <size>] [-n <iters>]
+                <node0>[:<dev>:<port>] <node1>[:<dev>:<port>]
+
+.SH DESCRIPTION
+.PP
+ibcheckverbs uses pdsh to set up and run the client/server test utilities
+ibv_rc_pingpong and ib_rdma_bw.  This is useful to verify that verbs
+functionality exists between 2 nodes.
+
+.SH OPTIONS
+
+.PP
+.TP
+\fB\-v\fR
+run ibv_rc_pingpong tests only
+.TP
+\fB\-b\fR
+run ib_rdma_bw tests only
+.TP
+\fB\-r <ib_rdma_bw>\fR
+Use the specified ib_rdma_bw executable
+.TP
+\fB\-s <size>\fR
+specify the -s option to ib_rdma_bw test
+.TP
+\fB\-n <iters>\fR
+specify the -n option to ib_rdma_bw test
+.TP
+\fB\-a\fR
+Short series of RDMA BW tests.
+.TP
+\fB\-A\fR
+Long series of RDMA BW tests.
+
+.SH EXAMPLES
+
+.TP
+Run test between node 1 and 2 using first device found, port 1
+   \fBibcheckverbs node1 node2\fR
+
+.TP
+Run test between node 1 using first device found, port 2 and default device, port 1 on node 2
+   \fBibcheckverbs node1::2 node2\fR
+
+.TP
+Run test between default device, port 1 on node 1 and node 1, device mlx4_1, port 2
+   \fBibcheckverbs node1 node2:mlx4_1:2\fR
+
+
+.SH REQUIREMENTS
+.PP
+.TP
+\fBpdsh\fR
+.TP
+\fBibv_rc_pingpong\fR
+.TP
+\fBib_rdma_bw\fR
+
+.SH AUTHOR
+.TP
+Ira Weiny
+.RI < weiny2@llnl.gov >

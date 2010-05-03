@@ -1,0 +1,61 @@
+.TH SLURM_TOPOLOGY 8 "May 03, 2010" "Pragmatic Infiniband Utilities" "Infiniband Diagnostics"
+
+.SH NAME
+slurm_topology \- Generate a slurm topology file for use by the slurm resource
+manager.
+
+.SH SYNOPSIS
+.B slurm_topology [options]
+
+.SH DESCRIPTION
+.PP
+slurm_topology scans the IB fabric and creates a file which can be used by
+slurm to better allocate node resources.
+
+If given a list of hosts it will warn the user if those hosts are not found.
+This is intended to be used to specify the list of compute nodes for a cluster.
+
+Alternately, If genders support is enabled it will warn the user of any
+"compute" nodes which are not found.
+
+See "man topology.conf" for more information on this config file to slurm
+
+.SH OPTIONS
+
+.PP
+.TP
+\fB\-\-num\-levels, \-n <num_levels\fR
+limit the output to the specified number of levels
+.TP
+\fB\-\-hosts <hostlist>\fR
+specify hosts to be found; overrides genders queries
+.TP
+\fB\-\-genders, \-g <genders_file>\fR
+Specify an alternate genders file
+.TP
+\fB\-\-genders\-query, \-q <genders_query>\fR
+specify a node query to genders (default: "compute") "man genders_query" for
+query examples.
+.TP
+\fB\-\-node\-name\-map <map>\fR
+specify an alternate node name map
+.TP
+\fB\-\-Ca, \-C <ca>\fR
+Ca name to use
+.TP
+\fB\-\-Port, \-P <port>\fR
+Ca port number to use
+.TP
+\fB\-\-timeout, \-t <ms>\fR
+timeout in ms
+.TP
+\fB\-\-verbose, \-v\fR
+increase verbosity level
+
+.SH SEE ALSO
+\fBtopology.conf\fR(5)
+
+.SH AUTHOR
+.TP
+Ira Weiny
+.RI < weiny2@llnl.gov >
