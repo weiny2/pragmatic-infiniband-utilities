@@ -91,7 +91,7 @@ if [ "$1" == "" ] || [ "$2" == "" ]; then
    exit 1
 fi
 
-which pdsh > /dev/null
+which pdsh > /dev/null 2>&1
 rc=$?
 if [ "$rc" != "0" ]; then
    echo "Error: pdsh is required for ibcheckverbs"
