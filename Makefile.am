@@ -33,7 +33,8 @@ mySCRIPTS = scripts/ibgetgid \
 				scripts/check_wiring_coastal.pl \
 				scripts/lfts_sort.pl \
 				scripts/ibcreateswitchmap.sh \
-				scripts/ibhcacounters
+				scripts/ibhcacounters \
+				scripts/PIUHostlist.pm
 
 man_MANS = man/ibbouncelinks.8 \
 				man/voltaire-create-switch-map.8 \

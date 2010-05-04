@@ -48,6 +48,7 @@ DIST_COMMON = README $(am__configure_deps) $(srcdir)/Makefile.am \
 	$(top_srcdir)/man/voltaire-create-switch-map.8.in \
 	$(top_srcdir)/scripts/ibcheckfabric.in \
 	$(top_srcdir)/scripts/ibcreateswitchmap.sh.in \
+	$(top_srcdir)/scripts/ibnodesinmcast.in \
 	$(top_srcdir)/scripts/ibsrp.in \
 	$(top_srcdir)/scripts/ibtrackerrors.in \
 	$(top_srcdir)/scripts/qlogic-create-switch-map.pl.in \
@@ -68,8 +69,8 @@ CONFIG_HEADER = $(top_builddir)/config/config.h
 CONFIG_CLEAN_FILES = pragmatic-infiniband-utilities.spec \
 	scripts/voltaire-create-switch-map.pl \
 	scripts/qlogic-create-switch-map.pl scripts/ibcheckfabric \
-	scripts/ibtrackerrors scripts/ibcreateswitchmap.sh \
-	man/voltaire-create-switch-map.8 \
+	scripts/ibtrackerrors scripts/ibnodesinmcast \
+	scripts/ibcreateswitchmap.sh man/voltaire-create-switch-map.8 \
 	man/qlogic-create-switch-map.8 scripts/ibsrp man/ibsrp.8
 am__installdirs = "$(DESTDIR)$(sbindir)" "$(DESTDIR)$(sbindir)" \
 	"$(DESTDIR)$(man8dir)"
@@ -258,7 +259,8 @@ mySCRIPTS = scripts/ibgetgid \
 				scripts/check_wiring_coastal.pl \
 				scripts/lfts_sort.pl \
 				scripts/ibcreateswitchmap.sh \
-				scripts/ibhcacounters
+				scripts/ibhcacounters \
+				scripts/PIUHostlist.pm
 
 man_MANS = man/ibbouncelinks.8 \
 				man/voltaire-create-switch-map.8 \
@@ -350,6 +352,8 @@ scripts/qlogic-create-switch-map.pl: $(top_builddir)/config.status $(top_srcdir)
 scripts/ibcheckfabric: $(top_builddir)/config.status $(top_srcdir)/scripts/ibcheckfabric.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 scripts/ibtrackerrors: $(top_builddir)/config.status $(top_srcdir)/scripts/ibtrackerrors.in
+	cd $(top_builddir) && $(SHELL) ./config.status $@
+scripts/ibnodesinmcast: $(top_builddir)/config.status $(top_srcdir)/scripts/ibnodesinmcast.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 scripts/ibcreateswitchmap.sh: $(top_builddir)/config.status $(top_srcdir)/scripts/ibcreateswitchmap.sh.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@

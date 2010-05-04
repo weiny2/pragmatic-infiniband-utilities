@@ -25,9 +25,12 @@
 #
 
 use strict;
+
+use lib '@PIU_SBIN_PATH@';
+use PIUHostlist;
+
 use Getopt::Std;
 use IBswcountlimits;
-use Hostlist;
 
 my $def_sa_timeout_ms = 500;
 my $sa_timeout_ms = $def_sa_timeout_ms;
@@ -144,7 +147,7 @@ if ($report_missing eq "yes") {
       exit (1);
    }
    $uphosts = `whatsup -u`;
-   @uphosts = Hostlist::expand($uphosts);
+   @uphosts = PIUHostlist::expand($uphosts);
 }
 
 # =========================================================================
@@ -157,17 +160,17 @@ sub main
       my $in_cnt = scalar @mlid_hosts;
 
       if (scalar @node_name > 0) {
-         if (Hostlist::within(\@node_name, \@mlid_hosts)) {
+         if (PIUHostlist::within(\@node_name, \@mlid_hosts)) {
             print "$mlid ";
          }
          if ($report_mgid eq "yes") {
-            if (Hostlist::within(\@node_name, \@mlid_hosts)) {
+            if (PIUHostlist::within(\@node_name, \@mlid_hosts)) {
                print "($mgid_map{$mlid})\n";
             }
          }
       } else {
-         my @hosts = Hostlist::mk_gend("cluster");
-         my @hosts_not_in_mlid = Hostlist::diff(\@hosts, \@mlid_hosts);
+         my @hosts = PIUHostlist::mk_gend("cluster");
+         my @hosts_not_in_mlid = PIUHostlist::diff(\@hosts, \@mlid_hosts);
          my $not_cnt = scalar @hosts_not_in_mlid;
 
          print "$mlid";
@@ -176,15 +179,15 @@ sub main
          }
          print "\n";
          if ($report_missing eq "yes") {
-            my @hosts_missing = Hostlist::diff(\@uphosts, \@mlid_hosts);
+            my @hosts_missing = PIUHostlist::diff(\@uphosts, \@mlid_hosts);
             my $missing_cnt = scalar @hosts_missing;
-            my $r = Hostlist::compress_to_quadrics (@hosts_missing);
+            my $r = PIUHostlist::compress_to_quadrics (@hosts_missing);
             print "   $missing_cnt host(s) up but not in group: $r\n";
          } else {
-            my $hosts_in_mlid = Hostlist::compress_to_quadrics (@mlid_hosts);
+            my $hosts_in_mlid = PIUHostlist::compress_to_quadrics (@mlid_hosts);
             print "   In  $in_cnt: $hosts_in_mlid\n";
 
-            my $hosts_not_in_mlid = Hostlist::compress_to_quadrics (@hosts_not_in_mlid);
+            my $hosts_not_in_mlid = PIUHostlist::compress_to_quadrics (@hosts_not_in_mlid);
             print "   Out $not_cnt: $hosts_not_in_mlid\n";
          }
       }
