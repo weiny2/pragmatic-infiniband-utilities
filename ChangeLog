@@ -1,3 +1,8 @@
+- Tue May 04 2010 Ira Weiny <weiny2@llnl.gov>
+
+	* : tag 1.0.5-1
+	* : Integrate Hostlist.pm as PIUHostlist.pm
+
 - Mon May 03 2010 Ira Weiny <weiny2@llnl.gov>
 
 	* : Add whatsup check to ibnodesinmcast
