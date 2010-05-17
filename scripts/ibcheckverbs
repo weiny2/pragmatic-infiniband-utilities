@@ -37,6 +37,7 @@ function usage
    echo "   -r <ib_rdma_bw> use specified ib_rdma_bw executable"
    echo "   -s <size> specify the -s option to ib_rdma_bw test"
    echo "   -n <iters> specify the -n option to ib_rdma_bw test"
+   echo "   -m show full output from commands run (messy)"
    echo ""
    echo "      The options below run significantly slower but send more data"
    echo ""
@@ -61,7 +62,8 @@ data_size=1024
 iters=10000
 band_width_test="true"
 verbs_test="true"
-while getopts "haAs:n:bvr:d:i:" flag
+messy_output="false"
+while getopts "haAs:n:bvr:d:i:m" flag
 do
    case $flag in
       "h") usage; exit 0;;
@@ -71,6 +73,7 @@ do
       "n") iters=$OPTARG;;
       "v") band_width_test="false";;
       "b") verbs_test="false";;
+      "m") messy_output="true";;
       "r")
             rdma_bw=$OPTARG;
             if [ ! -x $rdma_bw ]; then
@@ -106,45 +109,97 @@ host2_dev_opts=`echo $2 | awk -F: '{ if ($2) printf "-d "; printf $2; if ($3) pr
 # make sure servers/clients are not runing
 function clean_up
 {
-   echo ""
-   echo " ***** Cleaning up...  *****"
+   if [ $messy_output == "true" ]; then
+      echo ""
+      echo " ***** Cleaning up...  *****"
+   fi
    pdsh -S -w $host1 killall ibv_rc_pingpong &> /dev/null
    pdsh -S -w $host2 killall ibv_rc_pingpong &> /dev/null
 
    pdsh -S -w $host1 killall ib_rdma_bw &> /dev/null
    pdsh -S -w $host2 killall ib_rdma_bw &> /dev/null
+   rm -f /tmp/ibcheckverbs.*
 }
 
 # a basic ping pong test
 function basic_verbs
 {
+   TMP1=`mktemp /tmp/ibcheckverbs.XXXXXXXX`
+   TMP2=`mktemp /tmp/ibcheckverbs.XXXXXXXX`
    echo ""
    echo " ***** Starting Basic verbs tests...  *****"
    echo ""
-   echo "       Server $host1 ($host1_dev_opts) <== Client $host2 ($host2_dev_opts)"
-   pdsh -S -w $host1 ibv_rc_pingpong $host1_dev_opts &
+   if [ $messy_output == "true" ]; then
+      echo "       Server $host1 ($host1_dev_opts) <== Client $host2 ($host2_dev_opts)"
+   else
+      echo -n "   $host2 ($host2_dev_opts) ==> $host1 ($host1_dev_opts) : "
+   fi
+   pdsh -S -w $host1 ibv_rc_pingpong $host1_dev_opts > $TMP1 &
    sleep 1
-   pdsh -S -w $host2 ibv_rc_pingpong $host2_dev_opts $host1
+   pdsh -S -w $host2 ibv_rc_pingpong $host2_dev_opts $host1 > $TMP2
+
+   if [ $messy_output == "true" ]; then
+      cat $TMP1
+      cat $TMP2
+   else
+      h1bw=`grep "bytes.*seconds" $TMP1 | sed -e 's/.*= \([0-9\.]* Mbit\/sec\)$/\1/'`
+      h2bw=`grep "bytes.*seconds" $TMP2 | sed -e 's/.*= \([0-9\.]* Mbit\/sec\)$/\1/'`
+      echo -e "$h1bw\t$h2bw"
+   fi
+
+   if [ $messy_output == "true" ]; then
+      echo "       Server $host2 ($host2_dev_opts) <== Client $host1 ($host1_dev_opts) "
+   else
+      echo -n "   $host1 ($host1_dev_opts) ==> $host2 ($host2_dev_opts) : "
+   fi
+   pdsh -S -w $host2 ibv_rc_pingpong $host2_dev_opts > $TMP1 &
+   sleep 1
+   pdsh -S -w $host1 ibv_rc_pingpong $host1_dev_opts $host2 > $TMP2
+
+   if [ $messy_output == "true" ]; then
+      cat $TMP1
+      cat $TMP2
+   else
+      h1bw=`grep "bytes.*seconds" $TMP1 | sed -e 's/.*= \([0-9\.]* Mbit\/sec\)$/\1/'`
+      h2bw=`grep "bytes.*seconds" $TMP2 | sed -e 's/.*= \([0-9\.]* Mbit\/sec\)$/\1/'`
+      echo -e "$h1bw\t$h2bw"
+   fi
+}
+
+function print_rdma_header
+{
    echo ""
-   echo "       Server $host2 ($host2_dev_opts) <== Client $host1 ($host1_dev_opts) "
-   pdsh -S -w $host2 ibv_rc_pingpong $host2_dev_opts &
-   sleep 1
-   pdsh -S -w $host1 ibv_rc_pingpong $host1_dev_opts $host2
-   sleep 1
+   echo " ***** Starting RDMA bandwidth tests...  *****"
+   echo "       Server $host1 ($host1_dev_opts) <==> Client $host2 ($host2_dev_opts) "
+   echo ""
+   echo -e "     parameters \t\t\t:\t$host1   $host2"
+   echo ""
 }
 
 # RDMA bandwidth tests
 function rdma_bw
 {
-   echo ""
-   echo " ***** Starting RDMA bandwidth tests...  *****"
-   echo "     ( parameters: $data_amount -b )"
-   echo ""
-   echo "       Server $host1 ($host1_dev_opts) <== Client $host2 ($host2_dev_opts) "
-   pdsh -S -w $host1 $rdma_bw $host1_dev_opts $data_amount -b &
+   TMP1=`mktemp /tmp/ibcheckverbs.XXXXXXXX`
+   TMP2=`mktemp /tmp/ibcheckverbs.XXXXXXXX`
+
+   if [ $messy_output == "true" ]; then
+      echo " ( parameters $rdma_bw $data_amount -b )"
+   else
+      echo -e -n "     $rdma_bw $data_amount -b\t:\t"
+   fi
+
+   pdsh -S -w $host1 $rdma_bw $host1_dev_opts $data_amount -b > $TMP1 &
    sleep 1
-   pdsh -S -w $host2 $rdma_bw $host2_dev_opts $data_amount -b $host1
-   sleep 1
+   pdsh -S -w $host2 $rdma_bw $host2_dev_opts $data_amount -b $host1 > $TMP2
+
+   if [ $messy_output == "true" ]; then
+      cat $TMP1
+      cat $TMP2
+   else
+      h1bw=`grep "Bandwidth average" $TMP1 | sed -e 's/.*: \([0-9\.]* MB\/sec\)$/\1/'`
+      h2bw=`grep "Bandwidth average" $TMP2 | sed -e 's/.*: \([0-9\.]* MB\/sec\)$/\1/'`
+      echo -e "$h1bw\t$h2bw"
+   fi
 }
 
 # MAIN
@@ -157,6 +212,9 @@ if [ "$data_amount" == "variable" ] || [ "$data_amount" == "Variable" ]; then
       total_data_size=10000000
       msg_sizes="1000 10000 100000 1000000"
    fi
+
+   print_rdma_header
+
    for msg_size in $msg_sizes; do
       num_msg=$((total_data_size/msg_size))
       if [ $num_msg -gt 10000 ]; then
@@ -173,8 +231,9 @@ else
       basic_verbs
    fi
    if [ "$band_width_test" == "true" ]; then
-   	data_amount="-s $data_size -n $iters"
-   	rdma_bw
+      print_rdma_header
+      data_amount="-s $data_size -n $iters"
+      rdma_bw
    fi
 fi
 clean_up
