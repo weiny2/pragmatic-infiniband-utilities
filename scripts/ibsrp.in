@@ -12,6 +12,7 @@ log_cmd="logger -s -t ibsrp -p daemon.err"
 # Defaults for config paramenters
 IBSRP_NUM_TARGETS=1
 SRP_SETTLE_TIMEOUT=1
+OPENSM_SETTLE_TIMEOUT=1
 
 # pick up our conf file if available
 if [ -f $initsysconfdir/ibsrp.conf ]; then
@@ -60,16 +61,18 @@ startOpenSMCA2CA()
            port_guid=`smpquery -C $ch_adaptor -P $port -D nodeinfo 0 | grep PortGuid | sed -e "s/^PortGuid:\.*\(.*\)/\1/"`
            if [ "$port_guid" != "" ] ; then
                $log_cmd "Starting OpenSM on port $port (guid $port_guid)"
-               opensm -B -g $port_guid -s 300 -f $LOG_DIR/opensm-$port.log > /dev/null
-               rc=`echo $?`
-               if [ "$rc" != "0" ]; then
-                    $log_cmd "Failed to start opensm on port $port, guid $port_guid"
+               opensm -g $port_guid -s 300 -f $LOG_DIR/opensm-$port.log 2>&1 > $LOG_DIR/opensm-$port.log &
+               pid=$!
+               sleep $OPENSM_SETTLE_TIMEOUT
+               run=`ps -p $pid -o comm=`
+               if [ x$run == x ]; then
+                    $log_cmd "Failed to start opensm; port $port, guid $port_guid: see $LOG_DIR/opensm-$port.log"
                     echo_failure
                     exit 1
                fi
+               echo $pid >> $PID_DIR/opensm.pid
            fi
         done
-        pidof opensm > $PID_DIR/opensm.pid
     done
 }
 
@@ -117,6 +120,10 @@ start()
 # Run opensm on each port with SRP
 #---------------------------------------------------------------
     startOpenSMCA2CA
+    rc=$?
+    if [ "$rc" != "0" ]; then
+        exit $rc
+    fi
 
 
 #---------------------------------------------------------------
@@ -136,12 +143,12 @@ start()
          let num_targets_found=$num_targets_found+1
          $log_cmd "Starting srp_daemon on $a"
          srp_daemon -e -n -d $a > /dev/null 2> /dev/null &
+         echo $! >> $PID_DIR/srp_daemon.pid
       else
          $log_cmd "srp target not found on $a... Skipping"
       fi
     done
 
-    pidof srp_daemon > $PID_DIR/srp_daemon.pid
 
     if [ $num_targets_found != $IBSRP_NUM_TARGETS ]; then
        $log_cmd "Failed to find all SRP target ports; $num_targets_found found; $IBSRP_NUM_TARGETS expected"

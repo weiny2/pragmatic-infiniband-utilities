@@ -1,3 +1,8 @@
+- Fri Jun 25 2010 Ira Weiny <weiny2@llnl.gov>
+
+	* : ibsrp.in: fix issue of script killing opensm process which were not
+	    owned by the script.  Also include stdout/stderr in log file.
+
 - Mon May 17 2010 Ira Weiny <weiny2@llnl.gov>
 
 	* : ibcheckverbs: clean up output
