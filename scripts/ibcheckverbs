@@ -61,6 +61,7 @@ rdma_bw_2="/usr/bin/rdma_bw"
 
 # process command line
 bw_exe=""
+pdsh_exe="/usr/bin/pdsh"
 data_amount=""
 data_size=1024
 iters=10000
@@ -92,9 +93,7 @@ if [ "$1" == "" ] || [ "$2" == "" ]; then
    exit 1
 fi
 
-which pdsh > /dev/null 2>&1
-rc=$?
-if [ "$rc" != "0" ]; then
+if [ ! -x $pdsh_exe ]; then
    echo "Error: pdsh is required for ibcheckverbs"
    exit 1
 fi
@@ -126,11 +125,11 @@ function clean_up
       echo ""
       echo " ***** Cleaning up...  *****"
    fi
-   pdsh -S -w $host1 killall ibv_rc_pingpong &> /dev/null
-   pdsh -S -w $host2 killall ibv_rc_pingpong &> /dev/null
+   $pdsh_exe -S -w $host1 killall ibv_rc_pingpong &> /dev/null
+   $pdsh_exe -S -w $host2 killall ibv_rc_pingpong &> /dev/null
 
-   pdsh -S -w $host1 killall ib_rdma_bw &> /dev/null
-   pdsh -S -w $host2 killall ib_rdma_bw &> /dev/null
+   $pdsh_exe -S -w $host1 killall $bw_exe &> /dev/null
+   $pdsh_exe -S -w $host2 killall $bw_exe &> /dev/null
    rm -f /tmp/ibcheckverbs.*
 }
 
@@ -147,9 +146,9 @@ function basic_verbs
    else
       echo -n "   $host2 ($host2_dev_opts) ==> $host1 ($host1_dev_opts) : "
    fi
-   pdsh -S -w $host1 ibv_rc_pingpong $host1_dev_opts > $TMP1 &
+   $pdsh_exe -S -w $host1 ibv_rc_pingpong $host1_dev_opts > $TMP1 &
    sleep 1
-   pdsh -S -w $host2 ibv_rc_pingpong $host2_dev_opts $host1 > $TMP2
+   $pdsh_exe -S -w $host2 ibv_rc_pingpong $host2_dev_opts $host1 > $TMP2
 
    if [ $messy_output == "true" ]; then
       cat $TMP1
@@ -165,9 +164,9 @@ function basic_verbs
    else
       echo -n "   $host1 ($host1_dev_opts) ==> $host2 ($host2_dev_opts) : "
    fi
-   pdsh -S -w $host2 ibv_rc_pingpong $host2_dev_opts > $TMP1 &
+   $pdsh_exe -S -w $host2 ibv_rc_pingpong $host2_dev_opts > $TMP1 &
    sleep 1
-   pdsh -S -w $host1 ibv_rc_pingpong $host1_dev_opts $host2 > $TMP2
+   $pdsh_exe -S -w $host1 ibv_rc_pingpong $host1_dev_opts $host2 > $TMP2
 
    if [ $messy_output == "true" ]; then
       cat $TMP1
@@ -201,9 +200,9 @@ function run_bw_exe
       echo -e -n "     $bw_exe $data_amount -b\t:\t"
    fi
 
-   pdsh -S -w $host1 $bw_exe $host1_dev_opts $data_amount -b > $TMP1 &
+   $pdsh_exe -S -w $host1 $bw_exe $host1_dev_opts $data_amount -b > $TMP1 &
    sleep 1
-   pdsh -S -w $host2 $bw_exe $host2_dev_opts $data_amount -b $host1 > $TMP2
+   $pdsh_exe -S -w $host2 $bw_exe $host2_dev_opts $data_amount -b $host1 > $TMP2
 
    if [ $messy_output == "true" ]; then
       cat $TMP1
