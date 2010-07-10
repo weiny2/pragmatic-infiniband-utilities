@@ -62,6 +62,7 @@ rdma_bw_2="/usr/bin/rdma_bw"
 # process command line
 bw_exe=""
 pdsh_exe="/usr/bin/pdsh"
+pp_exe="/usr/bin/ibv_rc_pingpong"
 data_amount=""
 data_size=1024
 iters=10000
@@ -125,8 +126,8 @@ function clean_up
       echo ""
       echo " ***** Cleaning up...  *****"
    fi
-   $pdsh_exe -S -w $host1 killall ibv_rc_pingpong &> /dev/null
-   $pdsh_exe -S -w $host2 killall ibv_rc_pingpong &> /dev/null
+   $pdsh_exe -S -w $host1 killall $pp_exe &> /dev/null
+   $pdsh_exe -S -w $host2 killall $pp_exe &> /dev/null
 
    $pdsh_exe -S -w $host1 killall $bw_exe &> /dev/null
    $pdsh_exe -S -w $host2 killall $bw_exe &> /dev/null
@@ -146,9 +147,9 @@ function basic_verbs
    else
       echo -n "   $host2 ($host2_dev_opts) ==> $host1 ($host1_dev_opts) : "
    fi
-   $pdsh_exe -S -w $host1 ibv_rc_pingpong $host1_dev_opts > $TMP1 &
+   $pdsh_exe -S -w $host1 $pp_exe $host1_dev_opts > $TMP1 &
    sleep 1
-   $pdsh_exe -S -w $host2 ibv_rc_pingpong $host2_dev_opts $host1 > $TMP2
+   $pdsh_exe -S -w $host2 $pp_exe $host2_dev_opts $host1 > $TMP2
 
    if [ $messy_output == "true" ]; then
       cat $TMP1
@@ -164,9 +165,9 @@ function basic_verbs
    else
       echo -n "   $host1 ($host1_dev_opts) ==> $host2 ($host2_dev_opts) : "
    fi
-   $pdsh_exe -S -w $host2 ibv_rc_pingpong $host2_dev_opts > $TMP1 &
+   $pdsh_exe -S -w $host2 $pp_exe $host2_dev_opts > $TMP1 &
    sleep 1
-   $pdsh_exe -S -w $host1 ibv_rc_pingpong $host1_dev_opts $host2 > $TMP2
+   $pdsh_exe -S -w $host1 $pp_exe $host1_dev_opts $host2 > $TMP2
 
    if [ $messy_output == "true" ]; then
       cat $TMP1
