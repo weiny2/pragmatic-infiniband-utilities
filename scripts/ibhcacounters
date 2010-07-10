@@ -55,11 +55,13 @@ done
 
 shift $(($OPTIND - 1))
 
-for card in `ls $ib_sysfs`; do
+function do_mlx4
+{
+   card=$1
    if [ ! -d $ib_sysfs/$card/diag_counters ]; then
       echo "ERR: $card does not export diag_counters; skipping"
       RC=1
-      continue
+      return
    fi
    for file in `ls $ib_sysfs/$card/diag_counters/*`; do
       label=`basename $file`
@@ -78,6 +80,41 @@ for card in `ls $ib_sysfs`; do
          echo "ERR: \"$ib_sysfs/$card/diag_counters/clear_diag\"; file not found"
 	 RC=1
       fi
+   fi
+}
+
+function do_qib
+{
+   card=$1
+   ports=`ls $ib_sysfs/$card/ports`
+   for port in $ports; do
+      if [ ! -d $ib_sysfs/$card/ports/$port/diag_counters ]; then
+         echo "ERR: $card does not export diag_counters; skipping"
+         RC=1
+         return
+      fi
+      for file in `ls $ib_sysfs/$card/ports/$port/diag_counters/*`; do
+         label=`basename $file`
+         cnt=`cat $file`
+         if [ "$all" == "true" ] || [ "$cnt" != "0" ]; then
+            printf "%d: %16s : %d\n" $port $label $cnt
+         fi
+         if [ "$clear_mode" == "true" ]; then
+            echo 0 > $ib_sysfs/$card/ports/$port/diag_counters/$label
+         fi
+      done
+   done
+}
+
+for card in `ls $ib_sysfs`; do
+   ctype=`echo $card | sed -e 's/\(.*\)[0-9]/\1/g'`
+   if [ "$ctype" == "mlx4_" ]; then
+      do_mlx4 $card
+   elif [ "$ctype" == "qib" ]; then
+      do_qib $card
+   else
+      echo "ERR: Card type \"$ctype\"(\"$card\") is not supported"
+      RC=1
    fi
 done
 
