@@ -1,5 +1,6 @@
 - Fri Jul 09 2010 Ira Weiny <weiny2@llnl.gov>
 
+	* : ibcheckverbs: explicitly call ibv_rc_pingpong
 	* : ibcheckverbs: explicitly call pdsh
 	* : ibcheckverbs: add support for renamed ib_rdma_bw tool
 
