@@ -1,3 +1,7 @@
+- Fri Jul 09 2010 Ira Weiny <weiny2@llnl.gov>
+
+	* : ibcheckverbs: add support for renamed ib_rdma_bw tool
+
 - Fri Jun 25 2010 Ira Weiny <weiny2@llnl.gov>
 
 	* : ibsrp.in: fix issue of script killing opensm process which were not

@@ -33,10 +33,10 @@ function usage
    echo ""
    echo "   -h Display this help"
    echo "   -v run verbs test only"
-   echo "   -b run ib_rdma_bw test only"
-   echo "   -r <ib_rdma_bw> use specified ib_rdma_bw executable"
-   echo "   -s <size> specify the -s option to ib_rdma_bw test"
-   echo "   -n <iters> specify the -n option to ib_rdma_bw test"
+   echo "   -b run rdma_bw test only"
+   echo "   -r <rdma_bw> use specified rdma_bw executable"
+   echo "   -s <size> specify the -s option to rdma_bw test"
+   echo "   -n <iters> specify the -n option to rdma_bw test"
    echo "   -m show full output from commands run (messy)"
    echo ""
    echo "      The options below run significantly slower but send more data"
@@ -55,8 +55,12 @@ function usage
    echo "         node 1, device mlx4_1, port 2"
 }
 
+# this tool's name was changed.  Define the options we are looking for
+rdma_bw_1="/usr/bin/ib_rdma_bw"
+rdma_bw_2="/usr/bin/rdma_bw"
+
 # process command line
-rdma_bw="ib_rdma_bw"
+bw_exe=""
 data_amount=""
 data_size=1024
 iters=10000
@@ -75,13 +79,7 @@ do
       "b") verbs_test="false";;
       "m") messy_output="true";;
       "r")
-            rdma_bw=$OPTARG;
-            if [ ! -x $rdma_bw ]; then
-               echo "ERROR: $rdma_bw is not executable or does not exist"
-               echo ""
-               usage; exit 1
-            fi
-            echo "Using rdma bw test: $rdma_bw"
+            bw_exe=$OPTARG;
             ;;
       *) usage; exit 1;;
    esac
@@ -99,6 +97,21 @@ rc=$?
 if [ "$rc" != "0" ]; then
    echo "Error: pdsh is required for ibcheckverbs"
    exit 1
+fi
+
+if [ "$bw_exe" == "" ]; then
+   # attempt to find bandwith test installed
+   if [ -x $rdma_bw_1 ]; then
+      bw_exe=$rdma_bw_1
+   else
+      if [ -x $rdma_bw_2 ]; then
+         bw_exe=$rdma_bw_2
+      else
+         echo "ERROR: rdma_bw command not found"
+         echo ""
+         usage; exit 1
+      fi
+   fi
 fi
 
 host1=`echo $1 | sed -e "s/\([^:]*\):.*/\1/"`
@@ -177,20 +190,20 @@ function print_rdma_header
 }
 
 # RDMA bandwidth tests
-function rdma_bw
+function run_bw_exe
 {
    TMP1=`mktemp /tmp/ibcheckverbs.XXXXXXXX`
    TMP2=`mktemp /tmp/ibcheckverbs.XXXXXXXX`
 
    if [ $messy_output == "true" ]; then
-      echo " ( parameters $rdma_bw $data_amount -b )"
+      echo " ( parameters $bw_exe $data_amount -b )"
    else
-      echo -e -n "     $rdma_bw $data_amount -b\t:\t"
+      echo -e -n "     $bw_exe $data_amount -b\t:\t"
    fi
 
-   pdsh -S -w $host1 $rdma_bw $host1_dev_opts $data_amount -b > $TMP1 &
+   pdsh -S -w $host1 $bw_exe $host1_dev_opts $data_amount -b > $TMP1 &
    sleep 1
-   pdsh -S -w $host2 $rdma_bw $host2_dev_opts $data_amount -b $host1 > $TMP2
+   pdsh -S -w $host2 $bw_exe $host2_dev_opts $data_amount -b $host1 > $TMP2
 
    if [ $messy_output == "true" ]; then
       cat $TMP1
@@ -224,7 +237,7 @@ if [ "$data_amount" == "variable" ] || [ "$data_amount" == "Variable" ]; then
          num_msg=2
       fi
       data_amount="-s $msg_size -n $num_msg"
-      rdma_bw
+      run_bw_exe
    done
 else
    if [ "$verbs_test" == "true" ]; then
@@ -233,7 +246,7 @@ else
    if [ "$band_width_test" == "true" ]; then
       print_rdma_header
       data_amount="-s $data_size -n $iters"
-      rdma_bw
+      run_bw_exe
    fi
 fi
 clean_up
