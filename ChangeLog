@@ -1,3 +1,7 @@
+- Wed Jul 14 2010 Ira Weiny <weiny2@llnl.gov>
+
+	* : tag 1.0.6-1
+
 - Fri Jul 09 2010 Ira Weiny <weiny2@llnl.gov>
 
 	* : ibhcacounters: Add support for QIB cards
