@@ -1,3 +1,13 @@
+- Tue Jul 20 2010 Ira Weiny <weiny2@llnl.gov>
+
+	* : tag 1.1.0-1
+	* : ibgraphfabric: Convert to libibnetdisc ABI version 4
+	* : slurm_topology: Convert to libibnetdisc ABI version 4
+
+- Tue Jul 20 2010 Al Chu <chu11@llnl.gov>
+
+	* : fix typos
+
 - Wed Jul 14 2010 Ira Weiny <weiny2@llnl.gov>
 
 	* : tag 1.0.6-1
