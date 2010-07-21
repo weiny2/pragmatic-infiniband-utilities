@@ -383,6 +383,7 @@ int main(int argc, char **argv)
 	ib_portid_t portid = { 0 };
 	int rc = 0;
 	ibnd_fabric_t *fabric = NULL;
+	struct ibnd_config config = { 0 };
 
 	int mgmt_classes[4] = { IB_SMI_CLASS, IB_SMI_DIRECT_CLASS, IB_SA_CLASS,
 		IB_PERFORMANCE_CLASS
@@ -472,8 +473,10 @@ int main(int argc, char **argv)
 		exit(-1);
 	}
 
-	if (ibd_timeout)
+	if (ibd_timeout) {
 		mad_rpc_set_timeout(ibmad_port, ibd_timeout);
+		config.timeout_ms = ibd_timeout;
+	}
 
 	node_name_map = open_node_name_map(node_name_map_file);
 
@@ -498,9 +501,10 @@ int main(int argc, char **argv)
 	}
 
 	if (resolved >= 0) {
-		fabric = ibnd_discover_fabric(ibmad_port, &portid, hops);
+		config.max_hops = hops;
+		fabric = ibnd_discover_fabric(ibd_ca, ibd_ca_port, &portid, &config);
 	} else {
-		fabric = ibnd_discover_fabric(ibmad_port, NULL, -1);
+		fabric = ibnd_discover_fabric(ibd_ca, ibd_ca_port, NULL, &config);
 	}
 
 	if (!fabric) {

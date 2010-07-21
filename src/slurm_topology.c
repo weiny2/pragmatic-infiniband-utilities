@@ -596,12 +596,10 @@ int main(int argc, char **argv)
 {
 	int rc = 0;
 	ibnd_fabric_t *fabric = NULL;
-	struct ibmad_port *ibmad_port;
-	int mgmt_classes[3] =
-	    { IB_SMI_CLASS, IB_SMI_DIRECT_CLASS, IB_SA_CLASS };
 	char *ibd_ca = NULL;
 	int ibd_ca_port = 0;
 	int ibd_timeout = 200;
+	struct ibnd_config config = { 0 };
 
         char  ch = 0;
 
@@ -666,20 +664,13 @@ int main(int argc, char **argv)
                 }
 	}
 
-	ibmad_port = mad_rpc_open_port(ibd_ca, ibd_ca_port, mgmt_classes, 3);
-	if (!ibmad_port) {
-		fprintf(stderr, "Failed to open %s port %d", ibd_ca,
-			ibd_ca_port);
-		exit(1);
-	}
-
 	if (ibd_timeout)
-		mad_rpc_set_timeout(ibmad_port, ibd_timeout);
+		config.timeout_ms = ibd_timeout;
 
 	load_expected_host_list();
 	node_name_map = open_node_name_map(node_name_map_file);
 
-	fabric = ibnd_discover_fabric(ibmad_port, NULL, -1);
+	fabric = ibnd_discover_fabric(ibd_ca, ibd_ca_port, NULL, &config);
 
 	process_fabric(fabric);
 
@@ -687,6 +678,5 @@ int main(int argc, char **argv)
 
 	close_node_name_map(node_name_map);
 	destroy_expected_host_list();
-	mad_rpc_close_port(ibmad_port);
 	exit(rc);
 }
