@@ -1,3 +1,7 @@
+- Mon Aug 02 2010 Albert Chu <chu11@llnl.gov>
+
+	* : add check_wiring_sierra.pl
+
 - Tue Jul 29 2010 Ira Weiny <weiny2@llnl.gov>
 
 	* : tag 1.1.0-2
