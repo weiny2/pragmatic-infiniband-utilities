@@ -24,6 +24,8 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA.
 #
 
+rdma_cm_query="/usr/sbin/rdma_cm_query"
+
 function usage
 {
    	echo "$1 [-m <mlid>] <ibnode> [<ibnode>]"
@@ -57,7 +59,7 @@ if [ x$node2 == x ]; then
 	node1lid=`ibstat | grep "Base lid" | sed -e "s/[ \t]*Base lid:[ \t]*\(.*\)/\1/"`
 	node2=$1
 else
-	node1lid=`rdma_cm_query -L $node1`
+	node1lid=`$rdma_cm_query -L $node1`
 	rc=$?
 	if [ "$rc" != "0" ]; then
 		echo "Failed to resolve: \"$node1\""
@@ -65,7 +67,7 @@ else
 	fi
 fi
 
-node2lid=`rdma_cm_query -L $node2`
+node2lid=`$rdma_cm_query -L $node2`
 rc=$?
 if [ "$rc" != "0" ]; then
 	echo "Failed to resolve: \"$node2\""
