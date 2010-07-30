@@ -1,3 +1,9 @@
+- Tue Jul 29 2010 Ira Weiny <weiny2@llnl.gov>
+
+	* : tag 1.1.0-2
+	* : ibnodesinmcast: Allow for consolidated MLID's without consolidated MGID's
+	* : ibtraceroute: use absolute path for rdma_cm_query
+
 - Tue Jul 20 2010 Ira Weiny <weiny2@llnl.gov>
 
 	* : tag 1.1.0-1
