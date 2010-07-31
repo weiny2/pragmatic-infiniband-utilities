@@ -71,7 +71,6 @@ char *ignore_regex = NULL;
 char *cluster_name = NULL;
 uint64_t node_guid = 0;
 char *dr_path = NULL;
-int hops = 0;
 int combine_edges = 0;
 
 #define HTSZ 137
@@ -437,7 +436,7 @@ int main(int argc, char **argv)
 				cluster_name = strdup(optarg);
 				break;
 			case 'n':
-				hops = (int)strtol(optarg, NULL, 0);
+				config.max_hops = (int)strtol(optarg, NULL, 0);
 				break;
 			case 1:
 				node_name_map_file = strdup(optarg);
@@ -501,7 +500,8 @@ int main(int argc, char **argv)
 	}
 
 	if (resolved >= 0) {
-		config.max_hops = hops;
+		if (!config.max_hops)
+			config.max_hops = 1;
 		fabric = ibnd_discover_fabric(ibd_ca, ibd_ca_port, &portid, &config);
 	} else {
 		fabric = ibnd_discover_fabric(ibd_ca, ibd_ca_port, NULL, &config);
