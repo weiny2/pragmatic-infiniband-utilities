@@ -30,7 +30,6 @@ function usage
    echo "Usage: $argv0 [-hca]"
    echo ""
    echo "   read the diag counters from an hca"
-   echo "   NOTE: currently only ConnectX cards are supported"
    echo ""
    echo "   -h Display this help"
    echo "   -c Clear the counters (after reading them)"
