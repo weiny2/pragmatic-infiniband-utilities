@@ -1,3 +1,13 @@
+- Mon Aug 23 2010 Ira Weiny <weiny2@llnl.gov>
+
+	* : tag 1.1.2-1
+	* : ibtrackerrors.in: add stderr output to log file.
+
+- Thu Aug 19 2010 Ira Weiny <weiny2@llnl.gov>
+
+	* : ibtrackerrors.in: allow additional erros to be suppressed
+	* : ibhcacounters: remove message which says this only works on ConnectX
+
 - Fri Aug 06 2010 Ira Weiny <weiny2@llnl.gov>
 
 	* : tag 1.1.1-1
