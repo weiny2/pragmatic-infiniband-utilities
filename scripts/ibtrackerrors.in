@@ -130,10 +130,13 @@ fi
 
 echo "Checking errors..."
 echo "Running: $query_errors_exe -s RcvSwRelayErrors,$ext_suppress -r --data"
-$query_errors_exe -s RcvSwRelayErrors,$ext_suppress -r --data > /tmp/iberrors
 
-cat /tmp/iberrors
 ts=`date`
+echo "" >> $log_dir/$log_file
+echo "" >> $log_dir/$log_file
+echo "     ***** ERRORS collected ($ts) *****" >> $log_dir/$log_file
+
+$query_errors_exe -s RcvSwRelayErrors,$ext_suppress -r --data 2>&1 | tee -a $log_dir/$log_file
 
 if [ "$clear_errors" == "yes" ]; then
    if [ "$new_clear_option" == "no" ]; then
@@ -141,13 +144,8 @@ if [ "$clear_errors" == "yes" ]; then
       ibclearerrors; ibclearcounters
    fi
    echo " -c specified, errors cleared"
-   echo "     ***** ERRORS CLEARED ($ts) *****" >> /tmp/iberrors
+   echo "     ***** ERRORS CLEARED ($ts) *****" >> $log_dir/$log_file
 fi
-
-echo "" >> $log_dir/$log_file
-echo "" >> $log_dir/$log_file
-echo "     ***** ERRORS collected ($ts) *****" >> $log_dir/$log_file
-cat /tmp/iberrors >> $log_dir/$log_file
 
 rm_lock_file
 exit 0
