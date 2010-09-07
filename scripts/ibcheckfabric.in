@@ -89,27 +89,25 @@ my $sdr_cnt = 0;
 my $ddr_cnt = 0;
 my $qdr_cnt = 0;
 foreach my $line (@lines) {
-   # check for down links
-   if ($line =~ /.*Down.*/) { $down_port_cnt++; }
-   if ($line =~ /.*Disabled.*/) { $disabled_port_cnt++; push (@disabled_ports, $line); }
-   # check for link line width
-   if ($line =~ /.*1X.*/)  { $oneX_cnt++; push (@oneX_ports, $line); }
-   if ($line =~ /.*4X.*/)  { $fourX_cnt++; }
-   if ($line =~ /.*12X.*/) { $twelveX_cnt++; }
-   # check for link speed
-   if ($line =~ /.*2.5 Gbps.*/)  { $sdr_cnt++; }
-   if ($line =~ /.*5.0 Gbps.*/)  { $ddr_cnt++; }
-   if ($line =~ /.*10.0 Gbps.*/) { $qdr_cnt++; }
+   # get link info
+   if ($line =~ /==\((.*)\)==>/) {
+      my $link_stats=$1;
+      # check for down links
+      if ($link_stats =~ /.*Down.*/) { $down_port_cnt++; }
+      if ($link_stats =~ /.*Disabled.*/) { $disabled_port_cnt++; push (@disabled_ports, $line); }
+      if ($link_stats =~ /.*Active.*/) {
+         # check for link line width
+         if ($link_stats =~ /.*1X.*/)  { $oneX_cnt++; push (@oneX_ports, $line); }
+         if ($link_stats =~ /.*4X.*/)  { $fourX_cnt++; }
+         if ($link_stats =~ /.*12X.*/) { $twelveX_cnt++; }
+         # check for link speed
+         if ($link_stats =~ /.*2.5 Gbps.*/)  { $sdr_cnt++; }
+         if ($link_stats =~ /.*5.0 Gbps.*/)  { $ddr_cnt++; }
+         if ($link_stats =~ /.*10.0 Gbps.*/) { $qdr_cnt++; }
+      }
+   }
 }
 
-# print results
-$sdr_cnt = $sdr_cnt - $down_port_cnt;
-# some switches do not report "2.5 Gbps" for "Down" ports
-# So the above math is wrong.  Just peg this out if the down ports
-# reported is greater than the SDR ports.
-if ($sdr_cnt < 0) {
-	$sdr_cnt = 0;
-}
 print "Switch Port Stats:\n";
 if ($down_port_cnt != 0)     { print "   $down_port_cnt down port(s)\n"; }
 if ($disabled_port_cnt != 0)
@@ -126,11 +124,11 @@ if ($oneX_cnt != 0)
       print "   $port\n";
    }
 }
-if ($fourX_cnt != 0)         { print "   $fourX_cnt port(s) at 4X\n"; }
-if ($twelveX_cnt != 0)       { print "   $twelveX_cnt port(s) at 12X\n"; }
-if ($sdr_cnt != 0)           { print "   $sdr_cnt port(s) at 2.5 Gbps (SDR) [Active]\n"; }
-if ($ddr_cnt != 0)           { print "   $ddr_cnt port(s) at 5.0 Gbps (DDR)\n"; }
-if ($qdr_cnt != 0)           { print "   $qdr_cnt port(s) at 10.0 Gbps (QDR)\n"; }
+if ($fourX_cnt != 0)         { print "   $fourX_cnt port(s) Active at 4X\n"; }
+if ($twelveX_cnt != 0)       { print "   $twelveX_cnt port(s) Active at 12X\n"; }
+if ($sdr_cnt != 0)           { print "   $sdr_cnt port(s) Active at 2.5 Gbps (SDR) [Active]\n"; }
+if ($ddr_cnt != 0)           { print "   $ddr_cnt port(s) Active at 5.0 Gbps (DDR)\n"; }
+if ($qdr_cnt != 0)           { print "   $qdr_cnt port(s) Active at 10.0 Gbps (QDR)\n"; }
 
 #print "Node Port Stats:\n";
 
