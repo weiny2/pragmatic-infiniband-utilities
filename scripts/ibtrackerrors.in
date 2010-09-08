@@ -129,14 +129,14 @@ if [ "$new_clear_option" == "yes" ] && [ "$clear_errors" == "yes" ]; then
 fi
 
 echo "Checking errors..."
-echo "Running: $query_errors_exe -s RcvSwRelayErrors,$ext_suppress -r --data"
+echo "Running: $query_errors_exe -s RcvSwRelayErrors,PortRcvSwitchRelayErrors,$ext_suppress -r --data"
 
 ts=`date`
 echo "" >> $log_dir/$log_file
 echo "" >> $log_dir/$log_file
 echo "     ***** ERRORS collected ($ts) *****" >> $log_dir/$log_file
 
-$query_errors_exe -s RcvSwRelayErrors,$ext_suppress -r --data 2>&1 | tee -a $log_dir/$log_file
+$query_errors_exe -s RcvSwRelayErrors,PortRcvSwitchRelayErrors,$ext_suppress -r --data 2>&1 | tee -a $log_dir/$log_file
 
 if [ "$clear_errors" == "yes" ]; then
    if [ "$new_clear_option" == "no" ]; then
