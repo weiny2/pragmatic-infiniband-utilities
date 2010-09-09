@@ -2,6 +2,7 @@
 
 	* : tag 1.1.2-2
 	* : ibcheckfabric.in: fix incorrect reporting
+	* : ibtrackerrors.in: Allow for correct error names from spec
 
 - Mon Aug 23 2010 Ira Weiny <weiny2@llnl.gov>
 
