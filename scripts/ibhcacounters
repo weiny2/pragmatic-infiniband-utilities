@@ -69,7 +69,7 @@ function do_mlx4
       fi
       cnt=`cat $file`
       if [ "$all" == "true" ] || [ "$cnt" != "0" ]; then
-         printf "%16s : %d\n" $label $cnt
+         printf "%8s %16s : %d\n" $card $label $cnt
       fi
    done
    if [ "$clear_mode" == "true" ]; then
@@ -96,7 +96,7 @@ function do_qib
          label=`basename $file`
          cnt=`cat $file`
          if [ "$all" == "true" ] || [ "$cnt" != "0" ]; then
-            printf "%d: %16s : %d\n" $port $label $cnt
+            printf "%s %d: %16s : %d\n" $card $port $label $cnt
          fi
          if [ "$clear_mode" == "true" ]; then
             echo 0 > $ib_sysfs/$card/ports/$port/diag_counters/$label
