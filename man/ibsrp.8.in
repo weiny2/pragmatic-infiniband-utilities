@@ -13,7 +13,7 @@ and srp_daemon.
 
 .SH FILES
 .PP
-@PIU_CONFIG_PATH@/ibsrp.conf
+@PIU_CONFIG_PATH@/sysconfig/ibsrp.conf
 .TP
 \fBIBSRP_NUM_TARGETS\fR
 Specify the number of SRP targets to be found

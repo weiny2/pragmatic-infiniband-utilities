@@ -1,0 +1,56 @@
+.TH IBTRACKERRORS 8 "September 09, 2010" "Pragmatic Infiniband Utilities" "Infiniband Diagnostics"
+
+.SH NAME
+ibtrackerrors \- Check Port Error counters 
+
+.SH SYNOPSIS
+.B ibtrackerrors [-hcCls] [-S <err1,err2,...>] [-m <node-name-map>]
+
+.SH DESCRIPTION
+.PP
+ibtrackerrors uses ibqueryerrors to scan the IB fabric for errors.  It also
+logs those errors to /var/log/infiniband_errors
+
+Ports with errors have their data counters printed as well as the link
+information indicating the remote node/port connected to this port.
+
+.SH OPTIONS
+
+.PP
+.TP
+\fB\-h\fR
+print help message
+.TP
+\fB\-c\fR
+clear errors after querying them (Also logs this event)
+.TP
+\fB\-m <node-name-map>\fR
+Use the specified node name map file to map GUID's to node names.
+.TP
+\fB\-s\fR
+Scan the switches only.  Ignore HCA's, TCA's, and Routers.
+.TP
+\fB\-S <err1,err2,...>\fR
+In addition to the errors suppressed by the config file suppress the errors specified.
+.TP
+\fB\-C\fR
+Attempt to clean up (kill ibqueryerrors) other instances and exit.
+.TP
+\fB\-l\fR
+Remove lockfile and run anyway.  This option removes the lockfile protecting
+the logfile and runs a new instance of ibqueryerrors logging to the log file.
+\fBUse With Caution\fR
+
+.SH FILES
+.PP
+@PIU_CONFIG_PATH@/pragmaticIB/pragmaticIB.conf
+
+.SH REQUIREMENTS
+.PP
+.TP
+\fBibqueryerrors\fR
+
+.SH AUTHOR
+.TP
+Ira Weiny
+.RI < weiny2@llnl.gov >

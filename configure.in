@@ -79,5 +79,6 @@ AC_CONFIG_FILES([Makefile
                man/qlogic-create-switch-map.8
                scripts/ibsrp
                man/ibsrp.8
+               man/ibtrackerrors.8
                ])
 AC_OUTPUT

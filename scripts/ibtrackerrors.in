@@ -39,7 +39,7 @@ cd ${0%/*}
 
 function usage
 {
-   echo "Usage: $0 [-hcCls] [-m <node-name-map>]"
+   echo "Usage: $0 [-hcCls] [-S <err1,err2,...>] [-m <node-name-map>]"
    echo "   Query errors on the subnet while logging"
    echo "   errors to $log_dir/$log_file"
    echo "   -c clear errors after querying (Also logs this event)"

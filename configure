@@ -19307,7 +19307,7 @@ else
 fi
 
 
-                                                                                                                        ac_config_files="$ac_config_files Makefile pragmatic-infiniband-utilities.spec scripts/voltaire-create-switch-map.pl scripts/qlogic-create-switch-map.pl scripts/ibcheckfabric scripts/ibtrackerrors scripts/ibnodesinmcast scripts/ibcreateswitchmap.sh man/voltaire-create-switch-map.8 man/qlogic-create-switch-map.8 scripts/ibsrp man/ibsrp.8"
+                                                                                                                                  ac_config_files="$ac_config_files Makefile pragmatic-infiniband-utilities.spec scripts/voltaire-create-switch-map.pl scripts/qlogic-create-switch-map.pl scripts/ibcheckfabric scripts/ibtrackerrors scripts/ibnodesinmcast scripts/ibcreateswitchmap.sh man/voltaire-create-switch-map.8 man/qlogic-create-switch-map.8 scripts/ibsrp man/ibsrp.8 man/ibtrackerrors.8"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -19891,6 +19891,7 @@ do
   "man/qlogic-create-switch-map.8" ) CONFIG_FILES="$CONFIG_FILES man/qlogic-create-switch-map.8" ;;
   "scripts/ibsrp" ) CONFIG_FILES="$CONFIG_FILES scripts/ibsrp" ;;
   "man/ibsrp.8" ) CONFIG_FILES="$CONFIG_FILES man/ibsrp.8" ;;
+  "man/ibtrackerrors.8" ) CONFIG_FILES="$CONFIG_FILES man/ibtrackerrors.8" ;;
   "depfiles" ) CONFIG_COMMANDS="$CONFIG_COMMANDS depfiles" ;;
   "config/config.h" ) CONFIG_HEADERS="$CONFIG_HEADERS config/config.h" ;;
   *) { { echo "$as_me:$LINENO: error: invalid argument: $ac_config_target" >&5
