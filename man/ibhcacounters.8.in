@@ -1,0 +1,37 @@
+.TH IBHCACOUNTERS 8 "September 10, 2010" "Pragmatic Infiniband Utilities" "Infiniband Diagnostics"
+
+.SH NAME
+ibhcacounters \- Read sysfs counters from IB HCA's
+
+.SH SYNOPSIS
+.B ibhcacounters [-hca]
+
+.SH DESCRIPTION
+.PP
+ibhcacounters queries sysfs for various IB HCA's for internal debug counters.
+
+For details on the meanings of these counters see your HCA vendor.
+
+.SH OPTIONS
+
+.PP
+.TP
+\fB\-h\fR
+print help message
+.TP
+\fB\-c\fR
+clear counters after querying them
+.TP
+\fB\-a\fR
+Report "all" counters event if they are "0".  The default is to only print
+counters which are non-zero.
+
+.SH REQUIREMENTS
+.PP
+.TP
+\fBsysfs\fR
+
+.SH AUTHOR
+.TP
+Ira Weiny
+.RI < weiny2@llnl.gov >

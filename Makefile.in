@@ -43,6 +43,7 @@ DIST_COMMON = README $(am__configure_deps) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in \
 	$(srcdir)/pragmatic-infiniband-utilities.spec.in \
 	$(top_srcdir)/config/config.h.in $(top_srcdir)/configure \
+	$(top_srcdir)/man/ibhcacounters.8.in \
 	$(top_srcdir)/man/ibsrp.8.in \
 	$(top_srcdir)/man/ibtrackerrors.8.in \
 	$(top_srcdir)/man/qlogic-create-switch-map.8.in \
@@ -73,7 +74,7 @@ CONFIG_CLEAN_FILES = pragmatic-infiniband-utilities.spec \
 	scripts/ibtrackerrors scripts/ibnodesinmcast \
 	scripts/ibcreateswitchmap.sh man/voltaire-create-switch-map.8 \
 	man/qlogic-create-switch-map.8 scripts/ibsrp man/ibsrp.8 \
-	man/ibtrackerrors.8
+	man/ibtrackerrors.8 man/ibhcacounters.8
 am__installdirs = "$(DESTDIR)$(sbindir)" "$(DESTDIR)$(sbindir)" \
 	"$(DESTDIR)$(man8dir)"
 sbinPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
@@ -270,6 +271,7 @@ man_MANS = man/ibbouncelinks.8 \
 				man/ibcheckverbs.8 \
 				man/slurm_topology.8 \
 				man/ibtrackerrors.8 \
+				man/ibhcacounters.8 \
 				man/ibsrp.8
 
 sbin_SCRIPTS = $(mySCRIPTS)
@@ -370,6 +372,8 @@ scripts/ibsrp: $(top_builddir)/config.status $(top_srcdir)/scripts/ibsrp.in
 man/ibsrp.8: $(top_builddir)/config.status $(top_srcdir)/man/ibsrp.8.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 man/ibtrackerrors.8: $(top_builddir)/config.status $(top_srcdir)/man/ibtrackerrors.8.in
+	cd $(top_builddir) && $(SHELL) ./config.status $@
+man/ibhcacounters.8: $(top_builddir)/config.status $(top_srcdir)/man/ibhcacounters.8.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 install-sbinPROGRAMS: $(sbin_PROGRAMS)
 	@$(NORMAL_INSTALL)

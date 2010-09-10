@@ -80,5 +80,6 @@ AC_CONFIG_FILES([Makefile
                scripts/ibsrp
                man/ibsrp.8
                man/ibtrackerrors.8
+               man/ibhcacounters.8
                ])
 AC_OUTPUT
