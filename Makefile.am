@@ -66,10 +66,12 @@ EXTRA_DIST = \
 	$(man_MANS) \
 	$(mySCRIPTS) \
 	scripts \
-	sysconf/ibsrp.conf
+	sysconf/ibsrp.conf \
+	etc/pragmaticIB.conf
 
 install-exec-hook:
 	$(top_srcdir)/config/install-sh -m 755 -d $(DESTDIR)/$(sysconfdir)/init.d
 	$(top_srcdir)/config/install-sh -m 755 $(top_builddir)/scripts/ibsrp $(DESTDIR)/$(sysconfdir)/init.d/ibsrp
 	$(top_srcdir)/config/install-sh -m 755 $(top_builddir)/sysconf/ibsrp.conf $(DESTDIR)/$(sysconfdir)/sysconfig/ibsrp.conf
+	$(top_srcdir)/config/install-sh -m 755 $(top_builddir)/etc/pragmaticIB.conf $(DESTDIR)/$(sysconfdir)/pragmaticIB/pragmaticIB.conf
 

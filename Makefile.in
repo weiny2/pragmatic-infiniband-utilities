@@ -287,7 +287,8 @@ EXTRA_DIST = \
 	$(man_MANS) \
 	$(mySCRIPTS) \
 	scripts \
-	sysconf/ibsrp.conf
+	sysconf/ibsrp.conf \
+	etc/pragmaticIB.conf
 
 all: all-am
 
@@ -637,7 +638,7 @@ distclean-tags:
 distdir: $(DISTFILES)
 	$(am__remove_distdir)
 	mkdir $(distdir)
-	$(mkdir_p) $(distdir)/. $(distdir)/config $(distdir)/man $(distdir)/scripts $(distdir)/sysconf
+	$(mkdir_p) $(distdir)/. $(distdir)/config $(distdir)/etc $(distdir)/man $(distdir)/scripts $(distdir)/sysconf
 	@srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`; \
 	topsrcdirstrip=`echo "$(top_srcdir)" | sed 's|.|.|g'`; \
 	list='$(DISTFILES)'; for file in $$list; do \
@@ -873,6 +874,7 @@ install-exec-hook:
 	$(top_srcdir)/config/install-sh -m 755 -d $(DESTDIR)/$(sysconfdir)/init.d
 	$(top_srcdir)/config/install-sh -m 755 $(top_builddir)/scripts/ibsrp $(DESTDIR)/$(sysconfdir)/init.d/ibsrp
 	$(top_srcdir)/config/install-sh -m 755 $(top_builddir)/sysconf/ibsrp.conf $(DESTDIR)/$(sysconfdir)/sysconfig/ibsrp.conf
+	$(top_srcdir)/config/install-sh -m 755 $(top_builddir)/etc/pragmaticIB.conf $(DESTDIR)/$(sysconfdir)/pragmaticIB/pragmaticIB.conf
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

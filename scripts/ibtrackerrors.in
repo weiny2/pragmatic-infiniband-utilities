@@ -25,6 +25,11 @@
 #
 
 sbindir=@PIU_SBIN_PATH@
+sysconfdir=@PIU_CONFIG_PATH@
+
+if [ -f $sysconfdir/pragmaticIB/pragmaticIB.conf ]; then
+	. $sysconfdir/pragmaticIB/pragmaticIB.conf
+fi
 
 log_dir=/var/log
 log_file=infiniband_errors
@@ -63,7 +68,7 @@ clean_up="no"
 rm_lock="no"
 map_file=""
 sw_only="no"
-ext_suppress=""
+suppress="$SUPPRESS_ERRORS"
 
 while getopts "hcClm:sS:" flag
 do
@@ -74,10 +79,17 @@ do
       "l") rm_lock="yes";;
       "m") map_file="--node-name-map $OPTARG";;
       "s") sw_only="yes";;
-      "S") ext_suppress=$OPTARG;;
+      "S")
+           if [ "$suppress" == "" ]; then
+              suppress="$OPTARG"
+           else
+              suppress="$suppress,$OPTARG"
+           fi
+      ;;
       *) usage; exit 1;;
    esac
 done
+
 
 shift $(($OPTIND - 1))
 
@@ -128,15 +140,19 @@ if [ "$new_clear_option" == "yes" ] && [ "$clear_errors" == "yes" ]; then
    query_errors_exe="$query_errors_exe -k -K"
 fi
 
+if [ "$suppress" != "" ]; then
+	suppress="-s $suppress"
+fi
+
 echo "Checking errors..."
-echo "Running: $query_errors_exe -s RcvSwRelayErrors,PortRcvSwitchRelayErrors,$ext_suppress -r --data"
+echo "Running: $query_errors_exe $suppress -r --data"
 
 ts=`date`
 echo "" >> $log_dir/$log_file
 echo "" >> $log_dir/$log_file
 echo "     ***** ERRORS collected ($ts) *****" >> $log_dir/$log_file
 
-$query_errors_exe -s RcvSwRelayErrors,PortRcvSwitchRelayErrors,$ext_suppress -r --data 2>&1 | tee -a $log_dir/$log_file
+$query_errors_exe $suppress -r --data 2>&1 | tee -a $log_dir/$log_file
 
 if [ "$clear_errors" == "yes" ]; then
    if [ "$new_clear_option" == "no" ]; then
