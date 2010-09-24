@@ -41,12 +41,13 @@ build_triplet = @build@
 host_triplet = @host@
 sbin_PROGRAMS = src/simple_rdma$(EXEEXT) src/rdma_cm_query$(EXEEXT) \
 	src/slurm_topology$(EXEEXT) src/ibgraphfabric$(EXEEXT) \
-	src/iblinkconffromfabric$(EXEEXT) src/ibparselinkconf$(EXEEXT)
+	src/iblinkconffromfabric$(EXEEXT) src/ibparseedgeconf$(EXEEXT)
 DIST_COMMON = README $(am__configure_deps) \
 	$(libibedgeconfinclude_HEADERS) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in \
 	$(srcdir)/pragmatic-infiniband-utilities.spec.in \
 	$(top_srcdir)/config/config.h.in $(top_srcdir)/configure \
+	$(top_srcdir)/include/infiniband/ibedgeconf.h.in \
 	$(top_srcdir)/man/ibhcacounters.8.in \
 	$(top_srcdir)/man/ibsrp.8.in \
 	$(top_srcdir)/man/ibtrackerrors.8.in \
@@ -78,7 +79,8 @@ CONFIG_CLEAN_FILES = pragmatic-infiniband-utilities.spec \
 	scripts/ibtrackerrors scripts/ibnodesinmcast \
 	scripts/ibcreateswitchmap.sh man/voltaire-create-switch-map.8 \
 	man/qlogic-create-switch-map.8 scripts/ibsrp man/ibsrp.8 \
-	man/ibtrackerrors.8 man/ibhcacounters.8
+	man/ibtrackerrors.8 man/ibhcacounters.8 \
+	include/infiniband/ibedgeconf.h
 am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
 am__vpath_adj = case $$p in \
     $(srcdir)/*) f=`echo "$$p" | sed "s|^$$srcdirstrip/||"`;; \
@@ -104,10 +106,10 @@ am_src_iblinkconffromfabric_OBJECTS = iblinkconffromfabric.$(OBJEXT)
 src_iblinkconffromfabric_OBJECTS =  \
 	$(am_src_iblinkconffromfabric_OBJECTS)
 src_iblinkconffromfabric_LDADD = $(LDADD)
-am_src_ibparselinkconf_OBJECTS =  \
-	src_ibparselinkconf-ibparselinkconf.$(OBJEXT)
-src_ibparselinkconf_OBJECTS = $(am_src_ibparselinkconf_OBJECTS)
-src_ibparselinkconf_LDADD = $(LDADD)
+am_src_ibparseedgeconf_OBJECTS =  \
+	src_ibparseedgeconf-ibparseedgeconf.$(OBJEXT)
+src_ibparseedgeconf_OBJECTS = $(am_src_ibparseedgeconf_OBJECTS)
+src_ibparseedgeconf_LDADD = $(LDADD)
 am_src_rdma_cm_query_OBJECTS =  \
 	src_rdma_cm_query-rdma_cm_query.$(OBJEXT)
 src_rdma_cm_query_OBJECTS = $(am_src_rdma_cm_query_OBJECTS)
@@ -134,12 +136,12 @@ LINK = $(LIBTOOL) --tag=CC --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
 SOURCES = $(libibedgeconf_la_SOURCES) $(src_ibgraphfabric_SOURCES) \
 	$(src_iblinkconffromfabric_SOURCES) \
-	$(src_ibparselinkconf_SOURCES) $(src_rdma_cm_query_SOURCES) \
+	$(src_ibparseedgeconf_SOURCES) $(src_rdma_cm_query_SOURCES) \
 	$(src_simple_rdma_SOURCES) $(src_slurm_topology_SOURCES)
 DIST_SOURCES = $(libibedgeconf_la_SOURCES) \
 	$(src_ibgraphfabric_SOURCES) \
 	$(src_iblinkconffromfabric_SOURCES) \
-	$(src_ibparselinkconf_SOURCES) $(src_rdma_cm_query_SOURCES) \
+	$(src_ibparseedgeconf_SOURCES) $(src_rdma_cm_query_SOURCES) \
 	$(src_simple_rdma_SOURCES) $(src_slurm_topology_SOURCES)
 man8dir = $(mandir)/man8
 NROFF = nroff
@@ -269,9 +271,9 @@ sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
-INCLUDES = -I$(includedir)/infiniband \
-	 -I$(includedir) \
-	 -Iinclude
+INCLUDES = -Iinclude \
+	-I$(includedir)/infiniband \
+	-I$(includedir)
 
 @DEBUG_FALSE@DBGFLAGS = 
 @DEBUG_TRUE@DBGFLAGS = -ggdb -D_DEBUG_
@@ -329,9 +331,9 @@ libibedgeconf_la_LDFLAGS = -version-info $(ibedgeconf_api_version) \
 libibedgeconf_la_DEPENDENCIES = src/libibedgeconf.map
 libibedgeconfincludedir = $(includedir)/infiniband
 libibedgeconfinclude_HEADERS = include/infiniband/ibedgeconf.h
-src_ibparselinkconf_SOURCES = src/ibparselinkconf.c
-src_ibparselinkconf_CFLAGS = -I$(includedir)
-src_ibparselinkconf_LDFLAGS = -libedgeconf
+src_ibparseedgeconf_SOURCES = src/ibparseedgeconf.c
+src_ibparseedgeconf_CFLAGS = -I$(includedir)
+src_ibparseedgeconf_LDFLAGS = -libedgeconf
 EXTRA_DIST = \
 	META \
 	ChangeLog \
@@ -341,7 +343,7 @@ EXTRA_DIST = \
 	scripts \
 	sysconf/ibsrp.conf \
 	etc/pragmaticIB.conf \
-	example_config \
+	chassis_edgeconf \
 	src/libibedgeconf.map \
 	libibedgeconf.ver
 
@@ -425,6 +427,8 @@ man/ibtrackerrors.8: $(top_builddir)/config.status $(top_srcdir)/man/ibtrackerro
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 man/ibhcacounters.8: $(top_builddir)/config.status $(top_srcdir)/man/ibhcacounters.8.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
+include/infiniband/ibedgeconf.h: $(top_builddir)/config.status $(top_srcdir)/include/infiniband/ibedgeconf.h.in
+	cd $(top_builddir) && $(SHELL) ./config.status $@
 install-libLTLIBRARIES: $(lib_LTLIBRARIES)
 	@$(NORMAL_INSTALL)
 	test -z "$(libdir)" || $(mkdir_p) "$(DESTDIR)$(libdir)"
@@ -491,9 +495,9 @@ src/ibgraphfabric$(EXEEXT): $(src_ibgraphfabric_OBJECTS) $(src_ibgraphfabric_DEP
 src/iblinkconffromfabric$(EXEEXT): $(src_iblinkconffromfabric_OBJECTS) $(src_iblinkconffromfabric_DEPENDENCIES) src/$(am__dirstamp)
 	@rm -f src/iblinkconffromfabric$(EXEEXT)
 	$(LINK) $(src_iblinkconffromfabric_LDFLAGS) $(src_iblinkconffromfabric_OBJECTS) $(src_iblinkconffromfabric_LDADD) $(LIBS)
-src/ibparselinkconf$(EXEEXT): $(src_ibparselinkconf_OBJECTS) $(src_ibparselinkconf_DEPENDENCIES) src/$(am__dirstamp)
-	@rm -f src/ibparselinkconf$(EXEEXT)
-	$(LINK) $(src_ibparselinkconf_LDFLAGS) $(src_ibparselinkconf_OBJECTS) $(src_ibparselinkconf_LDADD) $(LIBS)
+src/ibparseedgeconf$(EXEEXT): $(src_ibparseedgeconf_OBJECTS) $(src_ibparseedgeconf_DEPENDENCIES) src/$(am__dirstamp)
+	@rm -f src/ibparseedgeconf$(EXEEXT)
+	$(LINK) $(src_ibparseedgeconf_LDFLAGS) $(src_ibparseedgeconf_OBJECTS) $(src_ibparseedgeconf_LDADD) $(LIBS)
 src/rdma_cm_query$(EXEEXT): $(src_rdma_cm_query_OBJECTS) $(src_rdma_cm_query_DEPENDENCIES) src/$(am__dirstamp)
 	@rm -f src/rdma_cm_query$(EXEEXT)
 	$(LINK) $(src_rdma_cm_query_LDFLAGS) $(src_rdma_cm_query_OBJECTS) $(src_rdma_cm_query_LDADD) $(LIBS)
@@ -534,7 +538,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/iblinkconffromfabric.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libibedgeconf_la-ibedgeconf.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/slurm_topology.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/src_ibparselinkconf-ibparselinkconf.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/src_ibparseedgeconf-ibparseedgeconf.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/src_rdma_cm_query-rdma_cm_query.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/src_simple_rdma-simple_rdma.Po@am__quote@
 
@@ -608,19 +612,19 @@ iblinkconffromfabric.obj: src/iblinkconffromfabric.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o iblinkconffromfabric.obj `if test -f 'src/iblinkconffromfabric.c'; then $(CYGPATH_W) 'src/iblinkconffromfabric.c'; else $(CYGPATH_W) '$(srcdir)/src/iblinkconffromfabric.c'; fi`
 
-src_ibparselinkconf-ibparselinkconf.o: src/ibparselinkconf.c
-@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(src_ibparselinkconf_CFLAGS) $(CFLAGS) -MT src_ibparselinkconf-ibparselinkconf.o -MD -MP -MF "$(DEPDIR)/src_ibparselinkconf-ibparselinkconf.Tpo" -c -o src_ibparselinkconf-ibparselinkconf.o `test -f 'src/ibparselinkconf.c' || echo '$(srcdir)/'`src/ibparselinkconf.c; \
-@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/src_ibparselinkconf-ibparselinkconf.Tpo" "$(DEPDIR)/src_ibparselinkconf-ibparselinkconf.Po"; else rm -f "$(DEPDIR)/src_ibparselinkconf-ibparselinkconf.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/ibparselinkconf.c' object='src_ibparselinkconf-ibparselinkconf.o' libtool=no @AMDEPBACKSLASH@
+src_ibparseedgeconf-ibparseedgeconf.o: src/ibparseedgeconf.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(src_ibparseedgeconf_CFLAGS) $(CFLAGS) -MT src_ibparseedgeconf-ibparseedgeconf.o -MD -MP -MF "$(DEPDIR)/src_ibparseedgeconf-ibparseedgeconf.Tpo" -c -o src_ibparseedgeconf-ibparseedgeconf.o `test -f 'src/ibparseedgeconf.c' || echo '$(srcdir)/'`src/ibparseedgeconf.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/src_ibparseedgeconf-ibparseedgeconf.Tpo" "$(DEPDIR)/src_ibparseedgeconf-ibparseedgeconf.Po"; else rm -f "$(DEPDIR)/src_ibparseedgeconf-ibparseedgeconf.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/ibparseedgeconf.c' object='src_ibparseedgeconf-ibparseedgeconf.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(src_ibparselinkconf_CFLAGS) $(CFLAGS) -c -o src_ibparselinkconf-ibparselinkconf.o `test -f 'src/ibparselinkconf.c' || echo '$(srcdir)/'`src/ibparselinkconf.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(src_ibparseedgeconf_CFLAGS) $(CFLAGS) -c -o src_ibparseedgeconf-ibparseedgeconf.o `test -f 'src/ibparseedgeconf.c' || echo '$(srcdir)/'`src/ibparseedgeconf.c
 
-src_ibparselinkconf-ibparselinkconf.obj: src/ibparselinkconf.c
-@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(src_ibparselinkconf_CFLAGS) $(CFLAGS) -MT src_ibparselinkconf-ibparselinkconf.obj -MD -MP -MF "$(DEPDIR)/src_ibparselinkconf-ibparselinkconf.Tpo" -c -o src_ibparselinkconf-ibparselinkconf.obj `if test -f 'src/ibparselinkconf.c'; then $(CYGPATH_W) 'src/ibparselinkconf.c'; else $(CYGPATH_W) '$(srcdir)/src/ibparselinkconf.c'; fi`; \
-@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/src_ibparselinkconf-ibparselinkconf.Tpo" "$(DEPDIR)/src_ibparselinkconf-ibparselinkconf.Po"; else rm -f "$(DEPDIR)/src_ibparselinkconf-ibparselinkconf.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/ibparselinkconf.c' object='src_ibparselinkconf-ibparselinkconf.obj' libtool=no @AMDEPBACKSLASH@
+src_ibparseedgeconf-ibparseedgeconf.obj: src/ibparseedgeconf.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(src_ibparseedgeconf_CFLAGS) $(CFLAGS) -MT src_ibparseedgeconf-ibparseedgeconf.obj -MD -MP -MF "$(DEPDIR)/src_ibparseedgeconf-ibparseedgeconf.Tpo" -c -o src_ibparseedgeconf-ibparseedgeconf.obj `if test -f 'src/ibparseedgeconf.c'; then $(CYGPATH_W) 'src/ibparseedgeconf.c'; else $(CYGPATH_W) '$(srcdir)/src/ibparseedgeconf.c'; fi`; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/src_ibparseedgeconf-ibparseedgeconf.Tpo" "$(DEPDIR)/src_ibparseedgeconf-ibparseedgeconf.Po"; else rm -f "$(DEPDIR)/src_ibparseedgeconf-ibparseedgeconf.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/ibparseedgeconf.c' object='src_ibparseedgeconf-ibparseedgeconf.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(src_ibparselinkconf_CFLAGS) $(CFLAGS) -c -o src_ibparselinkconf-ibparselinkconf.obj `if test -f 'src/ibparselinkconf.c'; then $(CYGPATH_W) 'src/ibparselinkconf.c'; else $(CYGPATH_W) '$(srcdir)/src/ibparselinkconf.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(src_ibparseedgeconf_CFLAGS) $(CFLAGS) -c -o src_ibparseedgeconf-ibparseedgeconf.obj `if test -f 'src/ibparseedgeconf.c'; then $(CYGPATH_W) 'src/ibparseedgeconf.c'; else $(CYGPATH_W) '$(srcdir)/src/ibparseedgeconf.c'; fi`
 
 src_rdma_cm_query-rdma_cm_query.o: src/rdma_cm_query.c
 @am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(src_rdma_cm_query_CFLAGS) $(CFLAGS) -MT src_rdma_cm_query-rdma_cm_query.o -MD -MP -MF "$(DEPDIR)/src_rdma_cm_query-rdma_cm_query.Tpo" -c -o src_rdma_cm_query-rdma_cm_query.o `test -f 'src/rdma_cm_query.c' || echo '$(srcdir)/'`src/rdma_cm_query.c; \
@@ -1029,7 +1033,10 @@ install-exec-hook:
 	$(top_srcdir)/config/install-sh -m 755 -d $(DESTDIR)/$(sysconfdir)/init.d
 	$(top_srcdir)/config/install-sh -m 755 $(top_builddir)/scripts/ibsrp $(DESTDIR)/$(sysconfdir)/init.d/ibsrp
 	$(top_srcdir)/config/install-sh -m 755 $(top_builddir)/sysconf/ibsrp.conf $(DESTDIR)/$(sysconfdir)/sysconfig/ibsrp.conf
-	$(top_srcdir)/config/install-sh -m 755 $(top_builddir)/etc/pragmaticIB.conf $(DESTDIR)/$(sysconfdir)/pragmaticIB/pragmaticIB.conf
+	$(top_srcdir)/config/install-sh -m 644 $(top_builddir)/etc/pragmaticIB.conf $(DESTDIR)/$(sysconfdir)/pragmaticIB/pragmaticIB.conf
+	for file in $(top_builddir)/chassis_edgeconf/*.xml; do \
+		$(top_srcdir)/config/install-sh -m 644 $$file $(DESTDIR)/$(sysconfdir)/pragmaticIB/; \
+	done
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <!DOCTYPE ibchassismap SYSTEM "chassismap.dtd">
 
-<chassismap name="Voltaire_ISR9288">
+<chassismap model="Voltaire_ISR9288">
 	<edgelist position="L12a">
 		<port num="1"><r_port>23</r_port><r_node>SP1a</r_node></port>
 		<port num="2"><r_port>23</r_port><r_node>SP1b</r_node></port>

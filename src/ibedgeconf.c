@@ -392,13 +392,16 @@ parse_edgelist(xmlNode *edgelist, ibedge_prop_t *parent_prop,
 static int parse_chassismap(xmlNode *chassis, ibedge_prop_t *parent_prop,
 				ibedge_conf_t *edgeconf)
 {
+	int rc = 0;
 	xmlNode *cur;
 	for (cur = chassis->children; cur; cur = cur->next) {
 		if (strcmp((char *)cur->name, "edgelist") == 0) {
-			parse_edgelist(cur, parent_prop, edgeconf);
+			rc = parse_edgelist(cur, parent_prop, edgeconf);
 		}
+		if (rc)
+			break;
 	}
-	return (0);
+	return (rc);
 }
 
 static int
@@ -410,16 +413,18 @@ process_chassis_model(ch_map_t *ch_map, char *model,
 	xmlNode *cur = NULL;
 	ibedge_prop_t prop = *parent_prop;
 	int rc = 0;
-	char file[256];
+	char *file = malloc(strlen(IBEDGE_CONFIG_DIR) + strlen(model)
+				+strlen("/.xml   "));
 
-	snprintf(file, 256, "%s.xml", model);
+	snprintf(file, 512, IBEDGE_CONFIG_DIR"/%s.xml", model);
 	
 	/*parse the file and get the DOM */
 	chassis_doc = xmlReadFile(file, NULL, 0);
-	
+
 	if (chassis_doc == NULL) {
 		fprintf(stderr, "ERROR: could not parse chassis file %s\n", file);
-		return (-EIO);
+		rc = -EIO;
+		goto exit;
 	}
 
 	/*Get the root element node */
@@ -431,9 +436,9 @@ process_chassis_model(ch_map_t *ch_map, char *model,
 			if (strcmp((char *)cur->name, "chassismap") == 0) {
 				char *model_name = (char *)xmlGetProp(cur, (xmlChar *)"model");
 				if (!model_name || strcmp(model_name, model) != 0) {
-					fprintf(stderr, "Model name does not "
-						"match xml content: %s != %s",
-						model_name, model);
+					fprintf(stderr, "ERROR processing %s; Model name does not "
+						"match: %s != %s\n",
+						file, model_name, model);
 					rc = -EIO;
 					goto exit;
 				}
@@ -450,6 +455,7 @@ fclose(f);
 
 	xmlFreeDoc(chassis_doc);
 exit:
+	free(file);
 	return (rc);
 }
 
@@ -472,7 +478,8 @@ parse_chassis(xmlNode *chassis, ibedge_prop_t *parent_prop,
 		goto free_xmlChar;
 	}
 
-	if (!chassis_name) {
+	if (!chassis_name || !chassis_model) {
+		fprintf(stderr, "chassis_[name|model] not defined\n");
 		rc = -EIO;
 		goto free_xmlChar;
 	}
@@ -521,6 +528,7 @@ free_xmlChar:
 static int
 parse_fabric(xmlNode *fabric, ibedge_prop_t *parent_prop, ibedge_conf_t *edgeconf)
 {
+	int rc = 0;
 	xmlNode *cur = NULL;
 	xmlAttr *attr = NULL;
 	ibedge_prop_t prop = *parent_prop;
@@ -537,11 +545,11 @@ parse_fabric(xmlNode *fabric, ibedge_prop_t *parent_prop, ibedge_conf_t *edgecon
 	for (cur = fabric->children; cur; cur = cur->next) {
 		if (cur->type == XML_ELEMENT_NODE) {
 			if (strcmp((char *)cur->name, "chassis") == 0)
-				parse_chassis(cur, &prop, edgeconf);
+				rc = parse_chassis(cur, &prop, edgeconf);
 			else if (strcmp((char *)cur->name, "edgelist") == 0)
-				parse_edgelist(cur, &prop, edgeconf);
+				rc = parse_edgelist(cur, &prop, edgeconf);
 			else if (strcmp((char *)cur->name, "subfabric") == 0)
-				parse_fabric(cur, &prop, edgeconf);
+				rc = parse_fabric(cur, &prop, edgeconf);
 			else {
 				xmlChar * cont = xmlNodeGetContent(cur);
 				fprintf(stderr, "UNKNOWN XML node found\n");
@@ -554,8 +562,10 @@ parse_fabric(xmlNode *fabric, ibedge_prop_t *parent_prop, ibedge_conf_t *edgecon
 				}
 			}
 		}
+		if (rc)
+			break;
 	}
-	return (0);
+	return (rc);
 }
 
 /**
@@ -663,6 +673,10 @@ ibedge_parse_file(char *file, ibedge_conf_t *edgeconf)
 	
 	/* initialize the library */
 	LIBXML_TEST_VERSION
+
+	if (!file) {
+		file = IBEDGE_CONFIG_DIR "/ibedgeconf.xml";
+	}
 	
 	/* parse the file and get the DOM */
 	doc = xmlReadFile(file, NULL, 0);

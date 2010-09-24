@@ -47,7 +47,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man8/*
 %{_sysconfdir}/init.d/*
 %config(noreplace) %{_sysconfdir}/sysconfig/ibsrp.conf
-%config(noreplace) %{_sysconfdir}/pragmaticIB/pragmaticIB.conf
+%config(noreplace) %{_sysconfdir}/pragmaticIB/*
 
 %changelog
 * Fri Feb 19 2010 Ira Weiny <weiny2@llnl.gov> - 1.0.3

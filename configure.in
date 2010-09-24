@@ -37,6 +37,12 @@ AC_CHECK_LIB(rdmacm, rdma_connect, [],
 AC_CHECK_LIB(ibnetdisc, ibnd_discover_fabric, [],
         AC_MSG_ERROR([ibnd_discover_fabric() not found. PIU requires libibnetdisc.]))
 
+dnl find the XML support
+AC_CHECK_HEADERS([libxml/parser.h])
+AC_CHECK_HEADERS([libxml/tree.h])
+AC_CHECK_LIB(xml2, xmlReadFile, [],
+        AC_MSG_ERROR([xmlReadFile() not found. PIU requires libxml2.]))
+
 AC_CACHE_CHECK(whether ld accepts --version-script, ac_cv_version_script,
     if test -n "`$LD --help < /dev/null 2>/dev/null | grep version-script`"; then
         ac_cv_version_script=yes
@@ -96,5 +102,6 @@ AC_CONFIG_FILES([Makefile
                man/ibsrp.8
                man/ibtrackerrors.8
                man/ibhcacounters.8
+               include/infiniband/ibedgeconf.h
                ])
 AC_OUTPUT

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <!DOCTYPE ibchassismap SYSTEM "ibchassismap.dtd">
 
-<chassismap name="QLogic_12800-360">
+<chassismap model="QLogic_12800-360">
 	<edgelist position="L125">
 		<port num="19"><r_port>17</r_port><r_node>S115B</r_node></port>
 		<port num="20"><r_port>16</r_port><r_node>S211A</r_node></port>

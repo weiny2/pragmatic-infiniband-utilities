@@ -1,6 +1,6 @@
-INCLUDES=-I$(includedir)/infiniband \
-	 -I$(includedir) \
-	 -Iinclude
+INCLUDES=-Iinclude \
+	-I$(includedir)/infiniband \
+	-I$(includedir)
 
 if DEBUG
 DBGFLAGS = -ggdb -D_DEBUG_
@@ -19,7 +19,7 @@ sbin_PROGRAMS = src/simple_rdma \
 					src/slurm_topology \
 					src/ibgraphfabric \
 					src/iblinkconffromfabric \
-					src/ibparselinkconf
+					src/ibparseedgeconf
 
 mySCRIPTS = scripts/ibgetgid \
 				scripts/ibgetlid \
@@ -80,9 +80,9 @@ libibedgeconfincludedir = $(includedir)/infiniband
 
 libibedgeconfinclude_HEADERS = include/infiniband/ibedgeconf.h
 
-src_ibparselinkconf_SOURCES = src/ibparselinkconf.c
-src_ibparselinkconf_CFLAGS = -I$(includedir)
-src_ibparselinkconf_LDFLAGS = -libedgeconf
+src_ibparseedgeconf_SOURCES = src/ibparseedgeconf.c
+src_ibparseedgeconf_CFLAGS = -I$(includedir)
+src_ibparseedgeconf_LDFLAGS = -libedgeconf
 
 
 EXTRA_DIST = \
@@ -94,7 +94,7 @@ EXTRA_DIST = \
 	scripts \
 	sysconf/ibsrp.conf \
 	etc/pragmaticIB.conf \
-	example_config \
+	chassis_edgeconf \
 	src/libibedgeconf.map \
 	libibedgeconf.ver
 
@@ -102,5 +102,8 @@ install-exec-hook:
 	$(top_srcdir)/config/install-sh -m 755 -d $(DESTDIR)/$(sysconfdir)/init.d
 	$(top_srcdir)/config/install-sh -m 755 $(top_builddir)/scripts/ibsrp $(DESTDIR)/$(sysconfdir)/init.d/ibsrp
 	$(top_srcdir)/config/install-sh -m 755 $(top_builddir)/sysconf/ibsrp.conf $(DESTDIR)/$(sysconfdir)/sysconfig/ibsrp.conf
-	$(top_srcdir)/config/install-sh -m 755 $(top_builddir)/etc/pragmaticIB.conf $(DESTDIR)/$(sysconfdir)/pragmaticIB/pragmaticIB.conf
+	$(top_srcdir)/config/install-sh -m 644 $(top_builddir)/etc/pragmaticIB.conf $(DESTDIR)/$(sysconfdir)/pragmaticIB/pragmaticIB.conf
+	for file in $(top_builddir)/chassis_edgeconf/*.xml; do \
+		$(top_srcdir)/config/install-sh -m 644 $$file $(DESTDIR)/$(sysconfdir)/pragmaticIB/; \
+	done
 

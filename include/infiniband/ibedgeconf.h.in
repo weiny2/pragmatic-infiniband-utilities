@@ -27,6 +27,8 @@
 #ifndef _IBEDGECONF_H_
 #define _IBEDGECONF_H_
 
+#define IBEDGE_CONFIG_DIR "@PIU_CONFIG_PATH@/pragmaticIB"
+
 /* These are opaque data types */
 typedef struct ibedge_prop ibedge_prop_t;
 typedef struct ibedge_port ibedge_port_t;
