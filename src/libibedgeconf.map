@@ -1,0 +1,17 @@
+IBEDGECONF_1.0 {
+	global:
+		ibedge_conf_get_name;
+		ibedge_prop_get_speed;
+		ibedge_prop_get_width;
+		ibedge_port_get_name;
+		ibedge_port_get_port_num;
+		ibedge_port_get_prop;
+		ibedge_port_get_remote;
+		ibedge_prop_str;
+		ibedge_alloc_conf;
+		ibedge_free;
+		ibedge_parse_file;
+		ibedge_get_port;
+		ibedge_iter_ports;
+	local: *;
+};

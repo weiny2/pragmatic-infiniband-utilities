@@ -190,7 +190,7 @@ static int ignore_node(char *node_name)
 		if ((rc = regcomp(&exp, ignore_regex, REG_ICASE |
 				REG_NOSUB | REG_EXTENDED)) != 0) {
 			fprintf(stderr, "ERROR: regcomp failed on \"%s\": %d\n",
-				root_regex, rc);
+				ignore_regex, rc);
 			regex_failed = 1;
 			return 0;
 		}
@@ -349,7 +349,7 @@ usage(void)
 {
         fprintf(stderr,
 "%s [options]\n"
-"Usage: generate a slurm topology file to be fed to slurm for better node utilization\n"
+"Usage: generate a dot file (stdout) which graphs the fabric\n"
 "\n"
 "Options:\n"
 "  -S <guid> generate for the node specified by the port guid\n"

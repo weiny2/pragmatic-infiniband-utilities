@@ -15,6 +15,8 @@
 @SET_MAKE@
 
 
+
+
 srcdir = @srcdir@
 top_srcdir = @top_srcdir@
 VPATH = @srcdir@
@@ -38,8 +40,10 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 sbin_PROGRAMS = src/simple_rdma$(EXEEXT) src/rdma_cm_query$(EXEEXT) \
-	src/slurm_topology$(EXEEXT) src/ibgraphfabric$(EXEEXT)
-DIST_COMMON = README $(am__configure_deps) $(srcdir)/Makefile.am \
+	src/slurm_topology$(EXEEXT) src/ibgraphfabric$(EXEEXT) \
+	src/iblinkconffromfabric$(EXEEXT) src/ibparselinkconf$(EXEEXT)
+DIST_COMMON = README $(am__configure_deps) \
+	$(libibedgeconfinclude_HEADERS) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in \
 	$(srcdir)/pragmatic-infiniband-utilities.spec.in \
 	$(top_srcdir)/config/config.h.in $(top_srcdir)/configure \
@@ -75,8 +79,20 @@ CONFIG_CLEAN_FILES = pragmatic-infiniband-utilities.spec \
 	scripts/ibcreateswitchmap.sh man/voltaire-create-switch-map.8 \
 	man/qlogic-create-switch-map.8 scripts/ibsrp man/ibsrp.8 \
 	man/ibtrackerrors.8 man/ibhcacounters.8
-am__installdirs = "$(DESTDIR)$(sbindir)" "$(DESTDIR)$(sbindir)" \
-	"$(DESTDIR)$(man8dir)"
+am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
+am__vpath_adj = case $$p in \
+    $(srcdir)/*) f=`echo "$$p" | sed "s|^$$srcdirstrip/||"`;; \
+    *) f=$$p;; \
+  esac;
+am__strip_dir = `echo $$p | sed -e 's|^.*/||'`;
+am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(sbindir)" \
+	"$(DESTDIR)$(sbindir)" "$(DESTDIR)$(man8dir)" \
+	"$(DESTDIR)$(libibedgeconfincludedir)"
+libLTLIBRARIES_INSTALL = $(INSTALL)
+LTLIBRARIES = $(lib_LTLIBRARIES)
+libibedgeconf_la_LIBADD =
+am_libibedgeconf_la_OBJECTS = libibedgeconf_la-ibedgeconf.lo
+libibedgeconf_la_OBJECTS = $(am_libibedgeconf_la_OBJECTS)
 sbinPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(sbin_PROGRAMS)
 am_src_ibgraphfabric_OBJECTS = ibgraphfabric.$(OBJEXT) \
@@ -84,6 +100,14 @@ am_src_ibgraphfabric_OBJECTS = ibgraphfabric.$(OBJEXT) \
 src_ibgraphfabric_OBJECTS = $(am_src_ibgraphfabric_OBJECTS)
 src_ibgraphfabric_LDADD = $(LDADD)
 am__dirstamp = $(am__leading_dot)dirstamp
+am_src_iblinkconffromfabric_OBJECTS = iblinkconffromfabric.$(OBJEXT)
+src_iblinkconffromfabric_OBJECTS =  \
+	$(am_src_iblinkconffromfabric_OBJECTS)
+src_iblinkconffromfabric_LDADD = $(LDADD)
+am_src_ibparselinkconf_OBJECTS =  \
+	src_ibparselinkconf-ibparselinkconf.$(OBJEXT)
+src_ibparselinkconf_OBJECTS = $(am_src_ibparselinkconf_OBJECTS)
+src_ibparselinkconf_LDADD = $(LDADD)
 am_src_rdma_cm_query_OBJECTS =  \
 	src_rdma_cm_query-rdma_cm_query.$(OBJEXT)
 src_rdma_cm_query_OBJECTS = $(am_src_rdma_cm_query_OBJECTS)
@@ -108,14 +132,20 @@ LTCOMPILE = $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) \
 CCLD = $(CC)
 LINK = $(LIBTOOL) --tag=CC --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
-SOURCES = $(src_ibgraphfabric_SOURCES) $(src_rdma_cm_query_SOURCES) \
+SOURCES = $(libibedgeconf_la_SOURCES) $(src_ibgraphfabric_SOURCES) \
+	$(src_iblinkconffromfabric_SOURCES) \
+	$(src_ibparselinkconf_SOURCES) $(src_rdma_cm_query_SOURCES) \
 	$(src_simple_rdma_SOURCES) $(src_slurm_topology_SOURCES)
-DIST_SOURCES = $(src_ibgraphfabric_SOURCES) \
-	$(src_rdma_cm_query_SOURCES) $(src_simple_rdma_SOURCES) \
-	$(src_slurm_topology_SOURCES)
+DIST_SOURCES = $(libibedgeconf_la_SOURCES) \
+	$(src_ibgraphfabric_SOURCES) \
+	$(src_iblinkconffromfabric_SOURCES) \
+	$(src_ibparselinkconf_SOURCES) $(src_rdma_cm_query_SOURCES) \
+	$(src_simple_rdma_SOURCES) $(src_slurm_topology_SOURCES)
 man8dir = $(mandir)/man8
 NROFF = nroff
 MANS = $(man_MANS)
+libibedgeconfincludeHEADERS_INSTALL = $(INSTALL_HEADER)
+HEADERS = $(libibedgeconfinclude_HEADERS)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -223,6 +253,7 @@ host_alias = @host_alias@
 host_cpu = @host_cpu@
 host_os = @host_os@
 host_vendor = @host_vendor@
+ibedgeconf_api_version = @ibedgeconf_api_version@
 includedir = @includedir@
 infodir = @infodir@
 install_sh = @install_sh@
@@ -239,12 +270,14 @@ sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 INCLUDES = -I$(includedir)/infiniband \
-	 -I$(includedir)
+	 -I$(includedir) \
+	 -Iinclude
 
 @DEBUG_FALSE@DBGFLAGS = 
 @DEBUG_TRUE@DBGFLAGS = -ggdb -D_DEBUG_
 ACLOCAL_AMFLAGS = -I config
 AM_CFLAGS = -Wall $(DBGFLAGS)
+lib_LTLIBRARIES = libibedgeconf.la
 mySCRIPTS = scripts/ibgetgid \
 				scripts/ibgetlid \
 				scripts/ibtraceroute \
@@ -285,6 +318,20 @@ src_slurm_topology_SOURCES = src/slurm_topology.c src/hostlist.c src/hostlist.h
 src_slurm_topology_LDFLAGS = -losmcomp -libmad -libnetdisc $(LIBGENDERS)
 src_ibgraphfabric_SOURCES = src/ibgraphfabric.c src/hostlist.c src/hostlist.h
 src_ibgraphfabric_LDFLAGS = -losmcomp -libmad -libnetdisc
+src_iblinkconffromfabric_SOURCES = src/iblinkconffromfabric.c
+src_iblinkconffromfabric_LDFLAGS = -losmcomp -libmad -libnetdisc
+libibedgeconf_la_SOURCES = src/ibedgeconf.c
+libibedgeconf_la_CFLAGS = -I/usr/include/libxml2 -Wall $(DBGFLAGS)
+libibedgeconf_la_LDFLAGS = -version-info $(ibedgeconf_api_version) \
+	-export-dynamic $(libibedgeconf_version_script) \
+	-libmad -lxml2 -lz -lm
+
+libibedgeconf_la_DEPENDENCIES = src/libibedgeconf.map
+libibedgeconfincludedir = $(includedir)/infiniband
+libibedgeconfinclude_HEADERS = include/infiniband/ibedgeconf.h
+src_ibparselinkconf_SOURCES = src/ibparselinkconf.c
+src_ibparselinkconf_CFLAGS = -I$(includedir)
+src_ibparselinkconf_LDFLAGS = -libedgeconf
 EXTRA_DIST = \
 	META \
 	ChangeLog \
@@ -293,7 +340,10 @@ EXTRA_DIST = \
 	$(mySCRIPTS) \
 	scripts \
 	sysconf/ibsrp.conf \
-	etc/pragmaticIB.conf
+	etc/pragmaticIB.conf \
+	example_config \
+	$(srcdir)/src/libibedgeconf.map \
+	libibedgeconf.ver
 
 all: all-am
 
@@ -375,6 +425,35 @@ man/ibtrackerrors.8: $(top_builddir)/config.status $(top_srcdir)/man/ibtrackerro
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 man/ibhcacounters.8: $(top_builddir)/config.status $(top_srcdir)/man/ibhcacounters.8.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
+install-libLTLIBRARIES: $(lib_LTLIBRARIES)
+	@$(NORMAL_INSTALL)
+	test -z "$(libdir)" || $(mkdir_p) "$(DESTDIR)$(libdir)"
+	@list='$(lib_LTLIBRARIES)'; for p in $$list; do \
+	  if test -f $$p; then \
+	    f=$(am__strip_dir) \
+	    echo " $(LIBTOOL) --mode=install $(libLTLIBRARIES_INSTALL) $(INSTALL_STRIP_FLAG) '$$p' '$(DESTDIR)$(libdir)/$$f'"; \
+	    $(LIBTOOL) --mode=install $(libLTLIBRARIES_INSTALL) $(INSTALL_STRIP_FLAG) "$$p" "$(DESTDIR)$(libdir)/$$f"; \
+	  else :; fi; \
+	done
+
+uninstall-libLTLIBRARIES:
+	@$(NORMAL_UNINSTALL)
+	@set -x; list='$(lib_LTLIBRARIES)'; for p in $$list; do \
+	  p=$(am__strip_dir) \
+	  echo " $(LIBTOOL) --mode=uninstall rm -f '$(DESTDIR)$(libdir)/$$p'"; \
+	  $(LIBTOOL) --mode=uninstall rm -f "$(DESTDIR)$(libdir)/$$p"; \
+	done
+
+clean-libLTLIBRARIES:
+	-test -z "$(lib_LTLIBRARIES)" || rm -f $(lib_LTLIBRARIES)
+	@list='$(lib_LTLIBRARIES)'; for p in $$list; do \
+	  dir="`echo $$p | sed -e 's|/[^/]*$$||'`"; \
+	  test "$$dir" != "$$p" || dir=.; \
+	  echo "rm -f \"$${dir}/so_locations\""; \
+	  rm -f "$${dir}/so_locations"; \
+	done
+libibedgeconf.la: $(libibedgeconf_la_OBJECTS) $(libibedgeconf_la_DEPENDENCIES) 
+	$(LINK) -rpath $(libdir) $(libibedgeconf_la_LDFLAGS) $(libibedgeconf_la_OBJECTS) $(libibedgeconf_la_LIBADD) $(LIBS)
 install-sbinPROGRAMS: $(sbin_PROGRAMS)
 	@$(NORMAL_INSTALL)
 	test -z "$(sbindir)" || $(mkdir_p) "$(DESTDIR)$(sbindir)"
@@ -409,6 +488,12 @@ src/$(am__dirstamp):
 src/ibgraphfabric$(EXEEXT): $(src_ibgraphfabric_OBJECTS) $(src_ibgraphfabric_DEPENDENCIES) src/$(am__dirstamp)
 	@rm -f src/ibgraphfabric$(EXEEXT)
 	$(LINK) $(src_ibgraphfabric_LDFLAGS) $(src_ibgraphfabric_OBJECTS) $(src_ibgraphfabric_LDADD) $(LIBS)
+src/iblinkconffromfabric$(EXEEXT): $(src_iblinkconffromfabric_OBJECTS) $(src_iblinkconffromfabric_DEPENDENCIES) src/$(am__dirstamp)
+	@rm -f src/iblinkconffromfabric$(EXEEXT)
+	$(LINK) $(src_iblinkconffromfabric_LDFLAGS) $(src_iblinkconffromfabric_OBJECTS) $(src_iblinkconffromfabric_LDADD) $(LIBS)
+src/ibparselinkconf$(EXEEXT): $(src_ibparselinkconf_OBJECTS) $(src_ibparselinkconf_DEPENDENCIES) src/$(am__dirstamp)
+	@rm -f src/ibparselinkconf$(EXEEXT)
+	$(LINK) $(src_ibparselinkconf_LDFLAGS) $(src_ibparselinkconf_OBJECTS) $(src_ibparselinkconf_LDADD) $(LIBS)
 src/rdma_cm_query$(EXEEXT): $(src_rdma_cm_query_OBJECTS) $(src_rdma_cm_query_DEPENDENCIES) src/$(am__dirstamp)
 	@rm -f src/rdma_cm_query$(EXEEXT)
 	$(LINK) $(src_rdma_cm_query_LDFLAGS) $(src_rdma_cm_query_OBJECTS) $(src_rdma_cm_query_LDADD) $(LIBS)
@@ -446,7 +531,10 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hostlist.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ibgraphfabric.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/iblinkconffromfabric.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libibedgeconf_la-ibedgeconf.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/slurm_topology.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/src_ibparselinkconf-ibparselinkconf.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/src_rdma_cm_query-rdma_cm_query.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/src_simple_rdma-simple_rdma.Po@am__quote@
 
@@ -470,6 +558,13 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LTCOMPILE) -c -o $@ $<
+
+libibedgeconf_la-ibedgeconf.lo: src/ibedgeconf.c
+@am__fastdepCC_TRUE@	if $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libibedgeconf_la_CFLAGS) $(CFLAGS) -MT libibedgeconf_la-ibedgeconf.lo -MD -MP -MF "$(DEPDIR)/libibedgeconf_la-ibedgeconf.Tpo" -c -o libibedgeconf_la-ibedgeconf.lo `test -f 'src/ibedgeconf.c' || echo '$(srcdir)/'`src/ibedgeconf.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/libibedgeconf_la-ibedgeconf.Tpo" "$(DEPDIR)/libibedgeconf_la-ibedgeconf.Plo"; else rm -f "$(DEPDIR)/libibedgeconf_la-ibedgeconf.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/ibedgeconf.c' object='libibedgeconf_la-ibedgeconf.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libibedgeconf_la_CFLAGS) $(CFLAGS) -c -o libibedgeconf_la-ibedgeconf.lo `test -f 'src/ibedgeconf.c' || echo '$(srcdir)/'`src/ibedgeconf.c
 
 ibgraphfabric.o: src/ibgraphfabric.c
 @am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT ibgraphfabric.o -MD -MP -MF "$(DEPDIR)/ibgraphfabric.Tpo" -c -o ibgraphfabric.o `test -f 'src/ibgraphfabric.c' || echo '$(srcdir)/'`src/ibgraphfabric.c; \
@@ -498,6 +593,34 @@ hostlist.obj: src/hostlist.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/hostlist.c' object='hostlist.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o hostlist.obj `if test -f 'src/hostlist.c'; then $(CYGPATH_W) 'src/hostlist.c'; else $(CYGPATH_W) '$(srcdir)/src/hostlist.c'; fi`
+
+iblinkconffromfabric.o: src/iblinkconffromfabric.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT iblinkconffromfabric.o -MD -MP -MF "$(DEPDIR)/iblinkconffromfabric.Tpo" -c -o iblinkconffromfabric.o `test -f 'src/iblinkconffromfabric.c' || echo '$(srcdir)/'`src/iblinkconffromfabric.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/iblinkconffromfabric.Tpo" "$(DEPDIR)/iblinkconffromfabric.Po"; else rm -f "$(DEPDIR)/iblinkconffromfabric.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/iblinkconffromfabric.c' object='iblinkconffromfabric.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o iblinkconffromfabric.o `test -f 'src/iblinkconffromfabric.c' || echo '$(srcdir)/'`src/iblinkconffromfabric.c
+
+iblinkconffromfabric.obj: src/iblinkconffromfabric.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT iblinkconffromfabric.obj -MD -MP -MF "$(DEPDIR)/iblinkconffromfabric.Tpo" -c -o iblinkconffromfabric.obj `if test -f 'src/iblinkconffromfabric.c'; then $(CYGPATH_W) 'src/iblinkconffromfabric.c'; else $(CYGPATH_W) '$(srcdir)/src/iblinkconffromfabric.c'; fi`; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/iblinkconffromfabric.Tpo" "$(DEPDIR)/iblinkconffromfabric.Po"; else rm -f "$(DEPDIR)/iblinkconffromfabric.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/iblinkconffromfabric.c' object='iblinkconffromfabric.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o iblinkconffromfabric.obj `if test -f 'src/iblinkconffromfabric.c'; then $(CYGPATH_W) 'src/iblinkconffromfabric.c'; else $(CYGPATH_W) '$(srcdir)/src/iblinkconffromfabric.c'; fi`
+
+src_ibparselinkconf-ibparselinkconf.o: src/ibparselinkconf.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(src_ibparselinkconf_CFLAGS) $(CFLAGS) -MT src_ibparselinkconf-ibparselinkconf.o -MD -MP -MF "$(DEPDIR)/src_ibparselinkconf-ibparselinkconf.Tpo" -c -o src_ibparselinkconf-ibparselinkconf.o `test -f 'src/ibparselinkconf.c' || echo '$(srcdir)/'`src/ibparselinkconf.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/src_ibparselinkconf-ibparselinkconf.Tpo" "$(DEPDIR)/src_ibparselinkconf-ibparselinkconf.Po"; else rm -f "$(DEPDIR)/src_ibparselinkconf-ibparselinkconf.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/ibparselinkconf.c' object='src_ibparselinkconf-ibparselinkconf.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(src_ibparselinkconf_CFLAGS) $(CFLAGS) -c -o src_ibparselinkconf-ibparselinkconf.o `test -f 'src/ibparselinkconf.c' || echo '$(srcdir)/'`src/ibparselinkconf.c
+
+src_ibparselinkconf-ibparselinkconf.obj: src/ibparselinkconf.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(src_ibparselinkconf_CFLAGS) $(CFLAGS) -MT src_ibparselinkconf-ibparselinkconf.obj -MD -MP -MF "$(DEPDIR)/src_ibparselinkconf-ibparselinkconf.Tpo" -c -o src_ibparselinkconf-ibparselinkconf.obj `if test -f 'src/ibparselinkconf.c'; then $(CYGPATH_W) 'src/ibparselinkconf.c'; else $(CYGPATH_W) '$(srcdir)/src/ibparselinkconf.c'; fi`; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/src_ibparselinkconf-ibparselinkconf.Tpo" "$(DEPDIR)/src_ibparselinkconf-ibparselinkconf.Po"; else rm -f "$(DEPDIR)/src_ibparselinkconf-ibparselinkconf.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/ibparselinkconf.c' object='src_ibparselinkconf-ibparselinkconf.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(src_ibparselinkconf_CFLAGS) $(CFLAGS) -c -o src_ibparselinkconf-ibparselinkconf.obj `if test -f 'src/ibparselinkconf.c'; then $(CYGPATH_W) 'src/ibparselinkconf.c'; else $(CYGPATH_W) '$(srcdir)/src/ibparselinkconf.c'; fi`
 
 src_rdma_cm_query-rdma_cm_query.o: src/rdma_cm_query.c
 @am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(src_rdma_cm_query_CFLAGS) $(CFLAGS) -MT src_rdma_cm_query-rdma_cm_query.o -MD -MP -MF "$(DEPDIR)/src_rdma_cm_query-rdma_cm_query.Tpo" -c -o src_rdma_cm_query-rdma_cm_query.o `test -f 'src/rdma_cm_query.c' || echo '$(srcdir)/'`src/rdma_cm_query.c; \
@@ -595,6 +718,23 @@ uninstall-man8:
 	  echo " rm -f '$(DESTDIR)$(man8dir)/$$inst'"; \
 	  rm -f "$(DESTDIR)$(man8dir)/$$inst"; \
 	done
+install-libibedgeconfincludeHEADERS: $(libibedgeconfinclude_HEADERS)
+	@$(NORMAL_INSTALL)
+	test -z "$(libibedgeconfincludedir)" || $(mkdir_p) "$(DESTDIR)$(libibedgeconfincludedir)"
+	@list='$(libibedgeconfinclude_HEADERS)'; for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  f=$(am__strip_dir) \
+	  echo " $(libibedgeconfincludeHEADERS_INSTALL) '$$d$$p' '$(DESTDIR)$(libibedgeconfincludedir)/$$f'"; \
+	  $(libibedgeconfincludeHEADERS_INSTALL) "$$d$$p" "$(DESTDIR)$(libibedgeconfincludedir)/$$f"; \
+	done
+
+uninstall-libibedgeconfincludeHEADERS:
+	@$(NORMAL_UNINSTALL)
+	@list='$(libibedgeconfinclude_HEADERS)'; for p in $$list; do \
+	  f=$(am__strip_dir) \
+	  echo " rm -f '$(DESTDIR)$(libibedgeconfincludedir)/$$f'"; \
+	  rm -f "$(DESTDIR)$(libibedgeconfincludedir)/$$f"; \
+	done
 
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	list='$(SOURCES) $(HEADERS) $(LISP) $(TAGS_FILES)'; \
@@ -647,7 +787,7 @@ distclean-tags:
 distdir: $(DISTFILES)
 	$(am__remove_distdir)
 	mkdir $(distdir)
-	$(mkdir_p) $(distdir)/. $(distdir)/config $(distdir)/etc $(distdir)/man $(distdir)/scripts $(distdir)/sysconf
+	$(mkdir_p) $(distdir)/$(srcdir)/src $(distdir)/. $(distdir)/config $(distdir)/etc $(distdir)/include/infiniband $(distdir)/man $(distdir)/scripts $(distdir)/sysconf
 	@srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`; \
 	topsrcdirstrip=`echo "$(top_srcdir)" | sed 's|.|.|g'`; \
 	list='$(DISTFILES)'; for file in $$list; do \
@@ -674,7 +814,7 @@ distdir: $(DISTFILES)
 	    || exit 1; \
 	  fi; \
 	done
-	-find $(distdir) -type d ! -perm -777 -exec chmod a+rwx {} \; -o \
+	-find $(distdir) -type d ! -perm -755 -exec chmod a+rwx,go+rx {} \; -o \
 	  ! -type d ! -perm -444 -links 1 -exec chmod a+r {} \; -o \
 	  ! -type d ! -perm -400 -exec chmod a+r {} \; -o \
 	  ! -type d ! -perm -444 -exec $(SHELL) $(install_sh) -c -m a+r {} {} \; \
@@ -773,9 +913,10 @@ distcleancheck: distclean
 	       exit 1; } >&2
 check-am: all-am
 check: check-am
-all-am: Makefile $(PROGRAMS) $(SCRIPTS) $(MANS)
+all-am: Makefile $(LTLIBRARIES) $(PROGRAMS) $(SCRIPTS) $(MANS) \
+		$(HEADERS)
 installdirs:
-	for dir in "$(DESTDIR)$(sbindir)" "$(DESTDIR)$(sbindir)" "$(DESTDIR)$(man8dir)"; do \
+	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(sbindir)" "$(DESTDIR)$(sbindir)" "$(DESTDIR)$(man8dir)" "$(DESTDIR)$(libibedgeconfincludedir)"; do \
 	  test -z "$$dir" || $(mkdir_p) "$$dir"; \
 	done
 install: install-am
@@ -805,8 +946,8 @@ maintainer-clean-generic:
 	@echo "it deletes files that may require special tools to rebuild."
 clean: clean-am
 
-clean-am: clean-generic clean-libtool clean-sbinPROGRAMS \
-	mostlyclean-am
+clean-am: clean-generic clean-libLTLIBRARIES clean-libtool \
+	clean-sbinPROGRAMS mostlyclean-am
 
 distclean: distclean-am
 	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
@@ -825,9 +966,10 @@ info: info-am
 
 info-am:
 
-install-data-am: install-man
+install-data-am: install-libibedgeconfincludeHEADERS install-man
 
-install-exec-am: install-sbinPROGRAMS install-sbinSCRIPTS
+install-exec-am: install-libLTLIBRARIES install-sbinPROGRAMS \
+	install-sbinSCRIPTS
 	@$(NORMAL_INSTALL)
 	$(MAKE) $(AM_MAKEFLAGS) install-exec-hook
 
@@ -857,26 +999,30 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-info-am uninstall-man uninstall-sbinPROGRAMS \
-	uninstall-sbinSCRIPTS
+uninstall-am: uninstall-info-am uninstall-libLTLIBRARIES \
+	uninstall-libibedgeconfincludeHEADERS uninstall-man \
+	uninstall-sbinPROGRAMS uninstall-sbinSCRIPTS
 
 uninstall-man: uninstall-man8
 
 .PHONY: CTAGS GTAGS all all-am am--refresh check check-am clean \
-	clean-generic clean-libtool clean-sbinPROGRAMS ctags dist \
-	dist-all dist-bzip2 dist-gzip dist-shar dist-tarZ dist-zip \
-	distcheck distclean distclean-compile distclean-generic \
-	distclean-hdr distclean-libtool distclean-tags distcleancheck \
-	distdir distuninstallcheck dvi dvi-am html html-am info \
-	info-am install install-am install-data install-data-am \
-	install-exec install-exec-am install-exec-hook install-info \
-	install-info-am install-man install-man8 install-sbinPROGRAMS \
+	clean-generic clean-libLTLIBRARIES clean-libtool \
+	clean-sbinPROGRAMS ctags dist dist-all dist-bzip2 dist-gzip \
+	dist-shar dist-tarZ dist-zip distcheck distclean \
+	distclean-compile distclean-generic distclean-hdr \
+	distclean-libtool distclean-tags distcleancheck distdir \
+	distuninstallcheck dvi dvi-am html html-am info info-am \
+	install install-am install-data install-data-am install-exec \
+	install-exec-am install-exec-hook install-info install-info-am \
+	install-libLTLIBRARIES install-libibedgeconfincludeHEADERS \
+	install-man install-man8 install-sbinPROGRAMS \
 	install-sbinSCRIPTS install-strip installcheck installcheck-am \
 	installdirs maintainer-clean maintainer-clean-generic \
 	mostlyclean mostlyclean-compile mostlyclean-generic \
 	mostlyclean-libtool pdf pdf-am ps ps-am tags uninstall \
-	uninstall-am uninstall-info-am uninstall-man uninstall-man8 \
-	uninstall-sbinPROGRAMS uninstall-sbinSCRIPTS
+	uninstall-am uninstall-info-am uninstall-libLTLIBRARIES \
+	uninstall-libibedgeconfincludeHEADERS uninstall-man \
+	uninstall-man8 uninstall-sbinPROGRAMS uninstall-sbinSCRIPTS
 
 
 install-exec-hook:

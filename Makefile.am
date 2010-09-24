@@ -1,5 +1,6 @@
 INCLUDES=-I$(includedir)/infiniband \
-	 -I$(includedir)
+	 -I$(includedir) \
+	 -Iinclude
 
 if DEBUG
 DBGFLAGS = -ggdb -D_DEBUG_
@@ -11,10 +12,14 @@ ACLOCAL_AMFLAGS = -I config
 
 AM_CFLAGS = -Wall $(DBGFLAGS)
 
+lib_LTLIBRARIES = libibedgeconf.la
+
 sbin_PROGRAMS = src/simple_rdma \
 					src/rdma_cm_query \
 					src/slurm_topology \
-					src/ibgraphfabric
+					src/ibgraphfabric \
+					src/iblinkconffromfabric \
+					src/ibparselinkconf
 
 mySCRIPTS = scripts/ibgetgid \
 				scripts/ibgetlid \
@@ -61,6 +66,25 @@ src_slurm_topology_LDFLAGS = -losmcomp -libmad -libnetdisc $(LIBGENDERS)
 src_ibgraphfabric_SOURCES = src/ibgraphfabric.c src/hostlist.c src/hostlist.h
 src_ibgraphfabric_LDFLAGS = -losmcomp -libmad -libnetdisc
 
+src_iblinkconffromfabric_SOURCES = src/iblinkconffromfabric.c
+src_iblinkconffromfabric_LDFLAGS = -losmcomp -libmad -libnetdisc
+
+libibedgeconf_la_SOURCES = src/ibedgeconf.c
+libibedgeconf_la_CFLAGS = -I/usr/include/libxml2 -Wall $(DBGFLAGS)
+libibedgeconf_la_LDFLAGS = -version-info $(ibedgeconf_api_version) \
+	-export-dynamic $(libibedgeconf_version_script) \
+	-libmad -lxml2 -lz -lm
+libibedgeconf_la_DEPENDENCIES = src/libibedgeconf.map
+
+libibedgeconfincludedir = $(includedir)/infiniband
+
+libibedgeconfinclude_HEADERS = include/infiniband/ibedgeconf.h
+
+src_ibparselinkconf_SOURCES = src/ibparselinkconf.c
+src_ibparselinkconf_CFLAGS = -I$(includedir)
+src_ibparselinkconf_LDFLAGS = -libedgeconf
+
+
 EXTRA_DIST = \
 	META \
 	ChangeLog \
@@ -69,7 +93,10 @@ EXTRA_DIST = \
 	$(mySCRIPTS) \
 	scripts \
 	sysconf/ibsrp.conf \
-	etc/pragmaticIB.conf
+	etc/pragmaticIB.conf \
+	example_config \
+	src/libibedgeconf.map \
+	libibedgeconf.ver
 
 install-exec-hook:
 	$(top_srcdir)/config/install-sh -m 755 -d $(DESTDIR)/$(sysconfdir)/init.d

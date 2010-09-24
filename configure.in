@@ -37,6 +37,21 @@ AC_CHECK_LIB(rdmacm, rdma_connect, [],
 AC_CHECK_LIB(ibnetdisc, ibnd_discover_fabric, [],
         AC_MSG_ERROR([ibnd_discover_fabric() not found. PIU requires libibnetdisc.]))
 
+AC_CACHE_CHECK(whether ld accepts --version-script, ac_cv_version_script,
+    if test -n "`$LD --help < /dev/null 2>/dev/null | grep version-script`"; then
+        ac_cv_version_script=yes
+    else
+        ac_cv_version_script=no
+    fi)
+
+ibedgeconf_api_version=`grep LIBVERSION $srcdir/libibedgeconf.ver | sed 's/LIBVERSION=//'`
+if test -z $ibedgeconf_api_version; then
+   echo "FAILED to find $srcdir/libibedgeconf.ver"
+   exit 1
+fi
+AC_SUBST(ibedgeconf_api_version)
+
+
 if test $genders = yes; then
 AC_CHECK_LIB(genders, genders_handle_create, [],
         AC_MSG_ERROR([genders_handle_create() not found.  To disable genders use --disable-genders]))

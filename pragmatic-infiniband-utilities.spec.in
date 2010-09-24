@@ -41,6 +41,8 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(-,root,root)
 %{_sbindir}/*
+%{_includedir}/*
+%{_libdir}/*
 %doc ChangeLog
 %{_mandir}/man8/*
 %{_sysconfdir}/init.d/*
