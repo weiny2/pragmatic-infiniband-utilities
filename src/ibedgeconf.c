@@ -675,7 +675,7 @@ ibedge_parse_file(char *file, ibedge_conf_t *edgeconf)
 	LIBXML_TEST_VERSION
 
 	if (!file) {
-		file = IBEDGE_CONFIG_DIR "/ibedgeconf.xml";
+		file = IBEDGE_DEF_CONFIG;
 	}
 	
 	/* parse the file and get the DOM */

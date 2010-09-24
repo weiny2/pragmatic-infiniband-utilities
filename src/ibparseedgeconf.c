@@ -26,11 +26,13 @@
 
 #include <stdio.h>
 #include <errno.h>
+#include <getopt.h>
+#include <string.h>
 #include <infiniband/ibedgeconf.h>
 
-/**
- * Test code below
- */
+char *edgeconf_file = NULL;
+char *argv0 = NULL;
+
 void
 print_port(ibedge_port_t *port, void *user_data)
 {
@@ -45,27 +47,74 @@ print_port(ibedge_port_t *port, void *user_data)
 		);
 }
 
+/** =========================================================================
+ */
+static int
+usage(void)
+{
+        fprintf(stderr,
+"%s [options] [node] [port]\n"
+"Usage: parse the edgeconf file\n"
+"\n"
+"Options:\n"
+"  --conf, specify an alternate config (default: %s)\n"
+"  [node] if node is specified print port for that node\n"
+"  [port] if port is specified print port for that node (default 1)\n"
+"         if neither node nor port is specified print all edges in config file\n"
+"\n"
+, argv0,
+IBEDGE_DEF_CONFIG
+);
+        return (0);
+}
+
+
 int
 main(int argc, char **argv)
 {
+	ibedge_conf_t *edgeconf;
 	int rc = 0;
-	ibedge_conf_t *edgeconf = ibedge_alloc_conf();
+        char  ch = 0;
+        static char const str_opts[] = "h";
+        static const struct option long_opts [] = {
+           {"help", 0, 0, 'h'},
+           {"config", 1, 0, 1},
+	   {0, 0, 0, 0}
+        };
 
-	if (argc < 2)
-		return(1);
+	argv0 = argv[0];
 
-	rc = ibedge_parse_file(argv[1], edgeconf);
-	if (argv[2]) {
+        while ((ch = getopt_long(argc, argv, str_opts, long_opts, NULL))
+                != -1)
+        {
+                switch (ch)
+                {
+			case 1:
+				edgeconf_file = strdup(optarg);
+				break;
+                        case 'h':
+                        default:
+                        	exit(usage());
+                }
+	}
+
+	argc -= optind;
+	argv += optind;
+
+	edgeconf = ibedge_alloc_conf();
+	rc = ibedge_parse_file(edgeconf_file, edgeconf);
+
+	if (argv[0]) {
 		char prop[256];
 		int p_num = 1;
-		if (argv[3])
-			p_num = strtol(argv[3], NULL, 0);
-		ibedge_port_t *port = ibedge_get_port(edgeconf, argv[2], p_num);
+		if (argv[1])
+			p_num = strtol(argv[1], NULL, 0);
+		ibedge_port_t *port = ibedge_get_port(edgeconf, argv[0], p_num);
 		if (port)
 			print_port(port, NULL);
 		else
-			printf ("WARNING: \"%s\":%d port not found\n",
-				argv[2], p_num);
+			fprintf ("ERROR: \"%s\":%d port not found\n",
+				argv[0], p_num);
 	} else {
 		printf("Name: %s\n", ibedge_conf_get_name(edgeconf));
 		ibedge_iter_ports(edgeconf, print_port, NULL);
