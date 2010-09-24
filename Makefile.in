@@ -342,7 +342,7 @@ EXTRA_DIST = \
 	sysconf/ibsrp.conf \
 	etc/pragmaticIB.conf \
 	example_config \
-	$(srcdir)/src/libibedgeconf.map \
+	src/libibedgeconf.map \
 	libibedgeconf.ver
 
 all: all-am
@@ -787,7 +787,7 @@ distclean-tags:
 distdir: $(DISTFILES)
 	$(am__remove_distdir)
 	mkdir $(distdir)
-	$(mkdir_p) $(distdir)/$(srcdir)/src $(distdir)/. $(distdir)/config $(distdir)/etc $(distdir)/include/infiniband $(distdir)/man $(distdir)/scripts $(distdir)/sysconf
+	$(mkdir_p) $(distdir)/. $(distdir)/config $(distdir)/etc $(distdir)/include/infiniband $(distdir)/man $(distdir)/scripts $(distdir)/src $(distdir)/sysconf
 	@srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`; \
 	topsrcdirstrip=`echo "$(top_srcdir)" | sed 's|.|.|g'`; \
 	list='$(DISTFILES)'; for file in $$list; do \
