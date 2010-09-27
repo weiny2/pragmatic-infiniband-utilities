@@ -112,10 +112,36 @@ struct ibedge_port {
 	struct ibedge_port *remote;
 };
 
+struct ibedge_port_list {
+	struct ibedge_port *head;
+};
+
 struct ibedge_conf {
 	char *name;
 	struct ibedge_port *ports[HTSZ];
 };
+
+static ibedge_port_t *
+calloc_port(char *name, int port_num, ibedge_prop_t *prop)
+{
+	ibedge_port_t *port = calloc(1, sizeof *port);
+	if (!port)
+		return (NULL);
+
+	port->next = NULL;
+	port->prev = NULL;
+	port->name = strdup(name);
+	port->port_num = port_num;
+	port->prop = *prop;
+	return (port);
+}
+
+static void
+free_port(ibedge_port_t *p)
+{
+	free(p->name);
+	free(p);
+}
 
 static int
 port_equal(ibedge_port_t *port, char *n, int p)
@@ -168,12 +194,9 @@ static ibedge_port_t *
 add_port(ibedge_conf_t *edgeconf, char *name, int port_num,
 	ibedge_prop_t *prop)
 {
-	ibedge_port_t *port = calloc(1, sizeof *port);
-	port->next = NULL;
-	port->prev = NULL;
-	port->name = strdup(name);
-	port->port_num = port_num;
-	port->prop = *prop;
+	ibedge_port_t *port = calloc_port(name, port_num, prop);
+	if (!port)
+		return (NULL);
 	_add_port(edgeconf, port);
 	return (port);
 }
@@ -197,6 +220,10 @@ add_edge(ibedge_conf_t *edgeconf, char *lname, char *lport_str,
 		lport->prop = *prop;
 	} else {
 		lport = add_port(edgeconf, lname, lpn, prop);
+		if (!lport) {
+			fprintf(stderr, "ERROR: failed to allocated lport\n");
+			return (-ENOMEM);
+		}
 	}
 
 	if (rport) {
@@ -206,6 +233,10 @@ add_edge(ibedge_conf_t *edgeconf, char *lname, char *lport_str,
 		rport->prop = *prop;
 	} else {
 		rport = add_port(edgeconf, rname, rpn, prop);
+		if (!rport) {
+			fprintf(stderr, "ERROR: failed to allocated lport\n");
+			return (-ENOMEM);
+		}
 	}
 
 	lport->remote = rport;
@@ -654,8 +685,7 @@ ibedge_free(ibedge_conf_t *edgeconf)
 		while (port) {
 			ibedge_port_t *tmp = port;
 			port = port->next;
-			free(tmp->name);
-			free(tmp);
+			free_port(tmp);
 		}
 	}
 	free(edgeconf);
@@ -709,6 +739,53 @@ ibedge_get_port(ibedge_conf_t *edgeconf, char *name, int p_num)
 	return (find_port(edgeconf, name, p_num));
 }
 
+static void
+_ibedge_free_port_list(ibedge_port_t *head)
+{
+	while (head) {
+		ibedge_port_t *tmp = head;
+		head = head->next;
+		free_port(tmp);
+	}
+}
+
+int
+ibedge_get_port_list(ibedge_conf_t *edgeconf, char *name,
+		ibedge_port_list_t **list)
+{
+	ibedge_port_list_t *port_list = NULL;
+	ibedge_port_t *cur = NULL;
+	*list = NULL;
+	int h = hash_name(name);
+	for (cur = edgeconf->ports[h]; cur; cur = cur->next)
+		if (strcmp((const char *)cur->name, (const char *)name) == 0) {
+			ibedge_port_t *tmp = NULL;
+			if (!port_list) {
+				port_list = calloc(1, sizeof *port_list);
+				if (!port_list)
+					return (-ENOMEM);
+			}
+			tmp = calloc_port(cur->name, cur->port_num, &cur->prop);
+			if (!tmp) {
+				_ibedge_free_port_list(port_list->head);
+				free(port_list);
+				return (-ENOMEM);
+			}
+			tmp->remote = cur->remote;
+			tmp->next = port_list->head;
+			port_list->head = tmp;
+		}
+
+	*list = port_list;
+	return (0);
+}
+
+void
+ibedge_free_port_list(ibedge_port_list_t *port_list)
+{
+	_ibedge_free_port_list(port_list->head);
+}
+
 void
 ibedge_iter_ports(ibedge_conf_t *edgeconf, process_port_func func,
 		void *user_data)
@@ -716,9 +793,17 @@ ibedge_iter_ports(ibedge_conf_t *edgeconf, process_port_func func,
 	int i = 0;
 	for (i = 0; i < HTSZ; i++) {
 		ibedge_port_t *port = NULL;
-		for (port = edgeconf->ports[i]; port; port = port->next) {
+		for (port = edgeconf->ports[i]; port; port = port->next)
 			func(port, user_data);
-		}
 	}
+}
+
+void
+ibedge_iter_port_list(ibedge_port_list_t *port_list,
+			process_port_func func, void *user_data)
+{
+	ibedge_port_t *port = NULL;
+	for (port = port_list->head; port; port = port->next)
+		func(port, user_data);
 }
 

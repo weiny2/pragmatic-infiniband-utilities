@@ -33,6 +33,7 @@
 /* These are opaque data types */
 typedef struct ibedge_prop ibedge_prop_t;
 typedef struct ibedge_port ibedge_port_t;
+typedef struct ibedge_port_list ibedge_port_list_t;
 typedef struct ibedge_conf ibedge_conf_t;
 
 int ibedge_prop_get_speed(ibedge_prop_t *prop);
@@ -52,10 +53,15 @@ void ibedge_free(ibedge_conf_t *edgeconf);
 int ibedge_parse_file(char *file, ibedge_conf_t *edgeconf);
 
 ibedge_port_t *ibedge_get_port(ibedge_conf_t *edgeconf, char *name, int p_num);
+int ibedge_get_port_list(ibedge_conf_t *edgeconf, char *name,
+			ibedge_port_list_t **list);
+void ibedge_free_port_list(ibedge_port_list_t *port_list);
 
 typedef void (*process_port_func)(ibedge_port_t *port, void *user_data);
 void ibedge_iter_ports(ibedge_conf_t *edgeconf, process_port_func func,
                      void *user_data);
+void ibedge_iter_port_list(ibedge_port_list_t *port_list,
+			process_port_func func, void *user_data);
 
 #endif /* _IBEDGECONF_H_ */
 

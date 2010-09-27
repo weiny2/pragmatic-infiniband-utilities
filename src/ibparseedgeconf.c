@@ -37,7 +37,7 @@ void
 print_port(ibedge_port_t *port, void *user_data)
 {
 	char prop[256];
-	char rprop[256];
+	//char rprop[256];
 	printf ("\"%30s\" %4d  ==(%s)==>  %4d \"%s\"\n",
 		ibedge_port_get_name(port),
 		ibedge_port_get_port_num(port),
@@ -104,17 +104,37 @@ main(int argc, char **argv)
 	edgeconf = ibedge_alloc_conf();
 	rc = ibedge_parse_file(edgeconf_file, edgeconf);
 
+	if (rc) {
+		fprintf(stderr, "ERROR: failed to parse edge config "
+			"\"%s\":%s\n", edgeconf_file, strerror(rc));
+		return (rc);
+	}
+
 	if (argv[0]) {
 		char prop[256];
 		int p_num = 1;
-		if (argv[1])
+		if (argv[1]) {
 			p_num = strtol(argv[1], NULL, 0);
-		ibedge_port_t *port = ibedge_get_port(edgeconf, argv[0], p_num);
-		if (port)
-			print_port(port, NULL);
-		else
-			fprintf ("ERROR: \"%s\":%d port not found\n",
-				argv[0], p_num);
+			ibedge_port_t *port = ibedge_get_port(edgeconf, argv[0], p_num);
+			if (port)
+				print_port(port, NULL);
+			else
+				fprintf (stderr, "ERROR: \"%s\":%d port not found\n",
+					argv[0], p_num);
+		} else {
+			ibedge_port_list_t *port_list;
+			int rc = ibedge_get_port_list(edgeconf, argv[0],
+							&port_list);
+			if (rc) {
+				fprintf(stderr, "ERROR: Failed to get port "
+					"list for \"%s\":%s\n",
+					argv[0], strerror(rc));
+			} else {
+				ibedge_iter_port_list(port_list, print_port,
+							NULL);
+				ibedge_free_port_list(port_list);
+			}
+		}
 	} else {
 		printf("Name: %s\n", ibedge_conf_get_name(edgeconf));
 		ibedge_iter_ports(edgeconf, print_port, NULL);

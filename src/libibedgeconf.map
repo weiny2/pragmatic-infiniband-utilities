@@ -10,8 +10,11 @@ IBEDGECONF_1.0 {
 		ibedge_prop_str;
 		ibedge_alloc_conf;
 		ibedge_free;
+		ibedge_free_port_list;
 		ibedge_parse_file;
 		ibedge_get_port;
+		ibedge_get_port_list;
 		ibedge_iter_ports;
+		ibedge_iter_port_list;
 	local: *;
 };
