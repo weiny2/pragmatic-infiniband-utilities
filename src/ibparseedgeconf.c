@@ -57,9 +57,9 @@ usage(void)
 "Usage: parse the edgeconf file\n"
 "\n"
 "Options:\n"
-"  --conf, specify an alternate config (default: %s)\n"
+"  --conf <file>, specify an alternate config (default: %s)\n"
 "  [node] if node is specified print port for that node\n"
-"  [port] if port is specified print port for that node (default 1)\n"
+"  [port] if port is specified print information for just that port (default \"all\")\n"
 "         if neither node nor port is specified print all edges in config file\n"
 "\n"
 , argv0,
