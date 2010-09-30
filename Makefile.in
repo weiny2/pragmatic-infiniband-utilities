@@ -49,6 +49,7 @@ DIST_COMMON = README $(am__configure_deps) \
 	$(top_srcdir)/config/config.h.in $(top_srcdir)/configure \
 	$(top_srcdir)/include/infiniband/ibedgeconf.h.in \
 	$(top_srcdir)/man/ibhcacounters.8.in \
+	$(top_srcdir)/man/ibparseedgeconf.8.in \
 	$(top_srcdir)/man/ibsrp.8.in \
 	$(top_srcdir)/man/ibtrackerrors.8.in \
 	$(top_srcdir)/man/qlogic-create-switch-map.8.in \
@@ -79,7 +80,7 @@ CONFIG_CLEAN_FILES = pragmatic-infiniband-utilities.spec \
 	scripts/ibtrackerrors scripts/ibnodesinmcast \
 	scripts/ibcreateswitchmap.sh man/voltaire-create-switch-map.8 \
 	man/qlogic-create-switch-map.8 scripts/ibsrp man/ibsrp.8 \
-	man/ibtrackerrors.8 man/ibhcacounters.8 \
+	man/ibtrackerrors.8 man/ibhcacounters.8 man/ibparseedgeconf.8 \
 	include/infiniband/ibedgeconf.h
 am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
 am__vpath_adj = case $$p in \
@@ -307,7 +308,8 @@ man_MANS = man/ibbouncelinks.8 \
 				man/slurm_topology.8 \
 				man/ibtrackerrors.8 \
 				man/ibhcacounters.8 \
-				man/ibsrp.8
+				man/ibsrp.8 \
+				man/ibparseedgeconf.8
 
 sbin_SCRIPTS = $(mySCRIPTS)
 src_simple_rdma_SOURCES = src/simple_rdma.c
@@ -426,6 +428,8 @@ man/ibsrp.8: $(top_builddir)/config.status $(top_srcdir)/man/ibsrp.8.in
 man/ibtrackerrors.8: $(top_builddir)/config.status $(top_srcdir)/man/ibtrackerrors.8.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 man/ibhcacounters.8: $(top_builddir)/config.status $(top_srcdir)/man/ibhcacounters.8.in
+	cd $(top_builddir) && $(SHELL) ./config.status $@
+man/ibparseedgeconf.8: $(top_builddir)/config.status $(top_srcdir)/man/ibparseedgeconf.8.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 include/infiniband/ibedgeconf.h: $(top_builddir)/config.status $(top_srcdir)/include/infiniband/ibedgeconf.h.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@

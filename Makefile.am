@@ -48,7 +48,8 @@ man_MANS = man/ibbouncelinks.8 \
 				man/slurm_topology.8 \
 				man/ibtrackerrors.8 \
 				man/ibhcacounters.8 \
-				man/ibsrp.8
+				man/ibsrp.8 \
+				man/ibparseedgeconf.8
 
 sbin_SCRIPTS = $(mySCRIPTS)
 
