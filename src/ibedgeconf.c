@@ -680,6 +680,8 @@ void
 ibedge_free(ibedge_conf_t *edgeconf)
 {
 	int i = 0;
+	if (!edgeconf)
+		return;
 	for (i = 0; i < HTSZ; i++) {
 		ibedge_port_t *port = edgeconf->ports[i];
 		while (port) {
