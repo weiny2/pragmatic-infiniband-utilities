@@ -62,7 +62,6 @@ static char *guid_str = NULL;
 static char *dr_path = NULL;
 static char *argv0 = NULL;
 static int all = 0;
-static int print_link_info = 0;
 
 static struct {
 	int num_ports;
@@ -370,7 +369,25 @@ void check_node(ibnd_node_t * node, void *user_data)
 
 int usage(void)
 {
-	return (0);
+        fprintf(stderr,
+"%s [options]\n"
+"Usage: Check fabric and compare to edge config file\n"
+"\n"
+"Options:\n"
+"  -S <guid> generate for the node specified by the port guid\n"
+"  -G <guid> Same as \"-S\" for compatibility with other diags\n"
+"  -D <dr_path> generate for the node specified by the DR path given\n"
+"  --outstanding_smps, -o <outstanding_smps> specify the number of outstanding smps on the wire\n"
+"  --hops -n <hops> hops to progress away from node given in -G,-S, or -D\n"
+"                   default == 0\n"
+"  --node-name-map <map> specify alternate node name map\n"
+"  --Ca, -C <ca>         Ca name to use\n"
+"  --Port, -P <port>     Ca port number to use\n"
+"  --timeout, -t <ms>    timeout in ms\n"
+"\n"
+, argv0
+);
+        return (0);
 }
 
 int main(int argc, char **argv)
@@ -394,10 +411,6 @@ int main(int argc, char **argv)
 		{"Ca", 1, 0, 'C'},
 		{"Port", 1, 0, 'P'},
 		{"timeout", 1, 0, 't'},
-		{"print_links_info", 0, 0, 'l'},
-		/*
-		 "specify the number of outstanding SMP's which should be "
-		 "issued during the scan" */
 		{"outstanding_smps", 1, 0, 'o'},
 		{0, 0, 0, 0}
         };
@@ -434,9 +447,6 @@ int main(int argc, char **argv)
 				break;
 			case 'o':
 				config.max_smps = atoi(optarg);
-				break;
-			case 'l':
-				print_link_info = 1;
 				break;
 			case 's':
 				/* srcport is not required when resolving via IB_DEST_LID */
