@@ -79,7 +79,7 @@ static struct {
 	int pn_8x;
 	int pn_12x;
 	int pn_undef;
-} port_totals = {
+} totals = {
 	num_ports : 0,
 	pn_down   : 0,
 	pn_init   : 0,
@@ -97,30 +97,71 @@ static struct {
 	pn_undef  : 0
 };
 
+typedef struct port_vis {
+	struct port_vis *next;
+	uint64_t guid;
+	int pnum;
+} port_vis_t;
+
+port_vis_t *vis_head = NULL;
+
+void mark_seen(uint64_t guid, int pnum)
+{
+	port_vis_t *tmp = calloc(1, sizeof *tmp);
+	if (!tmp) {
+		fprintf(stderr, "calloc failure\n");
+		exit(1);
+	}
+	tmp->guid = guid;
+	tmp->pnum = pnum;
+	tmp->next = vis_head;
+	vis_head = tmp;
+}
+
+int port_seen(uint64_t guid, int pnum)
+{
+	port_vis_t *cur;
+	for (cur = vis_head; cur; cur = cur->next) {
+		if (guid == cur->guid && pnum == cur->pnum)
+			return (1);
+	}
+	return (0);
+}
+
+void free_seen(void)
+{
+	port_vis_t *cur = vis_head;
+	while (cur) {
+		port_vis_t *tmp = cur;
+		cur = cur->next;
+		free(tmp);
+	}
+}
+
 void
 print_port_stats(void)
 {
-	printf("Port Stats Summary: (%d total)\n", port_totals.num_ports);
-	if (port_totals.pn_down)
-		printf("   %d down port(s)\n", port_totals.pn_down);
-	if (port_totals.pn_1x)
-		printf("   %d port(s) at 1X\n", port_totals.pn_1x);
-	if (port_totals.pn_4x)
-		printf("   %d port(s) at 4X\n", port_totals.pn_4x);
-	if (port_totals.pn_8x)
-		printf("   %d port(s) at 8X\n", port_totals.pn_8x);
-	if (port_totals.pn_12x)
-		printf("   %d port(s) at 12X\n", port_totals.pn_12x);
-	if (port_totals.pn_sdr)
-		printf("   %d port(s) at 2.5 Gbps (SDR)\n", port_totals.pn_sdr);
-	if (port_totals.pn_ddr)
-		printf("   %d port(s) at 5.0 Gbps (DDR)\n", port_totals.pn_ddr);
-	if (port_totals.pn_qdr)
-		printf("   %d port(s) at 10.0 Gbps (QDR)\n", port_totals.pn_qdr);
-	if (port_totals.pn_fdr)
-		printf("   %d port(s) at 14.0 Gbps (FDR)\n", port_totals.pn_fdr);
-	if (port_totals.pn_edr)
-		printf("   %d port(s) at 25.0 Gbps (EDR)\n", port_totals.pn_edr);
+	printf("Stats Summary: (%d total ports)\n", totals.num_ports);
+	if (totals.pn_down)
+		printf("   %d down ports(s)\n", totals.pn_down);
+	if (totals.pn_1x)
+		printf("   %d link(s) at 1X\n", totals.pn_1x);
+	if (totals.pn_4x)
+		printf("   %d link(s) at 4X\n", totals.pn_4x);
+	if (totals.pn_8x)
+		printf("   %d link(s) at 8X\n", totals.pn_8x);
+	if (totals.pn_12x)
+		printf("   %d link(s) at 12X\n", totals.pn_12x);
+	if (totals.pn_sdr)
+		printf("   %d link(s) at 2.5 Gbps (SDR)\n", totals.pn_sdr);
+	if (totals.pn_ddr)
+		printf("   %d link(s) at 5.0 Gbps (DDR)\n", totals.pn_ddr);
+	if (totals.pn_qdr)
+		printf("   %d link(s) at 10.0 Gbps (QDR)\n", totals.pn_qdr);
+	if (totals.pn_fdr)
+		printf("   %d link(s) at 14.0 Gbps (FDR)\n", totals.pn_fdr);
+	if (totals.pn_edr)
+		printf("   %d link(s) at 25.0 Gbps (EDR)\n", totals.pn_edr);
 }
 
 
@@ -247,8 +288,8 @@ void print_port(char *node_name, ibnd_node_t * node, ibnd_port_t * port, ibedge_
 	else
 		ext_port_str[0] = '\0';
 
-	printf("0x%016" PRIx64 " \"%30s\" ", node->guid, node_name);
-	printf("%6d %4d[%2s] ==%s==>  %s",
+	printf("0x%016" PRIx64 " \"%s\" ", node->guid, node_name);
+	printf("%6d %4d[%2s] <==%s==>  %s",
 	       node->smalid, port->portnum, ext_port_str, link_str, remote_str);
 }
 
@@ -256,7 +297,7 @@ void
 print_config_port(ibedge_port_t *port)
 {
 	char prop[256];
-	printf ("\"%30s\" %4d  ==(%s)==>  %4d \"%s\"\n",
+	printf ("\"%s\" %d  <==(%s)==>  %4d \"%s\"\n",
 		ibedge_port_get_name(port),
 		ibedge_port_get_port_num(port),
 		ibedge_prop_str(port, prop, 256),
@@ -265,90 +306,100 @@ print_config_port(ibedge_port_t *port)
 		);
 }
 
+void check_config(char *node_name, ibnd_node_t *node, ibnd_port_t *port)
+{
+	int iwidth, ispeed, istate;
+	ibedge_port_t *edgeport = NULL;
+
+	iwidth = mad_get_field(port->info, 0, IB_PORT_LINK_WIDTH_ACTIVE_F);
+	ispeed = mad_get_field(port->info, 0, IB_PORT_LINK_SPEED_ACTIVE_F);
+	istate = mad_get_field(port->info, 0, IB_PORT_STATE_F);
+
+	edgeport = ibedge_get_port(edgeconf, node_name, port->portnum);
+	if (edgeport) {
+		ibedge_port_t *rem_edgeport = ibedge_port_get_remote(edgeport);
+
+		if (istate != IB_LINK_ACTIVE) {
+			printf("ERR: port down: ");
+			print_port(node_name, node, port, rem_edgeport);
+		} else {
+			char str[64];
+			int conf_width = ibedge_prop_get_width(ibedge_port_get_prop(edgeport));
+			int conf_speed = ibedge_prop_get_speed(ibedge_port_get_prop(edgeport));
+			int rem_port_num = ibedge_port_get_port_num(rem_edgeport);
+			char *rem_node_name = ibedge_port_get_name(rem_edgeport);
+			char *rem_remap = remap_node_name(node_name_map, port->remoteport->node->guid,
+						port->remoteport->node->nodedesc);
+
+			if (iwidth != conf_width) {
+				printf("ERR: width != %s: ",
+					mad_dump_val(IB_PORT_LINK_WIDTH_ACTIVE_F,
+						str, 64, &conf_width));
+				print_port(node_name, node, port, NULL);
+			}
+			if (ispeed != conf_speed) {
+				printf("ERR: speed != %s: ",
+					mad_dump_val(IB_PORT_LINK_SPEED_ACTIVE_F,
+						str, 64, &conf_speed));
+				print_port(node_name, node, port, NULL);
+			}
+			if (strcmp(rem_node_name, rem_remap) != 0
+				|| rem_port_num != port->remoteport->portnum) {
+				printf("ERR: invalid link : ");
+				print_port(node_name, node, port, NULL);
+				printf("     should be    : ");
+				print_config_port(edgeport);
+			}
+			free(rem_remap);
+		}
+	} else if (istate == IB_LINK_ACTIVE) {
+		printf("ERR: Invalid active link: ");
+		print_port(node_name, node, port, NULL);
+	}
+}
+
 void check_port(char *node_name, ibnd_node_t * node, ibnd_port_t * port)
 {
 	int iwidth, ispeed, istate;
-	int n_undef = port_totals.pn_undef;
+	int n_undef = totals.pn_undef;
 
-	port_totals.num_ports++;
+	totals.num_ports++;
 
 	iwidth = mad_get_field(port->info, 0, IB_PORT_LINK_WIDTH_ACTIVE_F);
 	ispeed = mad_get_field(port->info, 0, IB_PORT_LINK_SPEED_ACTIVE_F);
 	istate = mad_get_field(port->info, 0, IB_PORT_STATE_F);
 
 	switch (istate) {
-		case IB_LINK_DOWN: port_totals.pn_down++;    break;
-		case IB_LINK_INIT: port_totals.pn_init++;    break;
-		case IB_LINK_ARMED: port_totals.pn_armed++;    break;
-		case IB_LINK_ACTIVE: port_totals.pn_active++;    break;
-		default:  port_totals.pn_undef++; break;
+		case IB_LINK_DOWN: totals.pn_down++; break;
+		case IB_LINK_INIT: totals.pn_init++; break;
+		case IB_LINK_ARMED: totals.pn_armed++; break;
+		case IB_LINK_ACTIVE: totals.pn_active++; break;
+		default:  totals.pn_undef++; break;
 	}
 
 	if (istate == IB_LINK_ACTIVE) {
 		switch (iwidth) {
-			case IB_LINK_WIDTH_ACTIVE_1X: port_totals.pn_1x++; break;
-			case IB_LINK_WIDTH_ACTIVE_4X: port_totals.pn_4x++; break;
-			case IB_LINK_WIDTH_ACTIVE_8X: port_totals.pn_8x++; break;
-			case IB_LINK_WIDTH_ACTIVE_12X: port_totals.pn_12x++; break;
-			default:  port_totals.pn_undef++; break;
+			case IB_LINK_WIDTH_ACTIVE_1X: totals.pn_1x++; break;
+			case IB_LINK_WIDTH_ACTIVE_4X: totals.pn_4x++; break;
+			case IB_LINK_WIDTH_ACTIVE_8X: totals.pn_8x++; break;
+			case IB_LINK_WIDTH_ACTIVE_12X: totals.pn_12x++; break;
+			default:  totals.pn_undef++; break;
 		}
 		switch (ispeed) {
-			case IB_LINK_SPEED_ACTIVE_2_5: port_totals.pn_sdr++; break;
-			case IB_LINK_SPEED_ACTIVE_5: port_totals.pn_ddr++; break;
-			case IB_LINK_SPEED_ACTIVE_10: port_totals.pn_qdr++; break;
-			default:  port_totals.pn_undef++; break;
+			case IB_LINK_SPEED_ACTIVE_2_5: totals.pn_sdr++; break;
+			case IB_LINK_SPEED_ACTIVE_5: totals.pn_ddr++; break;
+			case IB_LINK_SPEED_ACTIVE_10: totals.pn_qdr++; break;
+			default:  totals.pn_undef++; break;
 		}
 	}
 
-	if (port_totals.pn_undef > n_undef) {
+	if (totals.pn_undef > n_undef) {
 		printf("WARN: Undefined value found: ");
 		print_port(node_name, node, port, NULL);
 	}
 
-	if (edgeconf) {
-		ibedge_port_t *edgeport = NULL;
-		edgeport = ibedge_get_port(edgeconf, node_name, port->portnum);
-		if (edgeport) {
-			ibedge_port_t *rem_edgeport = ibedge_port_get_remote(edgeport);
-
-			if (istate != IB_LINK_ACTIVE) {
-				printf("WARN: port down: ");
-				print_port(node_name, node, port, rem_edgeport);
-			} else {
-				char str[64];
-				int conf_width = ibedge_prop_get_width(ibedge_port_get_prop(edgeport));
-				int conf_speed = ibedge_prop_get_speed(ibedge_port_get_prop(edgeport));
-				int rem_port_num = ibedge_port_get_port_num(rem_edgeport);
-				char *rem_node_name = ibedge_port_get_name(rem_edgeport);
-				char *rem_remap = remap_node_name(node_name_map, port->remoteport->node->guid,
-							port->remoteport->node->nodedesc);
-
-				if (iwidth != conf_width) {
-					printf("WARN: width != %s: ",
-						mad_dump_val(IB_PORT_LINK_WIDTH_ACTIVE_F,
-							str, 64, &conf_width));
-					print_port(node_name, node, port, NULL);
-				}
-				if (ispeed != conf_speed) {
-					printf("WARN: speed != %s: ",
-						mad_dump_val(IB_PORT_LINK_SPEED_ACTIVE_F,
-							str, 64, &conf_speed));
-					print_port(node_name, node, port, NULL);
-				}
-				if (strcmp(rem_node_name, rem_remap) != 0
-					|| rem_port_num != port->remoteport->portnum) {
-					printf("WARN: invalid link : ");
-					print_port(node_name, node, port, NULL);
-					printf("      should be    : ");
-					print_config_port(edgeport);
-				}
-				free(rem_remap);
-			}
-		} else if (istate == IB_LINK_ACTIVE) {
-			printf("WARN: Invalid active port: ");
-			print_port(node_name, node, port, NULL);
-		}
-	}
+	if (edgeconf)
+		check_config(node_name, node, port);
 }
 
 void check_node(ibnd_node_t * node, void *user_data)
@@ -361,7 +412,15 @@ void check_node(ibnd_node_t * node, void *user_data)
 		ibnd_port_t *port = node->ports[i];
 		if (!port)
 			continue;
-		check_port(remap, node, port);
+		if (!port_seen(node->guid, i)) {
+			check_port(remap, node, port);
+			mark_seen(node->guid, i);
+			if (port->remoteport) {
+				mark_seen(port->remoteport->node->guid,
+					port->remoteport->portnum);
+				totals.num_ports++;
+			}
+		}
 	}
 	free(remap);
 }
@@ -553,5 +612,6 @@ close_port:
 	close_node_name_map(node_name_map);
 	mad_rpc_close_port(ibmad_port);
 	ibedge_free(edgeconf);
+	free_seen();
 	exit(rc);
 }
