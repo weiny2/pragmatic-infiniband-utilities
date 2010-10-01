@@ -2,6 +2,8 @@ INCLUDES=-Iinclude \
 	-I$(includedir)/infiniband \
 	-I$(includedir)
 
+LDFLAGS = -L$(libdir)
+
 if DEBUG
 DBGFLAGS = -ggdb -D_DEBUG_
 else
@@ -19,7 +21,8 @@ sbin_PROGRAMS = src/simple_rdma \
 					src/slurm_topology \
 					src/ibgraphfabric \
 					src/iblinkconffromfabric \
-					src/ibparseedgeconf
+					src/ibparseedgeconf \
+					src/ibchecklinks
 
 mySCRIPTS = scripts/ibgetgid \
 				scripts/ibgetlid \
@@ -84,6 +87,9 @@ libibedgeconfinclude_HEADERS = include/infiniband/ibedgeconf.h
 src_ibparseedgeconf_SOURCES = src/ibparseedgeconf.c
 src_ibparseedgeconf_CFLAGS = -I$(includedir)
 src_ibparseedgeconf_LDFLAGS = -libedgeconf
+
+src_ibchecklinks_SOURCES = src/ibchecklinks.c
+src_ibchecklinks_LDFLAGS = -losmcomp -libmad -libnetdisc -libedgeconf
 
 
 EXTRA_DIST = \
