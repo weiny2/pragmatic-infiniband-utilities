@@ -186,6 +186,8 @@ _add_port(ibedge_conf_t *edgeconf, ibedge_port_t *port)
 	int h = hash_name(port->name);
 	port->next = edgeconf->ports[h];
 	port->prev = NULL;
+	if (edgeconf->ports[h])
+		edgeconf->ports[h]->prev = port;
 	edgeconf->ports[h] = port;
 	return (0);
 }
@@ -546,6 +548,8 @@ parse_chassis(xmlNode *chassis, ibedge_prop_t *parent_prop,
 		xmlFree(tmp->name);
 		free(tmp);
 	}
+
+	free(ch_map);
 
 free_xmlChar:
 	/* frees the memory pointed to in ch_map_t as well */
