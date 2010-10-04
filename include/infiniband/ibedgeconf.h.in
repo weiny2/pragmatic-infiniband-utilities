@@ -36,32 +36,43 @@ typedef struct ibedge_port ibedge_port_t;
 typedef struct ibedge_port_list ibedge_port_list_t;
 typedef struct ibedge_conf ibedge_conf_t;
 
-int ibedge_prop_get_speed(ibedge_prop_t *prop);
-int ibedge_prop_get_width(ibedge_prop_t *prop);
-
-char *ibedge_conf_get_name(ibedge_conf_t *conf);
-
-char *ibedge_port_get_name(ibedge_port_t *port);
-int   ibedge_port_get_port_num(ibedge_port_t *port);
-ibedge_prop_t *ibedge_port_get_prop(ibedge_port_t *port);
-ibedge_port_t *ibedge_port_get_remote(ibedge_port_t *port);
-char *ibedge_prop_str(ibedge_port_t *port, char ret[], unsigned n);
-
+/* alloc new config */
 ibedge_conf_t *ibedge_alloc_conf(void);
 void ibedge_free(ibedge_conf_t *edgeconf);
 
+/* populate config from file specified */
 int ibedge_parse_file(char *file, ibedge_conf_t *edgeconf);
 
+/* get port functions */
 ibedge_port_t *ibedge_get_port(ibedge_conf_t *edgeconf, char *name, int p_num);
+
 int ibedge_get_port_list(ibedge_conf_t *edgeconf, char *name,
 			ibedge_port_list_t **list);
 void ibedge_free_port_list(ibedge_port_list_t *port_list);
 
+/* iter functions */
 typedef void (*process_port_func)(ibedge_port_t *port, void *user_data);
 void ibedge_iter_ports(ibedge_conf_t *edgeconf, process_port_func func,
                      void *user_data);
 void ibedge_iter_port_list(ibedge_port_list_t *port_list,
 			process_port_func func, void *user_data);
+
+/* Accessor functions */
+/* config */
+char *ibedge_conf_get_name(ibedge_conf_t *conf);
+
+/* port */
+char *ibedge_port_get_name(ibedge_port_t *port);
+int   ibedge_port_get_port_num(ibedge_port_t *port);
+ibedge_prop_t *ibedge_port_get_prop(ibedge_port_t *port);
+ibedge_port_t *ibedge_port_get_remote(ibedge_port_t *port);
+void  ibedge_port_set_user(ibedge_port_t *port, void *user_data);
+void *ibedge_port_get_user(ibedge_port_t *port);
+
+/* prop */
+int ibedge_prop_get_speed(ibedge_prop_t *prop);
+int ibedge_prop_get_width(ibedge_prop_t *prop);
+char *ibedge_prop_str(ibedge_port_t *port, char ret[], unsigned n);
 
 #endif /* _IBEDGECONF_H_ */
 

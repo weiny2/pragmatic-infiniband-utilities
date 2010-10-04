@@ -7,6 +7,8 @@ IBEDGECONF_1.0 {
 		ibedge_port_get_port_num;
 		ibedge_port_get_prop;
 		ibedge_port_get_remote;
+		ibedge_port_set_user;
+		ibedge_port_get_user;
 		ibedge_prop_str;
 		ibedge_alloc_conf;
 		ibedge_free;

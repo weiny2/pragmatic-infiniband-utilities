@@ -109,6 +109,7 @@ struct ibedge_port {
 	char *name;
 	int port_num;
 	ibedge_prop_t prop;
+	void *user_data;
 	struct ibedge_port *remote;
 };
 
@@ -658,6 +659,9 @@ ibedge_prop_t *ibedge_port_get_prop(ibedge_port_t *port)
 	{ return (&port->prop); }
 ibedge_port_t *ibedge_port_get_remote(ibedge_port_t *port)
 	{ return (port->remote); }
+void  ibedge_port_set_user(ibedge_port_t *port, void *user_data)
+	{ port->user_data = user_data; }
+void *ibedge_port_get_user(ibedge_port_t *port) { return (port->user_data); }
 
 char *
 ibedge_prop_str(ibedge_port_t *port, char ret[], unsigned n)
