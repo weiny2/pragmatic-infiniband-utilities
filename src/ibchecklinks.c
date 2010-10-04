@@ -53,6 +53,7 @@
 static char *node_name_map_file = NULL;
 static nn_map_t *node_name_map = NULL;
 static ibedge_conf_t *edgeconf = NULL;
+static char *linkconffile = NULL;
 static char *ibd_ca = NULL;
 static int ibd_ca_port = 1;
 static int ibd_timeout = 100;
@@ -430,9 +431,10 @@ int usage(void)
 {
         fprintf(stderr,
 "%s [options]\n"
-"Usage: Check fabric and compare to edge config file\n"
+"Usage: Check fabric and compare to link config file\n"
 "\n"
 "Options:\n"
+"  --config, -c <config> Use an alternate link config file (default: %s)\n"
 "  -S <guid> generate for the node specified by the port guid\n"
 "  -G <guid> Same as \"-S\" for compatibility with other diags\n"
 "  -D <dr_path> generate for the node specified by the DR path given\n"
@@ -445,6 +447,7 @@ int usage(void)
 "  --timeout, -t <ms>    timeout in ms\n"
 "\n"
 , argv0
+, IBEDGE_DEF_CONFIG
 );
         return (0);
 }
@@ -462,7 +465,7 @@ int main(int argc, char **argv)
 	int mgmt_classes[3] =
 	    { IB_SMI_CLASS, IB_SMI_DIRECT_CLASS, IB_SA_CLASS };
 
-        static char const str_opts[] = "hS:G:D:n:C:P:t:vo:l";
+        static char const str_opts[] = "hS:G:D:n:C:P:t:vo:lc:";
         static const struct option long_opts [] = {
 		{"help", 0, 0, 'h'},
 		{"node-name-map", 1, 0, 1},
@@ -471,6 +474,7 @@ int main(int argc, char **argv)
 		{"Port", 1, 0, 'P'},
 		{"timeout", 1, 0, 't'},
 		{"outstanding_smps", 1, 0, 'o'},
+		{"config", 1, 0, 'c'},
 		{0, 0, 0, 0}
         };
 
@@ -507,6 +511,9 @@ int main(int argc, char **argv)
 			case 'o':
 				config.max_smps = atoi(optarg);
 				break;
+			case 'c':
+				linkconffile = strdup(optarg);
+				break;
 			case 's':
 				/* srcport is not required when resolving via IB_DEST_LID */
 				if (ib_resolve_portid_str_via(&sm_portid, optarg, IB_DEST_LID,
@@ -529,7 +536,7 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 
-	if (ibedge_parse_file(NULL, edgeconf)) {
+	if (ibedge_parse_file(linkconffile, edgeconf)) {
 		fprintf(stderr, "WARN: Failed to parse edge config file...\n");
 		ibedge_free(edgeconf);
 		edgeconf = NULL;
