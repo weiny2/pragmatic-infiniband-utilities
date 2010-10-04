@@ -362,7 +362,7 @@ void check_config(char *node_name, ibnd_node_t *node, ibnd_port_t *port)
 	if (linkport) {
 		compare_port(linkport, node_name, node, port);
 	} else if (istate == IB_LINK_ACTIVE) {
-		char *remap = NULL;
+		char *remote_name = NULL;
 		ibnd_node_t *remnode;
 		ibnd_port_t *remport = port->remoteport;
 		if (!remport) {
@@ -371,17 +371,17 @@ void check_config(char *node_name, ibnd_node_t *node, ibnd_port_t *port)
 			goto invalid_active;
 		}
 		remnode = remport->node;
-		remap = remap_node_name(node_name_map, remnode->guid,
+		remote_name = remap_node_name(node_name_map, remnode->guid,
 					remnode->nodedesc);
-		linkport = iblink_get_port(linkconf, remap, remport->portnum);
+		linkport = iblink_get_port(linkconf, remote_name, remport->portnum);
 		if (linkport) {
-			compare_port(linkport, remap, remnode, remport);
+			compare_port(linkport, remote_name, remnode, remport);
 		} else {
 invalid_active:
 			printf("ERR: Unconfigured active link: ");
 			print_port(node_name, node, port, NULL);
 		}
-		free(remap); /* OK; may be null */
+		free(remote_name); /* OK; may be null */
 	}
 }
 
