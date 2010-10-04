@@ -2,7 +2,7 @@
 <!DOCTYPE ibchassismap SYSTEM "ibchassismap.dtd">
 
 <chassismap model="Mellanox_IS5200">
-	<edgelist position="S06">
+	<linklist position="S06">
 		<port num="1"><r_port>34</r_port><r_node>L01</r_node></port>
 		<port num="2"><r_port>35</r_port><r_node>L01</r_node></port>
 		<port num="3"><r_port>36</r_port><r_node>L01</r_node></port>
@@ -39,8 +39,8 @@
 		<port num="34"><r_port>34</r_port><r_node>L12</r_node></port>
 		<port num="35"><r_port>35</r_port><r_node>L12</r_node></port>
 		<port num="36"><r_port>36</r_port><r_node>L12</r_node></port>
-	</edgelist>
-	<edgelist position="S05">
+	</linklist>
+	<linklist position="S05">
 		<port num="1"><r_port>31</r_port><r_node>L01</r_node></port>
 		<port num="2"><r_port>32</r_port><r_node>L01</r_node></port>
 		<port num="3"><r_port>33</r_port><r_node>L01</r_node></port>
@@ -77,8 +77,8 @@
 		<port num="34"><r_port>31</r_port><r_node>L12</r_node></port>
 		<port num="35"><r_port>32</r_port><r_node>L12</r_node></port>
 		<port num="36"><r_port>33</r_port><r_node>L12</r_node></port>
-	</edgelist>
-	<edgelist position="S04">
+	</linklist>
+	<linklist position="S04">
 		<port num="1"><r_port>28</r_port><r_node>L01</r_node></port>
 		<port num="2"><r_port>29</r_port><r_node>L01</r_node></port>
 		<port num="3"><r_port>30</r_port><r_node>L01</r_node></port>
@@ -115,8 +115,8 @@
 		<port num="34"><r_port>28</r_port><r_node>L12</r_node></port>
 		<port num="35"><r_port>29</r_port><r_node>L12</r_node></port>
 		<port num="36"><r_port>30</r_port><r_node>L12</r_node></port>
-	</edgelist>
-	<edgelist position="S03">
+	</linklist>
+	<linklist position="S03">
 		<port num="1"><r_port>25</r_port><r_node>L01</r_node></port>
 		<port num="2"><r_port>26</r_port><r_node>L01</r_node></port>
 		<port num="3"><r_port>27</r_port><r_node>L01</r_node></port>
@@ -153,8 +153,8 @@
 		<port num="34"><r_port>25</r_port><r_node>L12</r_node></port>
 		<port num="35"><r_port>26</r_port><r_node>L12</r_node></port>
 		<port num="36"><r_port>27</r_port><r_node>L12</r_node></port>
-	</edgelist>
-	<edgelist position="S02">
+	</linklist>
+	<linklist position="S02">
 		<port num="1"><r_port>22</r_port><r_node>L01</r_node></port>
 		<port num="2"><r_port>23</r_port><r_node>L01</r_node></port>
 		<port num="3"><r_port>24</r_port><r_node>L01</r_node></port>
@@ -191,8 +191,8 @@
 		<port num="34"><r_port>22</r_port><r_node>L12</r_node></port>
 		<port num="35"><r_port>23</r_port><r_node>L12</r_node></port>
 		<port num="36"><r_port>24</r_port><r_node>L12</r_node></port>
-	</edgelist>
-	<edgelist position="S01">
+	</linklist>
+	<linklist position="S01">
 		<port num="1"><r_port>19</r_port><r_node>L01</r_node></port>
 		<port num="2"><r_port>20</r_port><r_node>L01</r_node></port>
 		<port num="3"><r_port>21</r_port><r_node>L01</r_node></port>
@@ -229,10 +229,10 @@
 		<port num="34"><r_port>19</r_port><r_node>L12</r_node></port>
 		<port num="35"><r_port>20</r_port><r_node>L12</r_node></port>
 		<port num="36"><r_port>21</r_port><r_node>L12</r_node></port>
-	</edgelist>
+	</linklist>
 
 <!--
-	<edgelist position="L11">
+	<linklist position="L11">
 		<port num="19"><r_port>31</r_port><r_node>S01</r_node></port>
 		<port num="20"><r_port>32</r_port><r_node>S01</r_node></port>
 		<port num="21"><r_port>33</r_port><r_node>S01</r_node></port>
@@ -251,8 +251,8 @@
 		<port num="34"><r_port>31</r_port><r_node>S06</r_node></port>
 		<port num="35"><r_port>32</r_port><r_node>S06</r_node></port>
 		<port num="36"><r_port>33</r_port><r_node>S06</r_node></port>
-	</edgelist>
-	<edgelist position="L10">
+	</linklist>
+	<linklist position="L10">
 		<port num="19"><r_port>28</r_port><r_node>S01</r_node></port>
 		<port num="20"><r_port>29</r_port><r_node>S01</r_node></port>
 		<port num="21"><r_port>30</r_port><r_node>S01</r_node></port>
@@ -271,8 +271,8 @@
 		<port num="34"><r_port>28</r_port><r_node>S06</r_node></port>
 		<port num="35"><r_port>29</r_port><r_node>S06</r_node></port>
 		<port num="36"><r_port>30</r_port><r_node>S06</r_node></port>
-	</edgelist>
-	<edgelist position="L09">
+	</linklist>
+	<linklist position="L09">
 		<port num="19"><r_port>25</r_port><r_node>S01</r_node></port>
 		<port num="20"><r_port>26</r_port><r_node>S01</r_node></port>
 		<port num="21"><r_port>27</r_port><r_node>S01</r_node></port>
@@ -291,8 +291,8 @@
 		<port num="34"><r_port>25</r_port><r_node>S06</r_node></port>
 		<port num="35"><r_port>26</r_port><r_node>S06</r_node></port>
 		<port num="36"><r_port>27</r_port><r_node>S06</r_node></port>
-	</edgelist>
-	<edgelist position="L08">
+	</linklist>
+	<linklist position="L08">
 		<port num="19"><r_port>22</r_port><r_node>S01</r_node></port>
 		<port num="20"><r_port>23</r_port><r_node>S01</r_node></port>
 		<port num="21"><r_port>24</r_port><r_node>S01</r_node></port>
@@ -311,8 +311,8 @@
 		<port num="34"><r_port>22</r_port><r_node>S06</r_node></port>
 		<port num="35"><r_port>23</r_port><r_node>S06</r_node></port>
 		<port num="36"><r_port>24</r_port><r_node>S06</r_node></port>
-	</edgelist>
-	<edgelist position="L07">
+	</linklist>
+	<linklist position="L07">
 		<port num="19"><r_port>19</r_port><r_node>S01</r_node></port>
 		<port num="20"><r_port>20</r_port><r_node>S01</r_node></port>
 		<port num="21"><r_port>21</r_port><r_node>S01</r_node></port>
@@ -331,8 +331,8 @@
 		<port num="34"><r_port>19</r_port><r_node>S06</r_node></port>
 		<port num="35"><r_port>20</r_port><r_node>S06</r_node></port>
 		<port num="36"><r_port>21</r_port><r_node>S06</r_node></port>
-	</edgelist>
-	<edgelist position="L06">
+	</linklist>
+	<linklist position="L06">
 		<port num="19"><r_port>16</r_port><r_node>S01</r_node></port>
 		<port num="20"><r_port>17</r_port><r_node>S01</r_node></port>
 		<port num="21"><r_port>18</r_port><r_node>S01</r_node></port>
@@ -351,8 +351,8 @@
 		<port num="34"><r_port>16</r_port><r_node>S06</r_node></port>
 		<port num="35"><r_port>17</r_port><r_node>S06</r_node></port>
 		<port num="36"><r_port>18</r_port><r_node>S06</r_node></port>
-	</edgelist>
-	<edgelist position="L05">
+	</linklist>
+	<linklist position="L05">
 		<port num="19"><r_port>13</r_port><r_node>S01</r_node></port>
 		<port num="20"><r_port>14</r_port><r_node>S01</r_node></port>
 		<port num="21"><r_port>15</r_port><r_node>S01</r_node></port>
@@ -371,8 +371,8 @@
 		<port num="34"><r_port>13</r_port><r_node>S06</r_node></port>
 		<port num="35"><r_port>14</r_port><r_node>S06</r_node></port>
 		<port num="36"><r_port>15</r_port><r_node>S06</r_node></port>
-	</edgelist>
-	<edgelist position="L04">
+	</linklist>
+	<linklist position="L04">
 		<port num="19"><r_port>10</r_port><r_node>S01</r_node></port>
 		<port num="20"><r_port>11</r_port><r_node>S01</r_node></port>
 		<port num="21"><r_port>12</r_port><r_node>S01</r_node></port>
@@ -391,8 +391,8 @@
 		<port num="34"><r_port>10</r_port><r_node>S06</r_node></port>
 		<port num="35"><r_port>11</r_port><r_node>S06</r_node></port>
 		<port num="36"><r_port>12</r_port><r_node>S06</r_node></port>
-	</edgelist>
-	<edgelist position="L03">
+	</linklist>
+	<linklist position="L03">
 		<port num="19"><r_port>7</r_port><r_node>S01</r_node></port>
 		<port num="20"><r_port>8</r_port><r_node>S01</r_node></port>
 		<port num="21"><r_port>9</r_port><r_node>S01</r_node></port>
@@ -411,8 +411,8 @@
 		<port num="34"><r_port>7</r_port><r_node>S06</r_node></port>
 		<port num="35"><r_port>8</r_port><r_node>S06</r_node></port>
 		<port num="36"><r_port>9</r_port><r_node>S06</r_node></port>
-	</edgelist>
-	<edgelist position="L02">
+	</linklist>
+	<linklist position="L02">
 		<port num="19"><r_port>4</r_port><r_node>S01</r_node></port>
 		<port num="20"><r_port>5</r_port><r_node>S01</r_node></port>
 		<port num="21"><r_port>6</r_port><r_node>S01</r_node></port>
@@ -431,8 +431,8 @@
 		<port num="34"><r_port>4</r_port><r_node>S06</r_node></port>
 		<port num="35"><r_port>5</r_port><r_node>S06</r_node></port>
 		<port num="36"><r_port>6</r_port><r_node>S06</r_node></port>
-	</edgelist>
-	<edgelist position="L01">
+	</linklist>
+	<linklist position="L01">
 		<port num="19"><r_port>1</r_port><r_node>S01</r_node></port>
 		<port num="20"><r_port>2</r_port><r_node>S01</r_node></port>
 		<port num="21"><r_port>3</r_port><r_node>S01</r_node></port>
@@ -451,8 +451,8 @@
 		<port num="34"><r_port>1</r_port><r_node>S06</r_node></port>
 		<port num="35"><r_port>2</r_port><r_node>S06</r_node></port>
 		<port num="36"><r_port>3</r_port><r_node>S06</r_node></port>
-	</edgelist>
-	<edgelist position="L12">
+	</linklist>
+	<linklist position="L12">
 		<port num="19"><r_port>34</r_port><r_node>S01</r_node></port>
 		<port num="20"><r_port>35</r_port><r_node>S01</r_node></port>
 		<port num="21"><r_port>36</r_port><r_node>S01</r_node></port>
@@ -471,6 +471,6 @@
 		<port num="34"><r_port>34</r_port><r_node>S06</r_node></port>
 		<port num="35"><r_port>35</r_port><r_node>S06</r_node></port>
 		<port num="36"><r_port>36</r_port><r_node>S06</r_node></port>
-	</edgelist>
+	</linklist>
 -->
 </chassismap>

@@ -2,7 +2,7 @@
 <!DOCTYPE ibchassismap SYSTEM "chassismap.dtd">
 
 <chassismap model="Voltaire_ISR9288">
-	<edgelist position="L12a">
+	<linklist position="L12a">
 		<port num="1"><r_port>23</r_port><r_node>SP1a</r_node></port>
 		<port num="2"><r_port>23</r_port><r_node>SP1b</r_node></port>
 		<port num="3"><r_port>23</r_port><r_node>SP1c</r_node></port>
@@ -15,8 +15,8 @@
 		<port num="10"><r_port>23</r_port><r_node>SP4a</r_node></port>
 		<port num="11"><r_port>23</r_port><r_node>SP4b</r_node></port>
 		<port num="12"><r_port>23</r_port><r_node>SP4c</r_node></port>
-	</edgelist>
-	<edgelist position="L11a">
+	</linklist>
+	<linklist position="L11a">
 		<port num="1"><r_port>21</r_port><r_node>SP1a</r_node></port>
 		<port num="2"><r_port>21</r_port><r_node>SP1b</r_node></port>
 		<port num="3"><r_port>21</r_port><r_node>SP1c</r_node></port>
@@ -29,8 +29,8 @@
 		<port num="10"><r_port>21</r_port><r_node>SP4a</r_node></port>
 		<port num="11"><r_port>21</r_port><r_node>SP4b</r_node></port>
 		<port num="12"><r_port>21</r_port><r_node>SP4c</r_node></port>
-	</edgelist>
-	<edgelist position="L10a">
+	</linklist>
+	<linklist position="L10a">
 		<port num="1"><r_port>19</r_port><r_node>SP1a</r_node></port>
 		<port num="2"><r_port>19</r_port><r_node>SP1b</r_node></port>
 		<port num="3"><r_port>19</r_port><r_node>SP1c</r_node></port>
@@ -43,8 +43,8 @@
 		<port num="10"><r_port>19</r_port><r_node>SP4a</r_node></port>
 		<port num="11"><r_port>19</r_port><r_node>SP4b</r_node></port>
 		<port num="12"><r_port>19</r_port><r_node>SP4c</r_node></port>
-	</edgelist>
-	<edgelist position="L9a">
+	</linklist>
+	<linklist position="L9a">
 		<port num="1"><r_port>17</r_port><r_node>SP1a</r_node></port>
 		<port num="2"><r_port>17</r_port><r_node>SP1b</r_node></port>
 		<port num="3"><r_port>17</r_port><r_node>SP1c</r_node></port>
@@ -57,8 +57,8 @@
 		<port num="10"><r_port>17</r_port><r_node>SP4a</r_node></port>
 		<port num="11"><r_port>17</r_port><r_node>SP4b</r_node></port>
 		<port num="12"><r_port>17</r_port><r_node>SP4c</r_node></port>
-	</edgelist>
-	<edgelist position="L8a">
+	</linklist>
+	<linklist position="L8a">
 		<port num="1"><r_port>15</r_port><r_node>SP1a</r_node></port>
 		<port num="2"><r_port>15</r_port><r_node>SP1b</r_node></port>
 		<port num="3"><r_port>15</r_port><r_node>SP1c</r_node></port>
@@ -71,8 +71,8 @@
 		<port num="10"><r_port>15</r_port><r_node>SP4a</r_node></port>
 		<port num="11"><r_port>15</r_port><r_node>SP4b</r_node></port>
 		<port num="12"><r_port>15</r_port><r_node>SP4c</r_node></port>
-	</edgelist>
-	<edgelist position="L7a">
+	</linklist>
+	<linklist position="L7a">
 		<port num="1"><r_port>13</r_port><r_node>SP1a</r_node></port>
 		<port num="2"><r_port>13</r_port><r_node>SP1b</r_node></port>
 		<port num="3"><r_port>13</r_port><r_node>SP1c</r_node></port>
@@ -85,8 +85,8 @@
 		<port num="10"><r_port>13</r_port><r_node>SP4a</r_node></port>
 		<port num="11"><r_port>13</r_port><r_node>SP4b</r_node></port>
 		<port num="12"><r_port>13</r_port><r_node>SP4c</r_node></port>
-	</edgelist>
-	<edgelist position="L6a">
+	</linklist>
+	<linklist position="L6a">
 		<port num="1"><r_port>11</r_port><r_node>SP1a</r_node></port>
 		<port num="2"><r_port>11</r_port><r_node>SP1b</r_node></port>
 		<port num="3"><r_port>11</r_port><r_node>SP1c</r_node></port>
@@ -99,8 +99,8 @@
 		<port num="10"><r_port>11</r_port><r_node>SP4a</r_node></port>
 		<port num="11"><r_port>11</r_port><r_node>SP4b</r_node></port>
 		<port num="12"><r_port>11</r_port><r_node>SP4c</r_node></port>
-	</edgelist>
-	<edgelist position="L5a">
+	</linklist>
+	<linklist position="L5a">
 		<port num="1"><r_port>9</r_port><r_node>SP1a</r_node></port>
 		<port num="2"><r_port>9</r_port><r_node>SP1b</r_node></port>
 		<port num="3"><r_port>9</r_port><r_node>SP1c</r_node></port>
@@ -113,8 +113,8 @@
 		<port num="10"><r_port>9</r_port><r_node>SP4a</r_node></port>
 		<port num="11"><r_port>9</r_port><r_node>SP4b</r_node></port>
 		<port num="12"><r_port>9</r_port><r_node>SP4c</r_node></port>
-	</edgelist>
-	<edgelist position="L4a">
+	</linklist>
+	<linklist position="L4a">
 		<port num="1"><r_port>7</r_port><r_node>SP1a</r_node></port>
 		<port num="2"><r_port>7</r_port><r_node>SP1b</r_node></port>
 		<port num="3"><r_port>7</r_port><r_node>SP1c</r_node></port>
@@ -127,8 +127,8 @@
 		<port num="10"><r_port>7</r_port><r_node>SP4a</r_node></port>
 		<port num="11"><r_port>7</r_port><r_node>SP4b</r_node></port>
 		<port num="12"><r_port>7</r_port><r_node>SP4c</r_node></port>
-	</edgelist>
-	<edgelist position="L3a">
+	</linklist>
+	<linklist position="L3a">
 		<port num="1"><r_port>5</r_port><r_node>SP1a</r_node></port>
 		<port num="2"><r_port>5</r_port><r_node>SP1b</r_node></port>
 		<port num="3"><r_port>5</r_port><r_node>SP1c</r_node></port>
@@ -141,8 +141,8 @@
 		<port num="10"><r_port>5</r_port><r_node>SP4a</r_node></port>
 		<port num="11"><r_port>5</r_port><r_node>SP4b</r_node></port>
 		<port num="12"><r_port>5</r_port><r_node>SP4c</r_node></port>
-	</edgelist>
-	<edgelist position="L2a">
+	</linklist>
+	<linklist position="L2a">
 		<port num="1"><r_port>3</r_port><r_node>SP1a</r_node></port>
 		<port num="2"><r_port>3</r_port><r_node>SP1b</r_node></port>
 		<port num="3"><r_port>3</r_port><r_node>SP1c</r_node></port>
@@ -155,8 +155,8 @@
 		<port num="10"><r_port>3</r_port><r_node>SP4a</r_node></port>
 		<port num="11"><r_port>3</r_port><r_node>SP4b</r_node></port>
 		<port num="12"><r_port>3</r_port><r_node>SP4c</r_node></port>
-	</edgelist>
-	<edgelist position="L1a">
+	</linklist>
+	<linklist position="L1a">
 		<port num="1"><r_port>1</r_port><r_node>SP1a</r_node></port>
 		<port num="2"><r_port>1</r_port><r_node>SP1b</r_node></port>
 		<port num="3"><r_port>1</r_port><r_node>SP1c</r_node></port>
@@ -169,8 +169,8 @@
 		<port num="10"><r_port>1</r_port><r_node>SP4a</r_node></port>
 		<port num="11"><r_port>1</r_port><r_node>SP4b</r_node></port>
 		<port num="12"><r_port>1</r_port><r_node>SP4c</r_node></port>
-	</edgelist>
-	<edgelist position="SP4c">
+	</linklist>
+	<linklist position="SP4c">
 		<port num="1"><r_port>12</r_port><r_node>L1a</r_node></port>
 		<port num="2"><r_port>12</r_port><r_node>L1b</r_node></port>
 		<port num="3"><r_port>12</r_port><r_node>L2a</r_node></port>
@@ -194,8 +194,8 @@
 		<port num="21"><r_port>12</r_port><r_node>L11a</r_node></port>
 		<port num="22"><r_port>12</r_port><r_node>L11b</r_node></port>
 		<port num="23"><r_port>12</r_port><r_node>L12a</r_node></port>
-	</edgelist>
-	<edgelist position="SP4b">
+	</linklist>
+	<linklist position="SP4b">
 		<port num="1"><r_port>11</r_port><r_node>L1a</r_node></port>
 		<port num="2"><r_port>11</r_port><r_node>L1b</r_node></port>
 		<port num="3"><r_port>11</r_port><r_node>L2a</r_node></port>
@@ -219,8 +219,8 @@
 		<port num="21"><r_port>11</r_port><r_node>L11a</r_node></port>
 		<port num="22"><r_port>11</r_port><r_node>L11b</r_node></port>
 		<port num="23"><r_port>11</r_port><r_node>L12a</r_node></port>
-	</edgelist>
-	<edgelist position="SP4a">
+	</linklist>
+	<linklist position="SP4a">
 		<port num="1"><r_port>10</r_port><r_node>L1a</r_node></port>
 		<port num="2"><r_port>10</r_port><r_node>L1b</r_node></port>
 		<port num="3"><r_port>10</r_port><r_node>L2a</r_node></port>
@@ -244,8 +244,8 @@
 		<port num="21"><r_port>10</r_port><r_node>L11a</r_node></port>
 		<port num="22"><r_port>10</r_port><r_node>L11b</r_node></port>
 		<port num="23"><r_port>10</r_port><r_node>L12a</r_node></port>
-	</edgelist>
-	<edgelist position="SP3c">
+	</linklist>
+	<linklist position="SP3c">
 		<port num="1"><r_port>9</r_port><r_node>L1a</r_node></port>
 		<port num="2"><r_port>9</r_port><r_node>L1b</r_node></port>
 		<port num="3"><r_port>9</r_port><r_node>L2a</r_node></port>
@@ -269,8 +269,8 @@
 		<port num="21"><r_port>9</r_port><r_node>L11a</r_node></port>
 		<port num="22"><r_port>9</r_port><r_node>L11b</r_node></port>
 		<port num="23"><r_port>9</r_port><r_node>L12a</r_node></port>
-	</edgelist>
-	<edgelist position="SP3b">
+	</linklist>
+	<linklist position="SP3b">
 		<port num="1"><r_port>8</r_port><r_node>L1a</r_node></port>
 		<port num="2"><r_port>8</r_port><r_node>L1b</r_node></port>
 		<port num="3"><r_port>8</r_port><r_node>L2a</r_node></port>
@@ -294,8 +294,8 @@
 		<port num="21"><r_port>8</r_port><r_node>L11a</r_node></port>
 		<port num="22"><r_port>8</r_port><r_node>L11b</r_node></port>
 		<port num="23"><r_port>8</r_port><r_node>L12a</r_node></port>
-	</edgelist>
-	<edgelist position="SP3a">
+	</linklist>
+	<linklist position="SP3a">
 		<port num="1"><r_port>7</r_port><r_node>L1a</r_node></port>
 		<port num="2"><r_port>7</r_port><r_node>L1b</r_node></port>
 		<port num="3"><r_port>7</r_port><r_node>L2a</r_node></port>
@@ -319,8 +319,8 @@
 		<port num="21"><r_port>7</r_port><r_node>L11a</r_node></port>
 		<port num="22"><r_port>7</r_port><r_node>L11b</r_node></port>
 		<port num="23"><r_port>7</r_port><r_node>L12a</r_node></port>
-	</edgelist>
-	<edgelist position="SP2c">
+	</linklist>
+	<linklist position="SP2c">
 		<port num="1"><r_port>6</r_port><r_node>L1a</r_node></port>
 		<port num="2"><r_port>6</r_port><r_node>L1b</r_node></port>
 		<port num="3"><r_port>6</r_port><r_node>L2a</r_node></port>
@@ -344,8 +344,8 @@
 		<port num="21"><r_port>6</r_port><r_node>L11a</r_node></port>
 		<port num="22"><r_port>6</r_port><r_node>L11b</r_node></port>
 		<port num="23"><r_port>6</r_port><r_node>L12a</r_node></port>
-	</edgelist>
-	<edgelist position="SP2b">
+	</linklist>
+	<linklist position="SP2b">
 		<port num="1"><r_port>5</r_port><r_node>L1a</r_node></port>
 		<port num="2"><r_port>5</r_port><r_node>L1b</r_node></port>
 		<port num="3"><r_port>5</r_port><r_node>L2a</r_node></port>
@@ -369,8 +369,8 @@
 		<port num="21"><r_port>5</r_port><r_node>L11a</r_node></port>
 		<port num="22"><r_port>5</r_port><r_node>L11b</r_node></port>
 		<port num="23"><r_port>5</r_port><r_node>L12a</r_node></port>
-	</edgelist>
-	<edgelist position="SP2a">
+	</linklist>
+	<linklist position="SP2a">
 		<port num="1"><r_port>4</r_port><r_node>L1a</r_node></port>
 		<port num="2"><r_port>4</r_port><r_node>L1b</r_node></port>
 		<port num="3"><r_port>4</r_port><r_node>L2a</r_node></port>
@@ -394,8 +394,8 @@
 		<port num="21"><r_port>4</r_port><r_node>L11a</r_node></port>
 		<port num="22"><r_port>4</r_port><r_node>L11b</r_node></port>
 		<port num="23"><r_port>4</r_port><r_node>L12a</r_node></port>
-	</edgelist>
-	<edgelist position="SP1c">
+	</linklist>
+	<linklist position="SP1c">
 		<port num="1"><r_port>3</r_port><r_node>L1a</r_node></port>
 		<port num="2"><r_port>3</r_port><r_node>L1b</r_node></port>
 		<port num="3"><r_port>3</r_port><r_node>L2a</r_node></port>
@@ -419,8 +419,8 @@
 		<port num="21"><r_port>3</r_port><r_node>L11a</r_node></port>
 		<port num="22"><r_port>3</r_port><r_node>L11b</r_node></port>
 		<port num="23"><r_port>3</r_port><r_node>L12a</r_node></port>
-	</edgelist>
-	<edgelist position="SP1b">
+	</linklist>
+	<linklist position="SP1b">
 		<port num="1"><r_port>2</r_port><r_node>L1a</r_node></port>
 		<port num="2"><r_port>2</r_port><r_node>L1b</r_node></port>
 		<port num="3"><r_port>2</r_port><r_node>L2a</r_node></port>
@@ -444,8 +444,8 @@
 		<port num="21"><r_port>2</r_port><r_node>L11a</r_node></port>
 		<port num="22"><r_port>2</r_port><r_node>L11b</r_node></port>
 		<port num="23"><r_port>2</r_port><r_node>L12a</r_node></port>
-	</edgelist>
-	<edgelist position="SP1a">
+	</linklist>
+	<linklist position="SP1a">
 		<port num="1"><r_port>1</r_port><r_node>L1a</r_node></port>
 		<port num="2"><r_port>1</r_port><r_node>L1b</r_node></port>
 		<port num="3"><r_port>1</r_port><r_node>L2a</r_node></port>
@@ -469,8 +469,8 @@
 		<port num="21"><r_port>1</r_port><r_node>L11a</r_node></port>
 		<port num="22"><r_port>1</r_port><r_node>L11b</r_node></port>
 		<port num="23"><r_port>1</r_port><r_node>L12a</r_node></port>
-	</edgelist>
-	<edgelist position="L12b">
+	</linklist>
+	<linklist position="L12b">
 		<port num="1"><r_port>24</r_port><r_node>SP1a</r_node></port>
 		<port num="2"><r_port>24</r_port><r_node>SP1b</r_node></port>
 		<port num="3"><r_port>24</r_port><r_node>SP1c</r_node></port>
@@ -483,8 +483,8 @@
 		<port num="10"><r_port>24</r_port><r_node>SP4a</r_node></port>
 		<port num="11"><r_port>24</r_port><r_node>SP4b</r_node></port>
 		<port num="12"><r_port>24</r_port><r_node>SP4c</r_node></port>
-	</edgelist>
-	<edgelist position="L11b">
+	</linklist>
+	<linklist position="L11b">
 		<port num="1"><r_port>22</r_port><r_node>SP1a</r_node></port>
 		<port num="2"><r_port>22</r_port><r_node>SP1b</r_node></port>
 		<port num="3"><r_port>22</r_port><r_node>SP1c</r_node></port>
@@ -497,8 +497,8 @@
 		<port num="10"><r_port>22</r_port><r_node>SP4a</r_node></port>
 		<port num="11"><r_port>22</r_port><r_node>SP4b</r_node></port>
 		<port num="12"><r_port>22</r_port><r_node>SP4c</r_node></port>
-	</edgelist>
-	<edgelist position="L10b">
+	</linklist>
+	<linklist position="L10b">
 		<port num="1"><r_port>20</r_port><r_node>SP1a</r_node></port>
 		<port num="2"><r_port>20</r_port><r_node>SP1b</r_node></port>
 		<port num="3"><r_port>20</r_port><r_node>SP1c</r_node></port>
@@ -511,8 +511,8 @@
 		<port num="10"><r_port>20</r_port><r_node>SP4a</r_node></port>
 		<port num="11"><r_port>20</r_port><r_node>SP4b</r_node></port>
 		<port num="12"><r_port>20</r_port><r_node>SP4c</r_node></port>
-	</edgelist>
-	<edgelist position="L9b">
+	</linklist>
+	<linklist position="L9b">
 		<port num="1"><r_port>18</r_port><r_node>SP1a</r_node></port>
 		<port num="2"><r_port>18</r_port><r_node>SP1b</r_node></port>
 		<port num="3"><r_port>18</r_port><r_node>SP1c</r_node></port>
@@ -525,8 +525,8 @@
 		<port num="10"><r_port>18</r_port><r_node>SP4a</r_node></port>
 		<port num="11"><r_port>18</r_port><r_node>SP4b</r_node></port>
 		<port num="12"><r_port>18</r_port><r_node>SP4c</r_node></port>
-	</edgelist>
-	<edgelist position="L8b">
+	</linklist>
+	<linklist position="L8b">
 		<port num="1"><r_port>16</r_port><r_node>SP1a</r_node></port>
 		<port num="2"><r_port>16</r_port><r_node>SP1b</r_node></port>
 		<port num="3"><r_port>16</r_port><r_node>SP1c</r_node></port>
@@ -539,8 +539,8 @@
 		<port num="10"><r_port>16</r_port><r_node>SP4a</r_node></port>
 		<port num="11"><r_port>16</r_port><r_node>SP4b</r_node></port>
 		<port num="12"><r_port>16</r_port><r_node>SP4c</r_node></port>
-	</edgelist>
-	<edgelist position="L7b">
+	</linklist>
+	<linklist position="L7b">
 		<port num="1"><r_port>14</r_port><r_node>SP1a</r_node></port>
 		<port num="2"><r_port>14</r_port><r_node>SP1b</r_node></port>
 		<port num="3"><r_port>14</r_port><r_node>SP1c</r_node></port>
@@ -553,8 +553,8 @@
 		<port num="10"><r_port>14</r_port><r_node>SP4a</r_node></port>
 		<port num="11"><r_port>14</r_port><r_node>SP4b</r_node></port>
 		<port num="12"><r_port>14</r_port><r_node>SP4c</r_node></port>
-	</edgelist>
-	<edgelist position="L6b">
+	</linklist>
+	<linklist position="L6b">
 		<port num="1"><r_port>12</r_port><r_node>SP1a</r_node></port>
 		<port num="2"><r_port>12</r_port><r_node>SP1b</r_node></port>
 		<port num="3"><r_port>12</r_port><r_node>SP1c</r_node></port>
@@ -567,8 +567,8 @@
 		<port num="10"><r_port>12</r_port><r_node>SP4a</r_node></port>
 		<port num="11"><r_port>12</r_port><r_node>SP4b</r_node></port>
 		<port num="12"><r_port>12</r_port><r_node>SP4c</r_node></port>
-	</edgelist>
-	<edgelist position="L5b">
+	</linklist>
+	<linklist position="L5b">
 		<port num="1"><r_port>10</r_port><r_node>SP1a</r_node></port>
 		<port num="2"><r_port>10</r_port><r_node>SP1b</r_node></port>
 		<port num="3"><r_port>10</r_port><r_node>SP1c</r_node></port>
@@ -581,8 +581,8 @@
 		<port num="10"><r_port>10</r_port><r_node>SP4a</r_node></port>
 		<port num="11"><r_port>10</r_port><r_node>SP4b</r_node></port>
 		<port num="12"><r_port>10</r_port><r_node>SP4c</r_node></port>
-	</edgelist>
-	<edgelist position="L4b">
+	</linklist>
+	<linklist position="L4b">
 		<port num="1"><r_port>8</r_port><r_node>SP1a</r_node></port>
 		<port num="2"><r_port>8</r_port><r_node>SP1b</r_node></port>
 		<port num="3"><r_port>8</r_port><r_node>SP1c</r_node></port>
@@ -595,8 +595,8 @@
 		<port num="10"><r_port>8</r_port><r_node>SP4a</r_node></port>
 		<port num="11"><r_port>8</r_port><r_node>SP4b</r_node></port>
 		<port num="12"><r_port>8</r_port><r_node>SP4c</r_node></port>
-	</edgelist>
-	<edgelist position="L3b">
+	</linklist>
+	<linklist position="L3b">
 		<port num="1"><r_port>6</r_port><r_node>SP1a</r_node></port>
 		<port num="2"><r_port>6</r_port><r_node>SP1b</r_node></port>
 		<port num="3"><r_port>6</r_port><r_node>SP1c</r_node></port>
@@ -609,8 +609,8 @@
 		<port num="10"><r_port>6</r_port><r_node>SP4a</r_node></port>
 		<port num="11"><r_port>6</r_port><r_node>SP4b</r_node></port>
 		<port num="12"><r_port>6</r_port><r_node>SP4c</r_node></port>
-	</edgelist>
-	<edgelist position="L2b">
+	</linklist>
+	<linklist position="L2b">
 		<port num="1"><r_port>4</r_port><r_node>SP1a</r_node></port>
 		<port num="2"><r_port>4</r_port><r_node>SP1b</r_node></port>
 		<port num="3"><r_port>4</r_port><r_node>SP1c</r_node></port>
@@ -623,8 +623,8 @@
 		<port num="10"><r_port>4</r_port><r_node>SP4a</r_node></port>
 		<port num="11"><r_port>4</r_port><r_node>SP4b</r_node></port>
 		<port num="12"><r_port>4</r_port><r_node>SP4c</r_node></port>
-	</edgelist>
-	<edgelist position="L1b">
+	</linklist>
+	<linklist position="L1b">
 		<port num="1"><r_port>2</r_port><r_node>SP1a</r_node></port>
 		<port num="2"><r_port>2</r_port><r_node>SP1b</r_node></port>
 		<port num="3"><r_port>2</r_port><r_node>SP1c</r_node></port>
@@ -637,5 +637,5 @@
 		<port num="10"><r_port>2</r_port><r_node>SP4a</r_node></port>
 		<port num="11"><r_port>2</r_port><r_node>SP4b</r_node></port>
 		<port num="12"><r_port>2</r_port><r_node>SP4c</r_node></port>
-	</edgelist>
+	</linklist>
 </chassismap>

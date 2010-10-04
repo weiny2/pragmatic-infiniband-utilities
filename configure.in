@@ -50,12 +50,12 @@ AC_CACHE_CHECK(whether ld accepts --version-script, ac_cv_version_script,
         ac_cv_version_script=no
     fi)
 
-ibedgeconf_api_version=`grep LIBVERSION $srcdir/libibedgeconf.ver | sed 's/LIBVERSION=//'`
-if test -z $ibedgeconf_api_version; then
-   echo "FAILED to find $srcdir/libibedgeconf.ver"
+iblinkconf_api_version=`grep LIBVERSION $srcdir/libiblinkconf.ver | sed 's/LIBVERSION=//'`
+if test -z $iblinkconf_api_version; then
+   echo "FAILED to find $srcdir/libiblinkconf.ver"
    exit 1
 fi
-AC_SUBST(ibedgeconf_api_version)
+AC_SUBST(iblinkconf_api_version)
 
 
 if test $genders = yes; then
@@ -102,7 +102,7 @@ AC_CONFIG_FILES([Makefile
                man/ibsrp.8
                man/ibtrackerrors.8
                man/ibhcacounters.8
-               man/ibparseedgeconf.8
-               include/infiniband/ibedgeconf.h
+               man/ibparselinkconf.8
+               include/infiniband/iblinkconf.h
                ])
 AC_OUTPUT

@@ -14,14 +14,14 @@ ACLOCAL_AMFLAGS = -I config
 
 AM_CFLAGS = -Wall $(DBGFLAGS)
 
-lib_LTLIBRARIES = libibedgeconf.la
+lib_LTLIBRARIES = libiblinkconf.la
 
 sbin_PROGRAMS = src/simple_rdma \
 					src/rdma_cm_query \
 					src/slurm_topology \
 					src/ibgraphfabric \
 					src/iblinkconffromfabric \
-					src/ibparseedgeconf \
+					src/ibparselinkconf \
 					src/ibchecklinks
 
 mySCRIPTS = scripts/ibgetgid \
@@ -52,7 +52,7 @@ man_MANS = man/ibbouncelinks.8 \
 				man/ibtrackerrors.8 \
 				man/ibhcacounters.8 \
 				man/ibsrp.8 \
-				man/ibparseedgeconf.8
+				man/ibparselinkconf.8
 
 sbin_SCRIPTS = $(mySCRIPTS)
 
@@ -73,23 +73,23 @@ src_ibgraphfabric_LDFLAGS = -losmcomp -libmad -libnetdisc
 src_iblinkconffromfabric_SOURCES = src/iblinkconffromfabric.c
 src_iblinkconffromfabric_LDFLAGS = -losmcomp -libmad -libnetdisc
 
-libibedgeconf_la_SOURCES = src/ibedgeconf.c
-libibedgeconf_la_CFLAGS = -I/usr/include/libxml2 -Wall $(DBGFLAGS)
-libibedgeconf_la_LDFLAGS = -version-info $(ibedgeconf_api_version) \
-	-export-dynamic $(libibedgeconf_version_script) \
+libiblinkconf_la_SOURCES = src/iblinkconf.c
+libiblinkconf_la_CFLAGS = -I/usr/include/libxml2 -Wall $(DBGFLAGS)
+libiblinkconf_la_LDFLAGS = -version-info $(iblinkconf_api_version) \
+	-export-dynamic $(libiblinkconf_version_script) \
 	-libmad -lxml2 -lz -lm
-libibedgeconf_la_DEPENDENCIES = src/libibedgeconf.map
+libiblinkconf_la_DEPENDENCIES = src/libiblinkconf.map
 
-libibedgeconfincludedir = $(includedir)/infiniband
+libiblinkconfincludedir = $(includedir)/infiniband
 
-libibedgeconfinclude_HEADERS = include/infiniband/ibedgeconf.h
+libiblinkconfinclude_HEADERS = include/infiniband/iblinkconf.h
 
-src_ibparseedgeconf_SOURCES = src/ibparseedgeconf.c
-src_ibparseedgeconf_CFLAGS = -I$(includedir)
-src_ibparseedgeconf_LDFLAGS = -libedgeconf
+src_ibparselinkconf_SOURCES = src/ibparselinkconf.c
+src_ibparselinkconf_CFLAGS = -I$(includedir)
+src_ibparselinkconf_LDFLAGS = -liblinkconf
 
 src_ibchecklinks_SOURCES = src/ibchecklinks.c
-src_ibchecklinks_LDFLAGS = -losmcomp -libmad -libnetdisc -libedgeconf
+src_ibchecklinks_LDFLAGS = -losmcomp -libmad -libnetdisc -liblinkconf
 
 
 EXTRA_DIST = \
@@ -101,16 +101,16 @@ EXTRA_DIST = \
 	scripts \
 	sysconf/ibsrp.conf \
 	etc/pragmaticIB.conf \
-	chassis_edgeconf \
-	src/libibedgeconf.map \
-	libibedgeconf.ver
+	chassis_linkconf \
+	src/libiblinkconf.map \
+	libiblinkconf.ver
 
 install-exec-hook:
 	$(top_srcdir)/config/install-sh -m 755 -d $(DESTDIR)/$(sysconfdir)/init.d
 	$(top_srcdir)/config/install-sh -m 755 $(top_builddir)/scripts/ibsrp $(DESTDIR)/$(sysconfdir)/init.d/ibsrp
 	$(top_srcdir)/config/install-sh -m 755 $(top_builddir)/sysconf/ibsrp.conf $(DESTDIR)/$(sysconfdir)/sysconfig/ibsrp.conf
 	$(top_srcdir)/config/install-sh -m 644 $(top_builddir)/etc/pragmaticIB.conf $(DESTDIR)/$(sysconfdir)/pragmaticIB/pragmaticIB.conf
-	for file in $(top_builddir)/chassis_edgeconf/*.xml; do \
+	for file in $(top_builddir)/chassis_linkconf/*.xml; do \
 		$(top_srcdir)/config/install-sh -m 644 $$file $(DESTDIR)/$(sysconfdir)/pragmaticIB/; \
 	done
 

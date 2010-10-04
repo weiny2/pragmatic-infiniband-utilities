@@ -102,7 +102,7 @@ static void print_switch_xml(ibnd_node_t *sw, void *ud)
 	if (ignore_switch(node_name))
 		goto ignore;
 
-	printf("\t<edgelist name=\"%s\">\n", node_name);
+	printf("\t<linklist name=\"%s\">\n", node_name);
 	for (i = 0; i <= sw->numports; i++) {
 		if (sw->ports[i] && sw->ports[i]->remoteport) {
 			char *rem_name = remap_node_name(node_name_map,
@@ -115,7 +115,7 @@ static void print_switch_xml(ibnd_node_t *sw, void *ud)
 			printf("</port>\n");
 		}
 	}
-	printf("\t</edgelist>\n");
+	printf("\t</linklist>\n");
 
 ignore:
 	free(node_name);

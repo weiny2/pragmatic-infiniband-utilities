@@ -48,11 +48,11 @@
 
 #include <complib/cl_nodenamemap.h>
 #include <infiniband/ibnetdisc.h>
-#include <infiniband/ibedgeconf.h>
+#include <infiniband/iblinkconf.h>
 
 static char *node_name_map_file = NULL;
 static nn_map_t *node_name_map = NULL;
-static ibedge_conf_t *edgeconf = NULL;
+static iblink_conf_t *linkconf = NULL;
 static char *linkconffile = NULL;
 static char *ibd_ca = NULL;
 static int ibd_ca_port = 1;
@@ -206,7 +206,7 @@ void get_msg(char *width_msg, char *speed_msg, int msg_size, ibnd_port_t * port)
 				      buf, 64, &max_speed));
 }
 
-void print_port(char *node_name, ibnd_node_t * node, ibnd_port_t * port, ibedge_port_t *edgeport)
+void print_port(char *node_name, ibnd_node_t * node, ibnd_port_t * port, iblink_port_t *linkport)
 {
 	char width[64], speed[64], state[64], physstate[64];
 	char remote_guid_str[256];
@@ -275,12 +275,12 @@ void print_port(char *node_name, ibnd_node_t * node, ibnd_port_t * port, ibedge_
 			 port->remoteport->portnum, ext_port_str, remap,
 			 width_msg, speed_msg);
 		free(remap);
-	} else if (edgeport) {
+	} else if (linkport) {
 		char prop[256];
 		snprintf(remote_str, 256, "       %4d[  ] \"%s\" (Should be: %s Active)\n",
-			ibedge_port_get_port_num(edgeport),
-			ibedge_port_get_name(edgeport),
-			ibedge_prop_str(edgeport, prop, 256));
+			iblink_port_get_port_num(linkport),
+			iblink_port_get_name(linkport),
+			iblink_prop_str(linkport, prop, 256));
 	} else
 		snprintf(remote_str, 256, "           [  ] \"\" ( )\n");
 
@@ -295,19 +295,19 @@ void print_port(char *node_name, ibnd_node_t * node, ibnd_port_t * port, ibedge_
 }
 
 void
-print_config_port(ibedge_port_t *port)
+print_config_port(iblink_port_t *port)
 {
 	char prop[256];
 	printf ("\"%s\" %d  <==(%s)==>  %4d \"%s\"\n",
-		ibedge_port_get_name(port),
-		ibedge_port_get_port_num(port),
-		ibedge_prop_str(port, prop, 256),
-		ibedge_port_get_port_num(ibedge_port_get_remote(port)),
-		ibedge_port_get_name(ibedge_port_get_remote(port))
+		iblink_port_get_name(port),
+		iblink_port_get_port_num(port),
+		iblink_prop_str(port, prop, 256),
+		iblink_port_get_port_num(iblink_port_get_remote(port)),
+		iblink_port_get_name(iblink_port_get_remote(port))
 		);
 }
 
-void compare_port(ibedge_port_t *edgeport, char *node_name, ibnd_node_t *node, ibnd_port_t *port)
+void compare_port(iblink_port_t *linkport, char *node_name, ibnd_node_t *node, ibnd_port_t *port)
 {
 	int iwidth, ispeed, istate;
 
@@ -315,17 +315,17 @@ void compare_port(ibedge_port_t *edgeport, char *node_name, ibnd_node_t *node, i
 	ispeed = mad_get_field(port->info, 0, IB_PORT_LINK_SPEED_ACTIVE_F);
 	istate = mad_get_field(port->info, 0, IB_PORT_STATE_F);
 
-	ibedge_port_t *rem_edgeport = ibedge_port_get_remote(edgeport);
+	iblink_port_t *rem_linkport = iblink_port_get_remote(linkport);
 
 	if (istate != IB_LINK_ACTIVE) {
 		printf("ERR: port down: ");
-		print_port(node_name, node, port, rem_edgeport);
+		print_port(node_name, node, port, rem_linkport);
 	} else {
 		char str[64];
-		int conf_width = ibedge_prop_get_width(ibedge_port_get_prop(edgeport));
-		int conf_speed = ibedge_prop_get_speed(ibedge_port_get_prop(edgeport));
-		int rem_port_num = ibedge_port_get_port_num(rem_edgeport);
-		char *rem_node_name = ibedge_port_get_name(rem_edgeport);
+		int conf_width = iblink_prop_get_width(iblink_port_get_prop(linkport));
+		int conf_speed = iblink_prop_get_speed(iblink_port_get_prop(linkport));
+		int rem_port_num = iblink_port_get_port_num(rem_linkport);
+		char *rem_node_name = iblink_port_get_name(rem_linkport);
 		char *rem_remap = remap_node_name(node_name_map, port->remoteport->node->guid,
 					port->remoteport->node->nodedesc);
 
@@ -346,7 +346,7 @@ void compare_port(ibedge_port_t *edgeport, char *node_name, ibnd_node_t *node, i
 			printf("ERR: invalid link : ");
 			print_port(node_name, node, port, NULL);
 			printf("     should be    : ");
-			print_config_port(edgeport);
+			print_config_port(linkport);
 		}
 		free(rem_remap);
 	}
@@ -355,12 +355,12 @@ void compare_port(ibedge_port_t *edgeport, char *node_name, ibnd_node_t *node, i
 void check_config(char *node_name, ibnd_node_t *node, ibnd_port_t *port)
 {
 	int istate;
-	ibedge_port_t *edgeport = NULL;
+	iblink_port_t *linkport = NULL;
 
-	edgeport = ibedge_get_port(edgeconf, node_name, port->portnum);
+	linkport = iblink_get_port(linkconf, node_name, port->portnum);
 	istate = mad_get_field(port->info, 0, IB_PORT_STATE_F);
-	if (edgeport) {
-		compare_port(edgeport, node_name, node, port);
+	if (linkport) {
+		compare_port(linkport, node_name, node, port);
 	} else if (istate == IB_LINK_ACTIVE) {
 		char *remap = NULL;
 		port = port->remoteport;
@@ -372,9 +372,9 @@ void check_config(char *node_name, ibnd_node_t *node, ibnd_port_t *port)
 		node = port->node;
 		remap = remap_node_name(node_name_map, node->guid,
 					node->nodedesc);
-		edgeport = ibedge_get_port(edgeconf, remap, port->portnum);
-		if (edgeport) {
-			compare_port(edgeport, remap, node, port);
+		linkport = iblink_get_port(linkconf, remap, port->portnum);
+		if (linkport) {
+			compare_port(linkport, remap, node, port);
 		} else {
 invalid_active:
 			printf("ERR: Unconfigured active link: ");
@@ -424,7 +424,7 @@ void check_port(char *node_name, ibnd_node_t * node, ibnd_port_t * port)
 		print_port(node_name, node, port, NULL);
 	}
 
-	if (edgeconf)
+	if (linkconf)
 		check_config(node_name, node, port);
 }
 
@@ -472,7 +472,7 @@ int usage(void)
 "  --timeout, -t <ms>    timeout in ms\n"
 "\n"
 , argv0
-, IBEDGE_DEF_CONFIG
+, IBLINK_DEF_CONFIG
 );
         return (0);
 }
@@ -555,16 +555,16 @@ int main(int argc, char **argv)
 	argc -= optind;
 	argv += optind;
 
-	edgeconf = ibedge_alloc_conf();
-	if (!edgeconf) {
-		fprintf(stderr, "ERROR: Failed to alloc edgeconf\n");
+	linkconf = iblink_alloc_conf();
+	if (!linkconf) {
+		fprintf(stderr, "ERROR: Failed to alloc linkconf\n");
 		exit(1);
 	}
 
-	if (ibedge_parse_file(linkconffile, edgeconf)) {
-		fprintf(stderr, "WARN: Failed to parse edge config file...\n");
-		ibedge_free(edgeconf);
-		edgeconf = NULL;
+	if (iblink_parse_file(linkconffile, linkconf)) {
+		fprintf(stderr, "WARN: Failed to parse link config file...\n");
+		iblink_free(linkconf);
+		linkconf = NULL;
 	}
 
 	ibmad_port = mad_rpc_open_port(ibd_ca, ibd_ca_port, mgmt_classes, 3);
@@ -643,7 +643,7 @@ int main(int argc, char **argv)
 close_port:
 	close_node_name_map(node_name_map);
 	mad_rpc_close_port(ibmad_port);
-	ibedge_free(edgeconf);
+	iblink_free(linkconf);
 	free_seen();
 	exit(rc);
 }

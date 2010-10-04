@@ -28,22 +28,22 @@
 #include <errno.h>
 #include <getopt.h>
 #include <string.h>
-#include <infiniband/ibedgeconf.h>
+#include <infiniband/iblinkconf.h>
 
-char *edgeconf_file = NULL;
+char *linkconf_file = NULL;
 char *argv0 = NULL;
 
 void
-print_port(ibedge_port_t *port, void *user_data)
+print_port(iblink_port_t *port, void *user_data)
 {
 	char prop[256];
 	//char rprop[256];
 	printf ("\"%30s\" %4d  ==(%s)==>  %4d \"%s\"\n",
-		ibedge_port_get_name(port),
-		ibedge_port_get_port_num(port),
-		ibedge_prop_str(port, prop, 256),
-		ibedge_port_get_port_num(ibedge_port_get_remote(port)),
-		ibedge_port_get_name(ibedge_port_get_remote(port))
+		iblink_port_get_name(port),
+		iblink_port_get_port_num(port),
+		iblink_prop_str(port, prop, 256),
+		iblink_port_get_port_num(iblink_port_get_remote(port)),
+		iblink_port_get_name(iblink_port_get_remote(port))
 		);
 }
 
@@ -54,16 +54,16 @@ usage(void)
 {
         fprintf(stderr,
 "%s [options] [node] [port]\n"
-"Usage: parse the edgeconf file\n"
+"Usage: parse the linkconf file\n"
 "\n"
 "Options:\n"
 "  --conf <file>, specify an alternate config (default: %s)\n"
 "  [node] if node is specified print port for that node\n"
 "  [port] if port is specified print information for just that port (default \"all\")\n"
-"         if neither node nor port is specified print all edges in config file\n"
+"         if neither node nor port is specified print all links in config file\n"
 "\n"
 , argv0,
-IBEDGE_DEF_CONFIG
+IBLINK_DEF_CONFIG
 );
         return (0);
 }
@@ -72,7 +72,7 @@ IBEDGE_DEF_CONFIG
 int
 main(int argc, char **argv)
 {
-	ibedge_conf_t *edgeconf;
+	iblink_conf_t *linkconf;
 	int rc = 0;
         char  ch = 0;
         static char const str_opts[] = "h";
@@ -90,7 +90,7 @@ main(int argc, char **argv)
                 switch (ch)
                 {
 			case 1:
-				edgeconf_file = strdup(optarg);
+				linkconf_file = strdup(optarg);
 				break;
                         case 'h':
                         default:
@@ -101,12 +101,12 @@ main(int argc, char **argv)
 	argc -= optind;
 	argv += optind;
 
-	edgeconf = ibedge_alloc_conf();
-	rc = ibedge_parse_file(edgeconf_file, edgeconf);
+	linkconf = iblink_alloc_conf();
+	rc = iblink_parse_file(linkconf_file, linkconf);
 
 	if (rc) {
-		fprintf(stderr, "ERROR: failed to parse edge config "
-			"\"%s\":%s\n", edgeconf_file, strerror(rc));
+		fprintf(stderr, "ERROR: failed to parse link config "
+			"\"%s\":%s\n", linkconf_file, strerror(rc));
 		return (rc);
 	}
 
@@ -115,32 +115,32 @@ main(int argc, char **argv)
 		int p_num = 1;
 		if (argv[1]) {
 			p_num = strtol(argv[1], NULL, 0);
-			ibedge_port_t *port = ibedge_get_port(edgeconf, argv[0], p_num);
+			iblink_port_t *port = iblink_get_port(linkconf, argv[0], p_num);
 			if (port)
 				print_port(port, NULL);
 			else
 				fprintf (stderr, "ERROR: \"%s\":%d port not found\n",
 					argv[0], p_num);
 		} else {
-			ibedge_port_list_t *port_list;
-			int rc = ibedge_get_port_list(edgeconf, argv[0],
+			iblink_port_list_t *port_list;
+			int rc = iblink_get_port_list(linkconf, argv[0],
 							&port_list);
 			if (rc) {
 				fprintf(stderr, "ERROR: Failed to get port "
 					"list for \"%s\":%s\n",
 					argv[0], strerror(rc));
 			} else {
-				ibedge_iter_port_list(port_list, print_port,
+				iblink_iter_port_list(port_list, print_port,
 							NULL);
-				ibedge_free_port_list(port_list);
+				iblink_free_port_list(port_list);
 			}
 		}
 	} else {
-		printf("Name: %s\n", ibedge_conf_get_name(edgeconf));
-		ibedge_iter_ports(edgeconf, print_port, NULL);
+		printf("Name: %s\n", iblink_conf_get_name(linkconf));
+		iblink_iter_ports(linkconf, print_port, NULL);
 	}
 
-	ibedge_free(edgeconf);
+	iblink_free(linkconf);
 
 	return (rc);
 }
