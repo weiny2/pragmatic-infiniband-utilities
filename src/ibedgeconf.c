@@ -61,16 +61,16 @@ char *dump_linkwidth_compat(uint32_t width)
 {
 	switch (width) {
 	case IB_LINK_WIDTH_ACTIVE_1X:
-		return ("1x");
+		return ("1X");
 		break;
 	case IB_LINK_WIDTH_ACTIVE_4X:
-		return ("4x");
+		return ("4X");
 		break;
 	case IB_LINK_WIDTH_ACTIVE_8X:
-		return ("8x");
+		return ("8X");
 		break;
 	case IB_LINK_WIDTH_ACTIVE_12X:
-		return ("12x");
+		return ("12X");
 		break;
 	}
 	return ("??");

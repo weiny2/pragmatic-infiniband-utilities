@@ -277,7 +277,7 @@ void print_port(char *node_name, ibnd_node_t * node, ibnd_port_t * port, ibedge_
 		free(remap);
 	} else if (edgeport) {
 		char prop[256];
-		snprintf(remote_str, 256, "       %4d[  ] \"%s\" (Should be: %s)\n",
+		snprintf(remote_str, 256, "       %4d[  ] \"%s\" (Should be: %s Active)\n",
 			ibedge_port_get_port_num(edgeport),
 			ibedge_port_get_name(edgeport),
 			ibedge_prop_str(edgeport, prop, 256));
@@ -307,55 +307,80 @@ print_config_port(ibedge_port_t *port)
 		);
 }
 
-void check_config(char *node_name, ibnd_node_t *node, ibnd_port_t *port)
+void compare_port(ibedge_port_t *edgeport, char *node_name, ibnd_node_t *node, ibnd_port_t *port)
 {
 	int iwidth, ispeed, istate;
-	ibedge_port_t *edgeport = NULL;
 
 	iwidth = mad_get_field(port->info, 0, IB_PORT_LINK_WIDTH_ACTIVE_F);
 	ispeed = mad_get_field(port->info, 0, IB_PORT_LINK_SPEED_ACTIVE_F);
 	istate = mad_get_field(port->info, 0, IB_PORT_STATE_F);
 
-	edgeport = ibedge_get_port(edgeconf, node_name, port->portnum);
-	if (edgeport) {
-		ibedge_port_t *rem_edgeport = ibedge_port_get_remote(edgeport);
+	ibedge_port_t *rem_edgeport = ibedge_port_get_remote(edgeport);
 
-		if (istate != IB_LINK_ACTIVE) {
-			printf("ERR: port down: ");
-			print_port(node_name, node, port, rem_edgeport);
-		} else {
-			char str[64];
-			int conf_width = ibedge_prop_get_width(ibedge_port_get_prop(edgeport));
-			int conf_speed = ibedge_prop_get_speed(ibedge_port_get_prop(edgeport));
-			int rem_port_num = ibedge_port_get_port_num(rem_edgeport);
-			char *rem_node_name = ibedge_port_get_name(rem_edgeport);
-			char *rem_remap = remap_node_name(node_name_map, port->remoteport->node->guid,
-						port->remoteport->node->nodedesc);
+	if (istate != IB_LINK_ACTIVE) {
+		printf("ERR: port down: ");
+		print_port(node_name, node, port, rem_edgeport);
+	} else {
+		char str[64];
+		int conf_width = ibedge_prop_get_width(ibedge_port_get_prop(edgeport));
+		int conf_speed = ibedge_prop_get_speed(ibedge_port_get_prop(edgeport));
+		int rem_port_num = ibedge_port_get_port_num(rem_edgeport);
+		char *rem_node_name = ibedge_port_get_name(rem_edgeport);
+		char *rem_remap = remap_node_name(node_name_map, port->remoteport->node->guid,
+					port->remoteport->node->nodedesc);
 
-			if (iwidth != conf_width) {
-				printf("ERR: width != %s: ",
-					mad_dump_val(IB_PORT_LINK_WIDTH_ACTIVE_F,
-						str, 64, &conf_width));
-				print_port(node_name, node, port, NULL);
-			}
-			if (ispeed != conf_speed) {
-				printf("ERR: speed != %s: ",
-					mad_dump_val(IB_PORT_LINK_SPEED_ACTIVE_F,
-						str, 64, &conf_speed));
-				print_port(node_name, node, port, NULL);
-			}
-			if (strcmp(rem_node_name, rem_remap) != 0
-				|| rem_port_num != port->remoteport->portnum) {
-				printf("ERR: invalid link : ");
-				print_port(node_name, node, port, NULL);
-				printf("     should be    : ");
-				print_config_port(edgeport);
-			}
-			free(rem_remap);
+		if (iwidth != conf_width) {
+			printf("ERR: width != %s: ",
+				mad_dump_val(IB_PORT_LINK_WIDTH_ACTIVE_F,
+					str, 64, &conf_width));
+			print_port(node_name, node, port, NULL);
 		}
+		if (ispeed != conf_speed) {
+			printf("ERR: speed != %s: ",
+				mad_dump_val(IB_PORT_LINK_SPEED_ACTIVE_F,
+					str, 64, &conf_speed));
+			print_port(node_name, node, port, NULL);
+		}
+		if (strcmp(rem_node_name, rem_remap) != 0
+			|| rem_port_num != port->remoteport->portnum) {
+			printf("ERR: invalid link : ");
+			print_port(node_name, node, port, NULL);
+			printf("     should be    : ");
+			print_config_port(edgeport);
+		}
+		free(rem_remap);
+	}
+}
+
+void check_config(char *node_name, ibnd_node_t *node, ibnd_port_t *port)
+{
+	int istate;
+	ibedge_port_t *edgeport = NULL;
+
+	edgeport = ibedge_get_port(edgeconf, node_name, port->portnum);
+	istate = mad_get_field(port->info, 0, IB_PORT_STATE_F);
+	if (edgeport) {
+		compare_port(edgeport, node_name, node, port);
 	} else if (istate == IB_LINK_ACTIVE) {
-		printf("ERR: Invalid active link: ");
-		print_port(node_name, node, port, NULL);
+		char *remap = NULL;
+		port = port->remoteport;
+		if (!port) {
+			fprintf(stderr, "ERROR: ibnd error; port ACTIVE "
+					"but no _remote_ port!\n");
+			goto invalid_active;
+		}
+		node = port->node;
+		remap = remap_node_name(node_name_map, node->guid,
+					node->nodedesc);
+		edgeport = ibedge_get_port(edgeconf, remap, port->portnum);
+		if (edgeport) {
+			compare_port(edgeport, remap, node, port);
+		} else {
+invalid_active:
+			printf("ERR: Unconfigured active link: ");
+			print_port(node_name, node, port, NULL);
+		}
+		free(remap); /* OK; may be null */
 	}
 }
 
