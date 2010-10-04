@@ -31,10 +31,10 @@
 #define IBLINK_DEF_CONFIG "@PIU_CONFIG_PATH@/pragmaticIB/iblinkconf.xml"
 
 /* These are opaque data types */
-typedef struct iblink_prop iblink_prop_t;
-typedef struct iblink_port iblink_port_t;
-typedef struct iblink_port_list iblink_port_list_t;
 typedef struct iblink_conf iblink_conf_t;
+typedef struct iblink_port iblink_port_t;
+typedef struct iblink_prop iblink_prop_t;
+typedef struct iblink_port_list iblink_port_list_t;
 
 /* alloc new config */
 iblink_conf_t *iblink_alloc_conf(void);
