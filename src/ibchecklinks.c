@@ -367,7 +367,8 @@ void check_config(char *node_name, ibnd_node_t *node, ibnd_port_t *port)
 		ibnd_port_t *remport = port->remoteport;
 		if (!remport) {
 			fprintf(stderr, "ERROR: ibnd error; port ACTIVE "
-					"but no _remote_ port!\n");
+					"but no remote port! (Lights on, "
+					"nobody home???)\n");
 			goto invalid_active;
 		}
 		remnode = remport->node;
