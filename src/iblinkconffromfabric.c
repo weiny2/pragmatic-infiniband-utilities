@@ -67,6 +67,7 @@ char *dr_path = NULL;
 int hops = 0;
 char *fabric_name = "fabric";
 char *ignore_regex = NULL;
+int print_missing = 0;
 
 static int ignore_switch(char *node_name)
 {
@@ -103,7 +104,7 @@ static void print_switch_xml(ibnd_node_t *sw, void *ud)
 		goto ignore;
 
 	printf("\t<linklist name=\"%s\">\n", node_name);
-	for (i = 0; i <= sw->numports; i++) {
+	for (i = 1; i <= sw->numports; i++) {
 		if (sw->ports[i] && sw->ports[i]->remoteport) {
 			char *rem_name = remap_node_name(node_name_map,
 					sw->ports[i]->remoteport->node->guid,
@@ -113,6 +114,13 @@ static void print_switch_xml(ibnd_node_t *sw, void *ud)
 				sw->ports[i]->remoteport->portnum);
 			printf("<r_node>%s</r_node>", rem_name);
 			printf("</port>\n");
+		} else if (print_missing) {
+			printf("<!--\n");
+			printf("\t\t<port num=\"%d\">", i);
+			printf("<r_port>XXXXX</r_port>");
+			printf("<r_node>YYYYY</r_node>");
+			printf("</port>\n");
+			printf("-->\n");
 		}
 	}
 	printf("\t</linklist>\n");
@@ -131,7 +139,8 @@ usage(void)
 "Usage: generate an xml config file based off the scanned fabric\n"
 "\n"
 "Options:\n"
-"  --name -m <name> fabric name\n"
+"  --name <name> fabric name\n"
+"  --missing add a commented port entry for missing ports\n"
 "  --ignore -i <regex> skip switches which match regex\n"
 "  -S <guid> generate for the node specified by the port guid\n"
 "  -G <guid> Same as \"-S\" for compatibility with other diags\n"
@@ -163,16 +172,17 @@ int main(int argc, char **argv)
 	int ibd_timeout = 200;
 
         char  ch = 0;
-        static char const str_opts[] = "hS:G:D:n:C:P:t:vm:i:";
+        static char const str_opts[] = "hS:G:D:n:C:P:t:vm:i:p:";
         static const struct option long_opts [] = {
-           {"help", 0, 0, 'h'},
 	   {"node-name-map", 1, 0, 1},
+	   {"name", 1, 0, 2},
+	   {"missing", 0, 0, 3},
+           {"help", 0, 0, 'h'},
 	   {"hops", 1, 0, 'n'},
 	   {"Ca", 1, 0, 'C'},
 	   {"Port", 1, 0, 'P'},
 	   {"timeout", 1, 0, 't'},
 	   {"verbose", 0, 0, 'v'},
-	   {"name", 1, 0, 'm'},
 	   {"ignore", 1, 0, 'i'},
 	   {0, 0, 0, 0}
         };
@@ -184,6 +194,15 @@ int main(int argc, char **argv)
         {
                 switch (ch)
                 {
+			case 1:
+				node_name_map_file = strdup(optarg);
+				break;
+			case 2:
+				fabric_name = strdup(optarg);
+				break;
+			case 3:
+				print_missing = 1;
+				break;
 			case 'S':
 			case 'G':
 				node_guid_str = strdup(optarg);
@@ -194,14 +213,8 @@ int main(int argc, char **argv)
 			case 'n':
 				hops = (int)strtol(optarg, NULL, 0);
 				break;
-			case 'm':
-				fabric_name = strdup(optarg);
-				break;
 			case 'i':
 				ignore_regex = strdup(optarg);
-				break;
-			case 1:
-				node_name_map_file = strdup(optarg);
 				break;
 			case 'C':
 				ibd_ca = strdup(optarg);
