@@ -749,14 +749,16 @@ iblink_get_port(iblink_conf_t *linkconf, char *name, int p_num)
 	return (find_port(linkconf, name, p_num));
 }
 
-static void
-_iblink_free_port_list(iblink_port_t *head)
+void
+iblink_free_port_list(iblink_port_list_t *port_list)
 {
+	iblink_port_t *head = port_list->head;
 	while (head) {
 		iblink_port_t *tmp = head;
 		head = head->next;
 		free_port(tmp);
 	}
+	free(port_list);
 }
 
 int
@@ -767,18 +769,18 @@ iblink_get_port_list(iblink_conf_t *linkconf, char *name,
 	iblink_port_t *cur = NULL;
 	*list = NULL;
 	int h = hash_name(name);
+
+	port_list = calloc(1, sizeof *port_list);
+	if (!port_list)
+		return (-ENOMEM);
+
 	for (cur = linkconf->ports[h]; cur; cur = cur->next)
 		if (strcmp((const char *)cur->name, (const char *)name) == 0) {
 			iblink_port_t *tmp = NULL;
-			if (!port_list) {
-				port_list = calloc(1, sizeof *port_list);
-				if (!port_list)
-					return (-ENOMEM);
-			}
 			tmp = calloc_port(cur->name, cur->port_num, &cur->prop);
 			if (!tmp) {
 				_iblink_free_port_list(port_list->head);
-				free(port_list);
+				iblink_free_port_list(port_list);
 				return (-ENOMEM);
 			}
 			tmp->remote = cur->remote;
@@ -788,12 +790,6 @@ iblink_get_port_list(iblink_conf_t *linkconf, char *name,
 
 	*list = port_list;
 	return (0);
-}
-
-void
-iblink_free_port_list(iblink_port_list_t *port_list)
-{
-	_iblink_free_port_list(port_list->head);
 }
 
 void
