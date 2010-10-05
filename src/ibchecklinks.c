@@ -326,8 +326,8 @@ void compare_port(iblink_port_t *linkport, char *node_name, ibnd_node_t *node, i
 		int conf_speed = iblink_prop_get_speed(iblink_port_get_prop(linkport));
 		int rem_port_num = iblink_port_get_port_num(rem_linkport);
 		char *rem_node_name = iblink_port_get_name(rem_linkport);
-		char *rem_remap = remap_node_name(node_name_map, port->remoteport->node->guid,
-					port->remoteport->node->nodedesc);
+		char *rem_remap = NULL;
+		ibnd_port_t *remport = port->remoteport;
 
 		if (iwidth != conf_width) {
 			printf("ERR: width != %s: ",
@@ -341,14 +341,23 @@ void compare_port(iblink_port_t *linkport, char *node_name, ibnd_node_t *node, i
 					str, 64, &conf_speed));
 			print_port(node_name, node, port, NULL);
 		}
-		if (strcmp(rem_node_name, rem_remap) != 0
-			|| rem_port_num != port->remoteport->portnum) {
-			printf("ERR: invalid link : ");
-			print_port(node_name, node, port, NULL);
-			printf("     should be    : ");
-			print_config_port(linkport);
+
+		if (remport) {
+			rem_remap = remap_node_name(node_name_map,
+					port->remoteport->node->guid,
+					port->remoteport->node->nodedesc);
+			if (strcmp(rem_node_name, rem_remap) != 0
+				|| rem_port_num != port->remoteport->portnum) {
+				printf("ERR: invalid link : ");
+				print_port(node_name, node, port, NULL);
+				printf("     should be    : ");
+				print_config_port(linkport);
+			}
+			free(rem_remap);
+		} else {
+			fprintf(stderr, "ERR: query failure; ");
+			print_port(node_name, node, port, rem_linkport);
 		}
-		free(rem_remap);
 	}
 }
 
