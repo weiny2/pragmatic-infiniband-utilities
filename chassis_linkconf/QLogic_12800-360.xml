@@ -2,6 +2,7 @@
 <!DOCTYPE ibchassismap SYSTEM "ibchassismap.dtd">
 
 <chassismap model="QLogic_12800-360">
+<!--
 	<linklist position="L125">
 		<port num="19"><r_port>17</r_port><r_node>S115B</r_node></port>
 		<port num="20"><r_port>16</r_port><r_node>S211A</r_node></port>
@@ -20,6 +21,7 @@
 		<port num="33"><r_port>33</r_port><r_node>S117A</r_node></port>
 		<port num="34"><r_port>35</r_port><r_node>S215B</r_node></port>
 		<port num="35"><r_port>36</r_port><r_node>S111A</r_node></port>
+		<port num="36"><r_port>1</r_port><r_node>S215A</r_node></port>
 	</linklist>
 	<linklist position="L119">
 		<port num="19"><r_port>19</r_port><r_node>S115A</r_node></port>
@@ -39,6 +41,7 @@
 		<port num="33"><r_port>4</r_port><r_node>S113B</r_node></port>
 		<port num="34"><r_port>3</r_port><r_node>S215A</r_node></port>
 		<port num="35"><r_port>35</r_port><r_node>S111A</r_node></port>
+		<port num="36"><r_port>36</r_port><r_node>S217B</r_node></port>
 	</linklist>
 	<linklist position="L101">
 		<port num="19"><r_port>17</r_port><r_node>S213A</r_node></port>
@@ -58,6 +61,7 @@
 		<port num="33"><r_port>33</r_port><r_node>S213B</r_node></port>
 		<port num="34"><r_port>2</r_port><r_node>S113B</r_node></port>
 		<port num="35"><r_port>1</r_port><r_node>S211A</r_node></port>
+		<port num="36"><r_port>36</r_port><r_node>S113A</r_node></port>
 	</linklist>
 	<linklist position="L107">
 		<port num="19"><r_port>19</r_port><r_node>S217B</r_node></port>
@@ -77,6 +81,7 @@
 		<port num="33"><r_port>4</r_port><r_node>S217A</r_node></port>
 		<port num="34"><r_port>34</r_port><r_node>S113A</r_node></port>
 		<port num="35"><r_port>2</r_port><r_node>S211A</r_node></port>
+		<port num="36"><r_port>1</r_port><r_node>S115B</r_node></port>
 	</linklist>
 	<linklist position="L105">
 		<port num="19"><r_port>17</r_port><r_node>S217A</r_node></port>
@@ -96,6 +101,7 @@
 		<port num="33"><r_port>33</r_port><r_node>S217B</r_node></port>
 		<port num="34"><r_port>2</r_port><r_node>S117B</r_node></port>
 		<port num="35"><r_port>3</r_port><r_node>S211A</r_node></port>
+		<port num="36"><r_port>36</r_port><r_node>S117A</r_node></port>
 	</linklist>
 	<linklist position="L127">
 		<port num="19"><r_port>17</r_port><r_node>S113B</r_node></port>
@@ -115,6 +121,7 @@
 		<port num="33"><r_port>33</r_port><r_node>S115A</r_node></port>
 		<port num="34"><r_port>35</r_port><r_node>S213B</r_node></port>
 		<port num="35"><r_port>1</r_port><r_node>S111B</r_node></port>
+		<port num="36"><r_port>1</r_port><r_node>S213A</r_node></port>
 	</linklist>
 	<linklist position="L121">
 		<port num="19"><r_port>19</r_port><r_node>S113A</r_node></port>
@@ -134,6 +141,7 @@
 		<port num="33"><r_port>4</r_port><r_node>S117B</r_node></port>
 		<port num="34"><r_port>3</r_port><r_node>S213A</r_node></port>
 		<port num="35"><r_port>2</r_port><r_node>S111B</r_node></port>
+		<port num="36"><r_port>36</r_port><r_node>S215B</r_node></port>
 	</linklist>
 	<linklist position="L123">
 		<port num="19"><r_port>17</r_port><r_node>S117B</r_node></port>
@@ -153,6 +161,7 @@
 		<port num="33"><r_port>33</r_port><r_node>S113A</r_node></port>
 		<port num="34"><r_port>35</r_port><r_node>S217B</r_node></port>
 		<port num="35"><r_port>3</r_port><r_node>S111B</r_node></port>
+		<port num="36"><r_port>1</r_port><r_node>S217A</r_node></port>
 	</linklist>
 	<linklist position="L202">
 		<port num="19"><r_port>35</r_port><r_node>S113A</r_node></port>
@@ -172,6 +181,7 @@
 		<port num="33"><r_port>15</r_port><r_node>S117B</r_node></port>
 		<port num="34"><r_port>20</r_port><r_node>S215B</r_node></port>
 		<port num="35"><r_port>16</r_port><r_node>S209A</r_node></port>
+		<port num="36"><r_port>18</r_port><r_node>S217A</r_node></port>
 	</linklist>
 	<linklist position="L208">
 		<port num="19"><r_port>1</r_port><r_node>S113B</r_node></port>
@@ -191,6 +201,7 @@
 		<port num="33"><r_port>22</r_port><r_node>S115A</r_node></port>
 		<port num="34"><r_port>16</r_port><r_node>S217A</r_node></port>
 		<port num="35"><r_port>17</r_port><r_node>S209A</r_node></port>
+		<port num="36"><r_port>19</r_port><r_node>S215B</r_node></port>
 	</linklist>
 	<linklist position="L204">
 		<port num="19"><r_port>35</r_port><r_node>S115A</r_node></port>
@@ -210,6 +221,7 @@
 		<port num="33"><r_port>15</r_port><r_node>S113B</r_node></port>
 		<port num="34"><r_port>20</r_port><r_node>S217B</r_node></port>
 		<port num="35"><r_port>18</r_port><r_node>S209A</r_node></port>
+		<port num="36"><r_port>18</r_port><r_node>S213A</r_node></port>
 	</linklist>
 	<linklist position="L103">
 		<port num="19"><r_port>17</r_port><r_node>S215A</r_node></port>
@@ -229,6 +241,7 @@
 		<port num="33"><r_port>33</r_port><r_node>S215B</r_node></port>
 		<port num="34"><r_port>2</r_port><r_node>S115B</r_node></port>
 		<port num="35"><r_port>36</r_port><r_node>S209B</r_node></port>
+		<port num="36"><r_port>36</r_port><r_node>S115A</r_node></port>
 	</linklist>
 	<linklist position="L109">
 		<port num="19"><r_port>19</r_port><r_node>S213B</r_node></port>
@@ -248,6 +261,7 @@
 		<port num="33"><r_port>4</r_port><r_node>S213A</r_node></port>
 		<port num="34"><r_port>34</r_port><r_node>S115A</r_node></port>
 		<port num="35"><r_port>35</r_port><r_node>S209B</r_node></port>
+		<port num="36"><r_port>1</r_port><r_node>S117B</r_node></port>
 	</linklist>
 	<linklist position="L206">
 		<port num="19"><r_port>35</r_port><r_node>S117A</r_node></port>
@@ -267,6 +281,7 @@
 		<port num="33"><r_port>15</r_port><r_node>S115B</r_node></port>
 		<port num="34"><r_port>20</r_port><r_node>S213B</r_node></port>
 		<port num="35"><r_port>19</r_port><r_node>S111A</r_node></port>
+		<port num="36"><r_port>18</r_port><r_node>S215A</r_node></port>
 	</linklist>
 	<linklist position="L126">
 		<port num="19"><r_port>2</r_port><r_node>S113A</r_node></port>
@@ -286,6 +301,7 @@
 		<port num="33"><r_port>22</r_port><r_node>S117B</r_node></port>
 		<port num="34"><r_port>20</r_port><r_node>S217A</r_node></port>
 		<port num="35"><r_port>18</r_port><r_node>S111A</r_node></port>
+		<port num="36"><r_port>18</r_port><r_node>S217B</r_node></port>
 	</linklist>
 	<linklist position="L120">
 		<port num="19"><r_port>36</r_port><r_node>S113B</r_node></port>
@@ -305,6 +321,7 @@
 		<port num="33"><r_port>15</r_port><r_node>S115A</r_node></port>
 		<port num="34"><r_port>16</r_port><r_node>S217B</r_node></port>
 		<port num="35"><r_port>17</r_port><r_node>S111A</r_node></port>
+		<port num="36"><r_port>19</r_port><r_node>S213A</r_node></port>
 	</linklist>
 	<linklist position="L104">
 		<port num="19"><r_port>2</r_port><r_node>S217B</r_node></port>
@@ -515,6 +532,7 @@
 		<port num="34"><r_port>35</r_port><r_node>S213A</r_node></port>
 		<port num="35"><r_port>1</r_port><r_node>S111A</r_node></port>
 	</linklist>
+-->
 	<linklist position="S217A">
 		<port num="1"><r_port>36</r_port><r_node>L123</r_node></port>
 		<port num="3"><r_port>21</r_port><r_node>L220</r_node></port>
@@ -550,6 +568,7 @@
 		<port num="33"><r_port>33</r_port><r_node>L221</r_node></port>
 		<port num="34"><r_port>21</r_port><r_node>L106</r_node></port>
 		<port num="35"><r_port>34</r_port><r_node>L205</r_node></port>
+		<port num="36"><r_port>36</r_port><r_node>L207</r_node></port>
 	</linklist>
 	<linklist position="S115B">
 		<port num="1"><r_port>36</r_port><r_node>L107</r_node></port>
@@ -587,6 +606,7 @@
 		<port num="33"><r_port>22</r_port><r_node>L110</r_node></port>
 		<port num="34"><r_port>21</r_port><r_node>L128</r_node></port>
 		<port num="35"><r_port>34</r_port><r_node>L225</r_node></port>
+		<port num="36"><r_port>19</r_port><r_node>L122</r_node></port>
 	</linklist>
 	<linklist position="S211A">
 		<port num="1"><r_port>35</r_port><r_node>L101</r_node></port>
@@ -624,6 +644,7 @@
 		<port num="33"><r_port>23</r_port><r_node>L106</r_node></port>
 		<port num="34"><r_port>35</r_port><r_node>L225</r_node></port>
 		<port num="35"><r_port>35</r_port><r_node>L219</r_node></port>
+		<port num="36"><r_port>35</r_port><r_node>L223</r_node></port>
 	</linklist>
 	<linklist position="S115A">
 		<port num="1"><r_port>36</r_port><r_node>L225</r_node></port>
@@ -661,6 +682,7 @@
 		<port num="33"><r_port>33</r_port><r_node>L127</r_node></port>
 		<port num="34"><r_port>34</r_port><r_node>L109</r_node></port>
 		<port num="35"><r_port>19</r_port><r_node>L204</r_node></port>
+		<port num="36"><r_port>36</r_port><r_node>L103</r_node></port>
 	</linklist>
 	<linklist position="S215B">
 		<port num="1"><r_port>36</r_port><r_node>L205</r_node></port>
@@ -698,6 +720,7 @@
 		<port num="33"><r_port>33</r_port><r_node>L103</r_node></port>
 		<port num="34"><r_port>21</r_port><r_node>L224</r_node></port>
 		<port num="35"><r_port>34</r_port><r_node>L125</r_node></port>
+		<port num="36"><r_port>36</r_port><r_node>L121</r_node></port>
 	</linklist>
 	<linklist position="S111B">
 		<port num="1"><r_port>35</r_port><r_node>L127</r_node></port>
@@ -735,6 +758,7 @@
 		<port num="33"><r_port>23</r_port><r_node>L124</r_node></port>
 		<port num="34"><r_port>20</r_port><r_node>L102</r_node></port>
 		<port num="35"><r_port>20</r_port><r_node>L108</r_node></port>
+		<port num="36"><r_port>20</r_port><r_node>L106</r_node></port>
 	</linklist>
 	<linklist position="S215A">
 		<port num="1"><r_port>36</r_port><r_node>L125</r_node></port>
@@ -772,6 +796,7 @@
 		<port num="33"><r_port>33</r_port><r_node>L223</r_node></port>
 		<port num="34"><r_port>21</r_port><r_node>L102</r_node></port>
 		<port num="35"><r_port>34</r_port><r_node>L201</r_node></port>
+		<port num="36"><r_port>19</r_port><r_node>L108</r_node></port>
 	</linklist>
 	<linklist position="S117B">
 		<port num="1"><r_port>36</r_port><r_node>L109</r_node></port>
@@ -809,6 +834,7 @@
 		<port num="33"><r_port>33</r_port><r_node>L207</r_node></port>
 		<port num="34"><r_port>21</r_port><r_node>L124</r_node></port>
 		<port num="35"><r_port>34</r_port><r_node>L221</r_node></port>
+		<port num="36"><r_port>36</r_port><r_node>L219</r_node></port>
 	</linklist>
 	<linklist position="S211B">
 		<port num="1"><r_port>20</r_port><r_node>L124</r_node></port>
@@ -846,6 +872,7 @@
 		<port num="33"><r_port>23</r_port><r_node>L226</r_node></port>
 		<port num="34"><r_port>20</r_port><r_node>L204</r_node></port>
 		<port num="35"><r_port>20</r_port><r_node>L208</r_node></port>
+		<port num="36"><r_port>20</r_port><r_node>L202</r_node></port>
 	</linklist>
 	<linklist position="S117A">
 		<port num="1"><r_port>36</r_port><r_node>L221</r_node></port>
@@ -883,6 +910,7 @@
 		<port num="33"><r_port>33</r_port><r_node>L125</r_node></port>
 		<port num="34"><r_port>21</r_port><r_node>L208</r_node></port>
 		<port num="35"><r_port>19</r_port><r_node>L206</r_node></port>
+		<port num="36"><r_port>36</r_port><r_node>L105</r_node></port>
 	</linklist>
 	<linklist position="S213B">
 		<port num="1"><r_port>36</r_port><r_node>L201</r_node></port>
@@ -920,6 +948,7 @@
 		<port num="33"><r_port>33</r_port><r_node>L101</r_node></port>
 		<port num="34"><r_port>21</r_port><r_node>L226</r_node></port>
 		<port num="35"><r_port>34</r_port><r_node>L127</r_node></port>
+		<port num="36"><r_port>19</r_port><r_node>L220</r_node></port>
 	</linklist>
 	<linklist position="S209A">
 		<port num="1"><r_port>20</r_port><r_node>L226</r_node></port>
@@ -957,6 +986,7 @@
 		<port num="33"><r_port>32</r_port><r_node>L221</r_node></port>
 		<port num="34"><r_port>20</r_port><r_node>L104</r_node></port>
 		<port num="35"><r_port>20</r_port><r_node>L110</r_node></port>
+		<port num="36"><r_port>35</r_port><r_node>L205</r_node></port>
 	</linklist>
 	<linklist position="S213A">
 		<port num="1"><r_port>36</r_port><r_node>L127</r_node></port>
@@ -994,6 +1024,7 @@
 		<port num="33"><r_port>33</r_port><r_node>L225</r_node></port>
 		<port num="34"><r_port>21</r_port><r_node>L104</r_node></port>
 		<port num="35"><r_port>34</r_port><r_node>L203</r_node></port>
+		<port num="36"><r_port>19</r_port><r_node>L110</r_node></port>
 	</linklist>
 	<linklist position="S113B">
 		<port num="1"><r_port>19</r_port><r_node>L208</r_node></port>
@@ -1031,6 +1062,7 @@
 		<port num="33"><r_port>22</r_port><r_node>L108</r_node></port>
 		<port num="34"><r_port>21</r_port><r_node>L126</r_node></port>
 		<port num="35"><r_port>34</r_port><r_node>L223</r_node></port>
+		<port num="36"><r_port>19</r_port><r_node>L120</r_node></port>
 	</linklist>
 	<linklist position="S209B">
 		<port num="1"><r_port>35</r_port><r_node>L221</r_node></port>
@@ -1068,6 +1100,7 @@
 		<port num="33"><r_port>32</r_port><r_node>L125</r_node></port>
 		<port num="34"><r_port>20</r_port><r_node>L206</r_node></port>
 		<port num="35"><r_port>35</r_port><r_node>L109</r_node></port>
+		<port num="36"><r_port>35</r_port><r_node>L103</r_node></port>
 	</linklist>
 	<linklist position="S113A">
 		<port num="1"><r_port>36</r_port><r_node>L223</r_node></port>
@@ -1105,6 +1138,7 @@
 		<port num="33"><r_port>33</r_port><r_node>L123</r_node></port>
 		<port num="34"><r_port>34</r_port><r_node>L107</r_node></port>
 		<port num="35"><r_port>19</r_port><r_node>L202</r_node></port>
+		<port num="36"><r_port>36</r_port><r_node>L101</r_node></port>
 	</linklist>
 	<linklist position="S217B">
 		<port num="1"><r_port>36</r_port><r_node>L203</r_node></port>
@@ -1142,6 +1176,7 @@
 		<port num="33"><r_port>33</r_port><r_node>L105</r_node></port>
 		<port num="34"><r_port>21</r_port><r_node>L222</r_node></port>
 		<port num="35"><r_port>34</r_port><r_node>L123</r_node></port>
+		<port num="36"><r_port>36</r_port><r_node>L119</r_node></port>
 	</linklist>
 	<linklist position="S111A">
 		<port num="1"><r_port>35</r_port><r_node>L203</r_node></port>
@@ -1179,7 +1214,9 @@
 		<port num="33"><r_port>32</r_port><r_node>L101</r_node></port>
 		<port num="34"><r_port>20</r_port><r_node>L222</r_node></port>
 		<port num="35"><r_port>35</r_port><r_node>L119</r_node></port>
+		<port num="36"><r_port>35</r_port><r_node>L125</r_node></port>
 	</linklist>
+<!--
 	<linklist position="L221">
 		<port num="19"><r_port>17</r_port><r_node>S213B</r_node></port>
 		<port num="20"><r_port>16</r_port><r_node>S111A</r_node></port>
@@ -1350,5 +1387,6 @@
 		<port num="34"><r_port>20</r_port><r_node>S115A</r_node></port>
 		<port num="35"><r_port>18</r_port><r_node>S211A</r_node></port>
 	</linklist>
+-->
 </chassismap>
 
