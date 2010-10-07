@@ -41,6 +41,7 @@ use Getopt::Std;
 
 my $preserve      = 0;
 my $table         = 0;
+my $comma         = 0;
 my $verbose       = 0;
 my $dump_lft_file = undef;
 
@@ -69,9 +70,10 @@ sub usage
 	my $prog = `basename $0`;
 
 	chomp($prog);
-	print "Usage: $prog [-pt] [-v] -o dump_lfts_file\n";
+	print "Usage: $prog [-ptc] [-v] -o dump_lfts_file\n";
 	print "  -p preserve format\n";
 	print "  -t table format\n";
+	print "  -c comma separated output\n";
 	print "  -v verbose output\n";
 	exit 2;
 }
@@ -189,7 +191,7 @@ sub output_switch_routing
 		if ($switch_trailer_text) {
 			print "$switch_trailer_text\n";
 		}
-	} elsif ($table) {
+	} elsif ($table || $comma) {
 		my @ports = (
 			"001", "002", "003", "004", "005", "006", "007", "008",
 			"009", "010", "011", "012", "013", "014", "015", "016",
@@ -217,28 +219,45 @@ sub output_switch_routing
 			return;
 		}
 
-		print "Switch Lid $switch_lid guid $switch_guid ($switch_name)\n";
+		if ($comma) {
+			print "$switch_name,$switch_guid,$switch_lid\n";
+		}
+		else {
+			print "Switch Lid $switch_lid guid $switch_guid ($switch_name)\n";
+		}
+		if (!$comma) {
+			for $i (@ports) {
+				print "------------";
+				if ($i == $max_port) {
+					last;
+				}
+			}
+			print "\n";
+		}
 		for $i (@ports) {
-			print "------------";
+			if ($comma) {
+				printf("%12s", $i);
+			}
+			else {
+				printf("%s", $i);
+			}
 			if ($i == $max_port) {
 				last;
 			}
-		}
-		print "\n";
-		for $i (@ports) {
-			printf("%12s", $i);
-			if ($i == $max_port) {
-				last;
+			if ($comma) {
+				printf(",");
 			}
 		}
 		printf("\n");
-		for $i (@ports) {
-			print "------------";
-			if ($i == $max_port) {
-				last;
+		if (!$comma) {
+			for $i (@ports) {
+				print "------------";
+				if ($i == $max_port) {
+					last;
+				}
 			}
+			print "\n";
 		}
-		print "\n";
 		while (1) {
 			$flag = 0;
 			for $i (@ports) {
@@ -249,7 +268,12 @@ sub output_switch_routing
 					@fields = split(/,/, $switch_ports{$i});
 					$tmp = shift(@fields);
 					$flag++;
-					printf("%12s", $tmp);
+					if ($comma) {
+						printf("%s", $tmp);
+					}
+					else {
+						printf("%12s", $tmp);
+					}
 					if (@fields) {
 						$tmp = join(",", @fields);
 						$switch_ports{$i} = $tmp;
@@ -257,10 +281,15 @@ sub output_switch_routing
 						$switch_ports{$i} = undef;
 					}
 				} else {
-					printf("%12s", "");
+					if (!$comma) {
+						printf("%12s", "");
+					}
 				}
 				if ($i == $max_port) {
 					last;
+				}
+				if ($comma) {
+					printf(",");
 				}
 			}
 			printf("\n");
@@ -286,7 +315,7 @@ sub output_switch_routing
 	}
 }
 
-if (!getopts("hpto:v")) {
+if (!getopts("hptco:v")) {
 	usage();
 }
 
@@ -296,6 +325,10 @@ if (defined($main::opt_p)) {
 
 if (defined($main::opt_t)) {
 	$table = 1;
+}
+
+if (defined($main::opt_c)) {
+	$comma = 1;
 }
 
 if (defined($main::opt_v)) {
@@ -357,7 +390,7 @@ foreach $lft_line (@lft_lines) {
 		if ($preserve) {
 			# data = type,sort_info,output
 			$routing_line = "Channel,$2,$lft_line";
-		} elsif ($table) {
+		} elsif ($table || $comma) {
 			if ($switch_ports{$1}) {
 				$switch_ports{$1} = "$switch_ports{$1},$2";
 			} else {
@@ -380,7 +413,7 @@ foreach $lft_line (@lft_lines) {
 		if ($preserve) {
 			# data = type,sort_info,output
 			$routing_line = "Router,$2,$lft_line";
-		} elsif ($table) {
+		} elsif ($table || $comma) {
 			if ($switch_ports{$1}) {
 				$switch_ports{$1} = "$switch_ports{$1},$2";
 			} else {
@@ -409,7 +442,7 @@ foreach $lft_line (@lft_lines) {
 			if ($routing_line) {
 				$routing_line = "$routing_line,$lft_line";
 			}
-		} elsif ($table) {
+		} elsif ($table || $comma) {
 			if ($host) {
 				if ($switch_ports{$1}) {
 					$switch_ports{$1} = "$switch_ports{$1},$2";
