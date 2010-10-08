@@ -52,6 +52,7 @@ DIST_COMMON = README $(am__configure_deps) $(srcdir)/Makefile.am \
 	$(top_srcdir)/scripts/ibcreateswitchmap.sh.in \
 	$(top_srcdir)/scripts/ibnodesinmcast.in \
 	$(top_srcdir)/scripts/ibsrp.in \
+	$(top_srcdir)/scripts/ibtraceroute.in \
 	$(top_srcdir)/scripts/ibtrackerrors.in \
 	$(top_srcdir)/scripts/qlogic-create-switch-map.pl.in \
 	$(top_srcdir)/scripts/voltaire-create-switch-map.pl.in COPYING \
@@ -72,7 +73,8 @@ CONFIG_CLEAN_FILES = pragmatic-infiniband-utilities.spec \
 	scripts/voltaire-create-switch-map.pl \
 	scripts/qlogic-create-switch-map.pl scripts/ibcheckfabric \
 	scripts/ibtrackerrors scripts/ibnodesinmcast \
-	scripts/ibcreateswitchmap.sh man/voltaire-create-switch-map.8 \
+	scripts/ibtraceroute scripts/ibcreateswitchmap.sh \
+	man/voltaire-create-switch-map.8 \
 	man/qlogic-create-switch-map.8 scripts/ibsrp man/ibsrp.8 \
 	man/ibtrackerrors.8 man/ibhcacounters.8
 am__installdirs = "$(DESTDIR)$(sbindir)" "$(DESTDIR)$(sbindir)" \
@@ -360,6 +362,8 @@ scripts/ibcheckfabric: $(top_builddir)/config.status $(top_srcdir)/scripts/ibche
 scripts/ibtrackerrors: $(top_builddir)/config.status $(top_srcdir)/scripts/ibtrackerrors.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 scripts/ibnodesinmcast: $(top_builddir)/config.status $(top_srcdir)/scripts/ibnodesinmcast.in
+	cd $(top_builddir) && $(SHELL) ./config.status $@
+scripts/ibtraceroute: $(top_builddir)/config.status $(top_srcdir)/scripts/ibtraceroute.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 scripts/ibcreateswitchmap.sh: $(top_builddir)/config.status $(top_srcdir)/scripts/ibcreateswitchmap.sh.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@

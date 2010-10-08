@@ -1,5 +1,11 @@
 - Thu Oct 07 2010 Ira Weiny <weiny2@llnl.gov>
 
+	* : ibtraceroute: 
+		  update ibtraceroute with multicast functionality 
+		  also default the "from" node to the current running node
+
+- Thu Oct 07 2010 Ira Weiny <weiny2@llnl.gov>
+
 	* : tag 1.1.4-1
 	* : ibgraphfabric.c: fix partial scan of fabric
 
