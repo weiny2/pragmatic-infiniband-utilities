@@ -1,3 +1,13 @@
+- Thu Oct 07 2010 Ira Weiny <weiny2@llnl.gov>
+
+	* : tag 1.1.4-1
+	* : ibgraphfabric.c: fix partial scan of fabric
+
+- Thu Oct 07 2010 Albert Chu <chu11@llnl.gov>
+
+	* : support comma separated output in lfts_sort.pl
+	* : support 36 or 24 port switches in lfts_sort.pl
+
 - Fri Sep 10 2010 Ira Weiny <weiny2@llnl.gov>
 
 	* : tag 1.1.3-1
