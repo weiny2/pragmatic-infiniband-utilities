@@ -1,0 +1,191 @@
+#!/usr/bin/perl
+#
+#  Copyright (C) 2007 The Regents of the University of California.
+#  Copyright (C) 2010 Lawrence Livermore National Security
+#  Produced at Lawrence Livermore National Laboratory (cf, DISCLAIMER).
+#  Written by Ira Weiny weiny2@llnl.gov
+#  UCRL-CODE-235440
+#  
+#  This file is part of pragmatic-infiniband-tools (PIU), useful tools to manage
+#  Infiniband Clusters.
+#  For details, see http://www.llnl.gov/linux/.
+#  
+#  PIU is free software; you can redistribute it
+#  and/or modify it under the terms of the GNU General Public License as
+#  published by the Free Software Foundation; either version 2 of the License,
+#  or (at your option) any later version.
+#  
+#  PIU is distributed in the hope that it will be
+#  useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
+#  Public License for more details.
+#  
+#  You should have received a copy of the GNU General Public License along with
+#  PIU; if not, write to the Free Software
+#  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA.
+#
+
+use strict;
+
+use lib '@PIU_SBIN_PATH@';
+use PIUHostlist;
+
+use Getopt::Std;
+use IBswcountlimits;
+
+my $def_sa_timeout_ms = 500;
+my $timeout_ms = $def_sa_timeout_ms;
+my %mlid_list = ();
+
+# =========================================================================
+#
+sub usage
+{
+   my $prog = $_[0];
+   print "Usage: $prog [-ha] [-C <ca>] [-P <port>] [-m <mlid>] [-t <ms>] <ibnodeX> [<ibnodeY>]\n";
+   print "   trace the ib route from <ibnodeX> to <ibnodeY>\n";
+   print "   ibnode Y defaults to the local node if not specified\n";
+   print "   -m <mlid> trace a multicast group route specified by mlid\n";
+   print "   -t <msec>  Specify the timeout value to saquery (default $def_sa_timeout_ms)\n";
+   print "   -a Report both unicast and _all_ multicast routes\n";
+   print "   -l Nodes are specified as LID's\n";
+   print "   -r Report valid MLid's and exit\n";
+   print "   -C <ca> Ca name to use\n";
+   print "   -P <port> Ca port number to use\n";
+}
+
+my $argv0 = `basename $0`;
+chomp $argv0;
+
+my $nodeX = "";
+my $nodeY = "";
+my $nodeXlid = 0;
+my $nodeYlid = 0;
+my $mlid = "";
+my $report_all = "no";
+my $nodes_are_lids = "no";
+my $report_list = "no";
+my $ca_name = "";
+my $ca_port = "";
+my $hca_opts = "";
+
+if (!getopts("hlm:t:aC:P:r")) { usage_and_exit $argv0; }
+if (defined $Getopt::Std::opt_h) { usage_and_exit $argv0; }
+if (defined $Getopt::Std::opt_m) { $mlid = $Getopt::Std::opt_m; }
+if (defined $Getopt::Std::opt_t) { $timeout_ms = $Getopt::Std::opt_t; }
+if (defined $Getopt::Std::opt_a) { $report_all = "yes"; }
+if (defined $Getopt::Std::opt_C) { $ca_name = $Getopt::Std::opt_C; }
+if (defined $Getopt::Std::opt_P) { $ca_port = $Getopt::Std::opt_P; }
+if (defined $Getopt::Std::opt_l) { $nodes_are_lids = "yes"; }
+if (defined $Getopt::Std::opt_r) { $report_list = "yes"; }
+
+$nodeX = $ARGV[0];
+$nodeY = $ARGV[1];
+
+sub get_mlid_list
+{
+	# find all mcast mlids and mgids
+	my $data = `saquery $hca_opts -g`;
+	my @lines = split("\n", $data);
+	foreach my $line (@lines) {
+		if ($line =~ /Mlid\.*(0x.*)/) {
+			$mlid_list{$1} = $1;
+		}
+	}
+}
+
+if ($report_list eq "yes") {
+	get_mlid_list();
+	print "Valid Mlid's are:\n";
+	foreach my $mlid (keys %mlid_list) {
+		print "       $mlid\n";
+	}
+	print "\n";
+	exit 0;
+}
+
+if ($nodeX eq "") {
+	printf STDERR "ERROR: You must specify at least one node to \"trace to\"\n";
+	usage $argv0;
+	exit -1;
+}
+
+
+if ($ca_name ne "") {
+	$hca_opts = "-C $ca_name";
+}
+if ($ca_port ne "") {
+	$hca_opts = "$hca_opts -P $ca_port";
+}
+if ($timeout_ms ne "") {
+	$hca_opts = "$hca_opts -t $timeout_ms";
+}
+
+sub saquery_lid
+{
+	my ($node, $is_lid) = @_;
+	my $rc = 0;
+	my $data = `saquery $hca_opts $node`;
+	my @lines = split("\n", $data);
+	foreach my $line (@lines) {
+		if ($line =~ /[ \t]*lid\.*(.*)/) {
+			$rc = $1;
+		}
+	}
+	return ($rc);
+}
+
+if ($nodeY eq "") {
+	$nodeY = $nodeX;
+	my $data = `smpquery $hca_opts nodedesc -D 0`;
+	my @lines = split("\n", $data);
+	foreach my $line (@lines) {
+		if ($line =~ /[ \t]*Node Description:\.*(.*)/) {
+			$nodeX = $1;
+		}
+	}
+	$nodeXlid = saquery_lid($nodeX);
+} else {
+	if ($nodes_are_lids eq "yes") {
+		$nodeXlid = $nodeX;
+	} else {
+		$nodeXlid = saquery_lid($nodeX);
+	}
+}
+
+if ($nodes_are_lids eq "yes") {
+	$nodeYlid = $nodeY;
+} else {
+	$nodeYlid = saquery_lid($nodeY);
+}
+
+
+sub print_mlid_path
+{
+	my ($mlid) = @_;
+	my $output = `ibtracert -m $mlid $hca_opts $nodeXlid $nodeYlid`;
+	print "MLid Route: $mlid\n";
+	print $output;
+}
+
+sub print_path
+{
+	my $output = `ibtracert $hca_opts $nodeXlid $nodeYlid`;
+	print "Unicast Route: $mlid\n";
+	print $output;
+}
+
+if ($report_all eq "yes") {
+	get_mlid_list();
+	foreach my $ml (keys %mlid_list) {
+		print_mlid_path($ml);
+	}
+	print_path();
+} elsif ($mlid ne "") {
+	print_mlid_path($mlid);
+} else {
+	print_path();
+}
+
+exit 0;
+

@@ -95,6 +95,7 @@ AC_CONFIG_FILES([Makefile
                scripts/ibcheckfabric
                scripts/ibtrackerrors
                scripts/ibnodesinmcast
+               scripts/ibtraceroute
                scripts/ibcreateswitchmap.sh
                man/voltaire-create-switch-map.8
                man/qlogic-create-switch-map.8
