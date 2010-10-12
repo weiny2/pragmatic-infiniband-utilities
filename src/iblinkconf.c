@@ -779,7 +779,6 @@ iblink_get_port_list(iblink_conf_t *linkconf, char *name,
 			iblink_port_t *tmp = NULL;
 			tmp = calloc_port(cur->name, cur->port_num, &cur->prop);
 			if (!tmp) {
-				_iblink_free_port_list(port_list->head);
 				iblink_free_port_list(port_list);
 				return (-ENOMEM);
 			}
