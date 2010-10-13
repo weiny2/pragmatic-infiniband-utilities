@@ -29,22 +29,80 @@
 #include <errno.h>
 #include <getopt.h>
 #include <string.h>
+#include <iba/ib_types.h>
 #include <infiniband/iblinkconf.h>
 
 char *linkconf_file = NULL;
 char *argv0 = NULL;
 
+char *delim_out = NULL;
+
+/** =========================================================================
+ * Borrow from ibnetdiscover
+ */
+char *linkspeed_str(int speed)
+{
+	switch (speed) {
+	case IB_LINK_SPEED_ACTIVE_2_5:
+		return ("2.5 Gbps");
+		//return ("SDR");
+		break;
+	case IB_LINK_SPEED_ACTIVE_5:
+		return ("5.0 Gbps");
+		//return ("DDR");
+		break;
+	case IB_LINK_SPEED_ACTIVE_10:
+		return ("10.0 Gbps");
+		//return ("QDR");
+		break;
+	}
+	return ("???");
+}
+
+char *linkwidth_str(int width)
+{
+	switch (width) {
+	case IB_LINK_WIDTH_ACTIVE_1X:
+		return ("1X");
+		break;
+	case IB_LINK_WIDTH_ACTIVE_4X:
+		return ("4X");
+		break;
+	case IB_LINK_WIDTH_ACTIVE_8X:
+		return ("8X");
+		break;
+	case IB_LINK_WIDTH_ACTIVE_12X:
+		return ("12X");
+		break;
+	}
+	return ("??");
+}
+
 void
 print_port(iblink_port_t *port, void *user_data)
 {
 	char prop[256];
-	printf ("\"%30s\" %4d  ==(%s)==>  %4d \"%s\"\n",
-		iblink_port_get_name(port),
-		iblink_port_get_port_num(port),
-		iblink_prop_str(port, prop, 256),
-		iblink_port_get_port_num(iblink_port_get_remote(port)),
-		iblink_port_get_name(iblink_port_get_remote(port))
-		);
+	if (delim_out)
+		printf("%s%s%d%s%d%s%s%s%s%s%s\n",
+			iblink_port_get_name(port),
+			delim_out,
+			iblink_port_get_port_num(port),
+			delim_out,
+			iblink_port_get_port_num(iblink_port_get_remote(port)),
+			delim_out,
+			iblink_port_get_name(iblink_port_get_remote(port)),
+			delim_out,
+			linkspeed_str(iblink_prop_get_speed(iblink_port_get_prop(port))),
+			delim_out,
+			linkwidth_str(iblink_prop_get_width(iblink_port_get_prop(port))));
+	else
+		printf ("\"%30s\" %4d  ==(%s)==>  %4d \"%s\"\n",
+			iblink_port_get_name(port),
+			iblink_port_get_port_num(port),
+			iblink_prop_str(port, prop, 256),
+			iblink_port_get_port_num(iblink_port_get_remote(port)),
+			iblink_port_get_name(iblink_port_get_remote(port))
+			);
 }
 
 /** =========================================================================
@@ -60,6 +118,7 @@ usage(void)
 "  --conf, -c <file> Use an alternate link config file (default: %s)\n"
 "  --warn_dup, -w If duplicated link configs are found warn about them\n"
 "  --check_dup only print duplicates\n"
+"  --delim_out, -d <deliminator> output colums deliminated by <deliminator>\n"
 "  [node] if node is specified print ports for that node\n"
 "  [port] if port is specified print information for just that port (default \"all\")\n"
 "         if neither node nor port is specified print all links in config file\n"
@@ -79,12 +138,13 @@ main(int argc, char **argv)
 	int warn_dup = 0;
 	int check_dup = 0;
         char  ch = 0;
-        static char const str_opts[] = "hc:w";
+        static char const str_opts[] = "hc:wd:";
         static const struct option long_opts [] = {
            {"help", 0, 0, 'h'},
            {"conf", 1, 0, 'c'},
            {"warn_dup", 0, 0, 'w'},
            {"check_dup", 0, 0, 1},
+           {"delim_out", 1, 0, 'd'},
 	   {0, 0, 0, 0}
         };
 
@@ -103,6 +163,9 @@ main(int argc, char **argv)
 				break;
 			case 1:
 				check_dup = 1;
+				break;
+			case 'd':
+				delim_out = strdup(optarg);
 				break;
                         case 'h':
                         default:
@@ -134,6 +197,13 @@ main(int argc, char **argv)
 	if (check_dup)
 		goto done;
 
+	if (delim_out) {
+		printf("Fabric Name%s%s\n", delim_out, iblink_conf_get_name(linkconf));
+		printf("Node%sPort%sRem Port%sRem Node%sSpeed%sWidth\n",
+			delim_out, delim_out, delim_out, delim_out, delim_out);
+	} else
+		printf("Fabric Name: %s\n", iblink_conf_get_name(linkconf));
+
 	if (argv[0]) {
 		char prop[256];
 		int p_num = 1;
@@ -160,7 +230,6 @@ main(int argc, char **argv)
 			}
 		}
 	} else {
-		printf("Name: %s\n", iblink_conf_get_name(linkconf));
 		iblink_iter_ports(linkconf, print_port, NULL);
 	}
 
