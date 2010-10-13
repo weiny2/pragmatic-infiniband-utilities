@@ -118,8 +118,10 @@ struct iblink_port_list {
 };
 
 struct iblink_conf {
-	char *name;
 	struct iblink_port *ports[HTSZ];
+	char *name;
+	FILE *err_fd;
+	int warn_dup;
 };
 
 static iblink_port_t *
@@ -206,9 +208,9 @@ add_port(iblink_conf_t *linkconf, char *name, int port_num,
 
 static int
 add_link(iblink_conf_t *linkconf, char *lname, char *lport_str,
-	iblink_prop_t *prop,
-	char *rname, char *rport_str)
+	iblink_prop_t *prop, char *rname, char *rport_str)
 {
+	int found = 0;
 	iblink_port_t *lport, *rport;
 	int lpn = strtol(lport_str, NULL, 0);
 	int rpn = strtol(rport_str, NULL, 0);
@@ -218,28 +220,49 @@ add_link(iblink_conf_t *linkconf, char *lname, char *lport_str,
 
 	if (lport) {
 		assert(lport->remote->remote == lport);
+		if (linkconf->warn_dup) {
+			fprintf(linkconf->err_fd,
+				"WARN: redefining port "
+				"\"%s\":%d <-> %d:\"%s\"\n",
+				lport->name, lport->port_num,
+				lport->remote->port_num, lport->remote->name);
+			found = 1;
+		}
 		if (lport->remote != rport)
 			remove_free_port(linkconf, lport->remote);
 		lport->prop = *prop;
 	} else {
 		lport = add_port(linkconf, lname, lpn, prop);
 		if (!lport) {
-			fprintf(stderr, "ERROR: failed to allocated lport\n");
+			fprintf(linkconf->err_fd, "ERROR: failed to allocated lport\n");
 			return (-ENOMEM);
 		}
 	}
 
 	if (rport) {
 		assert(rport->remote->remote == rport);
+		if (linkconf->warn_dup) {
+			fprintf(linkconf->err_fd, "WARN: redefining port "
+				"\"%s\":%d <-> %d:\"%s\"\n",
+				rport->name, rport->port_num,
+				rport->remote->port_num, rport->remote->name);
+			found = 1;
+		}
 		if (rport->remote != lport)
 			remove_free_port(linkconf, rport->remote);
 		rport->prop = *prop;
 	} else {
 		rport = add_port(linkconf, rname, rpn, prop);
 		if (!rport) {
-			fprintf(stderr, "ERROR: failed to allocated lport\n");
+			fprintf(linkconf->err_fd, "ERROR: failed to allocated lport\n");
 			return (-ENOMEM);
 		}
+	}
+
+	if (found) {
+		fprintf(linkconf->err_fd, "      NOW: \"%s\":%d <-> %d:\"%s\"\n",
+			lport->name, lport->port_num,
+			rport->port_num, rport->name);
 	}
 
 	lport->remote = rport;
@@ -456,7 +479,7 @@ process_chassis_model(ch_map_t *ch_map, char *model,
 	chassis_doc = xmlReadFile(file, NULL, 0);
 
 	if (chassis_doc == NULL) {
-		fprintf(stderr, "ERROR: could not parse chassis file %s\n", file);
+		fprintf(linkconf->err_fd, "ERROR: could not parse chassis file %s\n", file);
 		rc = -EIO;
 		goto exit;
 	}
@@ -470,7 +493,7 @@ process_chassis_model(ch_map_t *ch_map, char *model,
 			if (strcmp((char *)cur->name, "chassismap") == 0) {
 				char *model_name = (char *)xmlGetProp(cur, (xmlChar *)"model");
 				if (!model_name || strcmp(model_name, model) != 0) {
-					fprintf(stderr, "ERROR processing %s; Model name does not "
+					fprintf(linkconf->err_fd, "ERROR processing %s; Model name does not "
 						"match: %s != %s\n",
 						file, model_name, model);
 					rc = -EIO;
@@ -513,7 +536,7 @@ parse_chassis(xmlNode *chassis, iblink_prop_t *parent_prop,
 	}
 
 	if (!chassis_name || !chassis_model) {
-		fprintf(stderr, "chassis_[name|model] not defined\n");
+		fprintf(linkconf->err_fd, "chassis_[name|model] not defined\n");
 		rc = -EIO;
 		goto free_xmlChar;
 	}
@@ -562,7 +585,8 @@ free_xmlChar:
 
 
 static int
-parse_fabric(xmlNode *fabric, iblink_prop_t *parent_prop, iblink_conf_t *linkconf)
+parse_fabric(xmlNode *fabric, iblink_prop_t *parent_prop,
+		iblink_conf_t *linkconf)
 {
 	int rc = 0;
 	xmlNode *cur = NULL;
@@ -588,12 +612,12 @@ parse_fabric(xmlNode *fabric, iblink_prop_t *parent_prop, iblink_conf_t *linkcon
 				rc = parse_fabric(cur, &prop, linkconf);
 			else {
 				xmlChar * cont = xmlNodeGetContent(cur);
-				fprintf(stderr, "UNKNOWN XML node found\n");
-				fprintf(stderr, "%s = %s\n", cur->name, (char *)cont);
+				fprintf(linkconf->err_fd, "UNKNOWN XML node found\n");
+				fprintf(linkconf->err_fd, "%s = %s\n", cur->name, (char *)cont);
 				xmlFree(cont);
 				/* xmlGetProp(node, "key") could work as well */
 				for (attr = cur->properties; attr; attr = attr->next) {
-					fprintf(stderr, "   %s=%s\n",
+					fprintf(linkconf->err_fd, "   %s=%s\n",
 					(char *)attr->name, (char *)attr->children->content);
 				}
 			}
@@ -681,15 +705,19 @@ iblink_prop_str(iblink_port_t *port, char ret[], unsigned n)
 iblink_conf_t *
 iblink_alloc_conf(void)
 {
-	return (malloc(sizeof (iblink_conf_t)));
+	iblink_conf_t *rc = calloc(1, sizeof *rc);
+	if (!rc)
+		return (NULL);
+
+	rc->err_fd = stderr;
+	rc->warn_dup = 0;
+	return (rc);
 }
 
-void
-iblink_free(iblink_conf_t *linkconf)
+static void
+iblink_free_ports(iblink_conf_t *linkconf)
 {
 	int i = 0;
-	if (!linkconf)
-		return;
 	for (i = 0; i < HTSZ; i++) {
 		iblink_port_t *port = linkconf->ports[i];
 		while (port) {
@@ -697,8 +725,28 @@ iblink_free(iblink_conf_t *linkconf)
 			port = port->next;
 			free_port(tmp);
 		}
+		linkconf->ports[i] = NULL;
 	}
+}
+
+void
+iblink_free(iblink_conf_t *linkconf)
+{
+	if (!linkconf)
+		return;
+	iblink_free_ports(linkconf);
 	free(linkconf);
+}
+
+void iblink_set_stderr(iblink_conf_t *linkconf, FILE *f)
+{
+	if (linkconf)
+		linkconf->err_fd = f;
+}
+void iblink_set_warn_dup(iblink_conf_t *linkconf, int warn_dup)
+{
+	if (linkconf)
+		linkconf->warn_dup = warn_dup;
 }
 
 int
@@ -710,6 +758,8 @@ iblink_parse_file(char *file, iblink_conf_t *linkconf)
 
 	if (!linkconf)
 		return (-EINVAL);
+
+	iblink_free_ports(linkconf);
 	
 	/* initialize the library */
 	LIBXML_TEST_VERSION
@@ -721,7 +771,7 @@ iblink_parse_file(char *file, iblink_conf_t *linkconf)
 	/* parse the file and get the DOM */
 	doc = xmlReadFile(file, NULL, 0);
 	if (doc == NULL) {
-		fprintf(stderr, "error: could not parse file %s\n", file);
+		fprintf(linkconf->err_fd, "error: could not parse file %s\n", file);
 		return (-EIO);
 	}
 	

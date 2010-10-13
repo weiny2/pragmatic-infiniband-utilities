@@ -471,6 +471,7 @@ int usage(void)
 "\n"
 "Options:\n"
 "  --config, -c <config> Use an alternate link config file (default: %s)\n"
+"  --warn_dup, -w If duplicated link configs are found warn about them\n"
 "  -S <guid> generate for the node specified by the port guid\n"
 "  -G <guid> Same as \"-S\" for compatibility with other diags\n"
 "  -D <dr_path> generate for the node specified by the DR path given\n"
@@ -495,13 +496,14 @@ int main(int argc, char **argv)
 	struct ibnd_config config = { 0 };
 	int rc = 0;
 	int resolved = -1;
+	int warn_dup = 0;
 	ibnd_fabric_t *fabric = NULL;
 	struct ibmad_port *ibmad_port;
 	ib_portid_t port_id = { 0 };
 	int mgmt_classes[3] =
 	    { IB_SMI_CLASS, IB_SMI_DIRECT_CLASS, IB_SA_CLASS };
 
-        static char const str_opts[] = "hS:G:D:n:C:P:t:vo:lc:";
+        static char const str_opts[] = "hS:G:D:n:C:P:t:vo:lc:w";
         static const struct option long_opts [] = {
 		{"help", 0, 0, 'h'},
 		{"node-name-map", 1, 0, 1},
@@ -557,6 +559,9 @@ int main(int argc, char **argv)
 					fprintf(stderr, "cannot resolve SM destination port %s",
 						optarg);
 				break;
+			case 'w':
+				warn_dup = 1;
+				break;
                         case 'h':
                         default:
 				exit(usage());
@@ -571,6 +576,7 @@ int main(int argc, char **argv)
 		fprintf(stderr, "ERROR: Failed to alloc linkconf\n");
 		exit(1);
 	}
+	iblink_set_warn_dup(linkconf, warn_dup);
 
 	if (iblink_parse_file(linkconffile, linkconf)) {
 		fprintf(stderr, "WARN: Failed to parse link config file...\n");

@@ -38,28 +38,25 @@ typedef struct iblink_port_list iblink_port_list_t;
 
 /* alloc new config */
 iblink_conf_t *iblink_alloc_conf(void);
-void iblink_free(iblink_conf_t *edgeconf);
+void iblink_free(iblink_conf_t *linkconf);
+void iblink_set_stderr(iblink_conf_t *linkconf, FILE *f); /* user owns f */
+void iblink_set_warn_dup(iblink_conf_t *linkconf, int warn_dup);
 
 /* populate config from file specified */
-int iblink_parse_file(char *file, iblink_conf_t *edgeconf);
-
-/* get port functions */
-iblink_port_t *iblink_get_port(iblink_conf_t *edgeconf, char *name, int p_num);
-
-int iblink_get_port_list(iblink_conf_t *edgeconf, char *name,
-			iblink_port_list_t **list);
-void iblink_free_port_list(iblink_port_list_t *port_list);
-
-/* iter functions */
-typedef void (*process_port_func)(iblink_port_t *port, void *user_data);
-void iblink_iter_ports(iblink_conf_t *edgeconf, process_port_func func,
-                     void *user_data);
-void iblink_iter_port_list(iblink_port_list_t *port_list,
-			process_port_func func, void *user_data);
+int iblink_parse_file(char *file, iblink_conf_t *linkconf);
+	/* iblink_parse_file will clear ports previously contained
+	 * in linkconf */
 
 /* Accessor functions */
 /* config */
 char *iblink_conf_get_name(iblink_conf_t *conf);
+
+/* get port functions */
+iblink_port_t *iblink_get_port(iblink_conf_t *linkconf, char *name, int p_num);
+
+int iblink_get_port_list(iblink_conf_t *linkconf, char *name,
+			iblink_port_list_t **list);
+void iblink_free_port_list(iblink_port_list_t *port_list);
 
 /* port */
 char *iblink_port_get_name(iblink_port_t *port);
@@ -68,6 +65,13 @@ iblink_prop_t *iblink_port_get_prop(iblink_port_t *port);
 iblink_port_t *iblink_port_get_remote(iblink_port_t *port);
 void  iblink_port_set_user(iblink_port_t *port, void *user_data);
 void *iblink_port_get_user(iblink_port_t *port);
+
+/* iter functions */
+typedef void (*process_port_func)(iblink_port_t *port, void *user_data);
+void iblink_iter_ports(iblink_conf_t *linkconf, process_port_func func,
+                     void *user_data);
+void iblink_iter_port_list(iblink_port_list_t *port_list,
+			process_port_func func, void *user_data);
 
 /* prop */
 int iblink_prop_get_speed(iblink_prop_t *prop);

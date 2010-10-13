@@ -24,6 +24,7 @@
  *
  */
 
+#include <stdlib.h>
 #include <stdio.h>
 #include <errno.h>
 #include <getopt.h>
@@ -37,7 +38,6 @@ void
 print_port(iblink_port_t *port, void *user_data)
 {
 	char prop[256];
-	//char rprop[256];
 	printf ("\"%30s\" %4d  ==(%s)==>  %4d \"%s\"\n",
 		iblink_port_get_name(port),
 		iblink_port_get_port_num(port),
@@ -57,8 +57,10 @@ usage(void)
 "Usage: parse the linkconf file\n"
 "\n"
 "Options:\n"
-"  --conf <file>, specify an alternate config (default: %s)\n"
-"  [node] if node is specified print port for that node\n"
+"  --conf, -c <file> Use an alternate link config file (default: %s)\n"
+"  --warn_dup, -w If duplicated link configs are found warn about them\n"
+"  --check_dup only print duplicates\n"
+"  [node] if node is specified print ports for that node\n"
 "  [port] if port is specified print information for just that port (default \"all\")\n"
 "         if neither node nor port is specified print all links in config file\n"
 "\n"
@@ -74,11 +76,15 @@ main(int argc, char **argv)
 {
 	iblink_conf_t *linkconf;
 	int rc = 0;
+	int warn_dup = 0;
+	int check_dup = 0;
         char  ch = 0;
-        static char const str_opts[] = "h";
+        static char const str_opts[] = "hc:w";
         static const struct option long_opts [] = {
            {"help", 0, 0, 'h'},
-           {"config", 1, 0, 1},
+           {"conf", 1, 0, 'c'},
+           {"warn_dup", 0, 0, 'w'},
+           {"check_dup", 0, 0, 1},
 	   {0, 0, 0, 0}
         };
 
@@ -89,8 +95,14 @@ main(int argc, char **argv)
         {
                 switch (ch)
                 {
-			case 1:
+			case 'c':
 				linkconf_file = strdup(optarg);
+				break;
+			case 'w':
+				warn_dup = 1;
+				break;
+			case 1:
+				check_dup = 1;
 				break;
                         case 'h':
                         default:
@@ -102,6 +114,15 @@ main(int argc, char **argv)
 	argv += optind;
 
 	linkconf = iblink_alloc_conf();
+	if (!linkconf) {
+		fprintf(stderr, "ERROR: Failed to alloc linkconf\n");
+		exit(1);
+	}
+
+	if (check_dup)
+		iblink_set_stderr(linkconf, stdout);
+
+	iblink_set_warn_dup(linkconf, warn_dup | check_dup);
 	rc = iblink_parse_file(linkconf_file, linkconf);
 
 	if (rc) {
@@ -109,6 +130,9 @@ main(int argc, char **argv)
 			"\"%s\":%s\n", linkconf_file, strerror(rc));
 		return (rc);
 	}
+
+	if (check_dup)
+		goto done;
 
 	if (argv[0]) {
 		char prop[256];
@@ -140,6 +164,7 @@ main(int argc, char **argv)
 		iblink_iter_ports(linkconf, print_port, NULL);
 	}
 
+done:
 	iblink_free(linkconf);
 
 	return (rc);

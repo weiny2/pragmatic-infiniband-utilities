@@ -12,6 +12,8 @@ IBLINKCONF_1.0 {
 		iblink_prop_str;
 		iblink_alloc_conf;
 		iblink_free;
+		iblink_set_stderr;
+		iblink_set_warn_dup;
 		iblink_free_port_list;
 		iblink_parse_file;
 		iblink_get_port;
