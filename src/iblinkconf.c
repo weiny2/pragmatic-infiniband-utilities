@@ -184,25 +184,37 @@ remove_free_port(iblink_conf_t *linkconf, iblink_port_t *port)
 }
 
 static int
-_add_port(iblink_conf_t *linkconf, iblink_port_t *port)
+add_port(iblink_conf_t *linkconf, iblink_port_t *port)
 {
+	iblink_port_t *prev = NULL;
+	iblink_port_t *last = NULL;
 	int h = hash_name(port->name);
 	port->next = linkconf->ports[h];
 	port->prev = NULL;
 	if (linkconf->ports[h])
-		linkconf->ports[h]->prev = port;
-	linkconf->ports[h] = port;
+	{
+		last = linkconf->ports[h];
+		prev = linkconf->ports[h];
+		while (last) {
+			prev = last;
+			last = last->next;
+		}
+		port->prev = prev;
+		prev->next = port;
+		port->next = NULL;
+	} else
+		linkconf->ports[h] = port;
 	return (0);
 }
 
 static iblink_port_t *
-add_port(iblink_conf_t *linkconf, char *name, int port_num,
+calloc_add_port(iblink_conf_t *linkconf, char *name, int port_num,
 	iblink_prop_t *prop)
 {
 	iblink_port_t *port = calloc_port(name, port_num, prop);
 	if (!port)
 		return (NULL);
-	_add_port(linkconf, port);
+	add_port(linkconf, port);
 	return (port);
 }
 
@@ -232,7 +244,7 @@ add_link(iblink_conf_t *linkconf, char *lname, char *lport_str,
 			remove_free_port(linkconf, lport->remote);
 		lport->prop = *prop;
 	} else {
-		lport = add_port(linkconf, lname, lpn, prop);
+		lport = calloc_add_port(linkconf, lname, lpn, prop);
 		if (!lport) {
 			fprintf(linkconf->err_fd, "ERROR: failed to allocated lport\n");
 			return (-ENOMEM);
@@ -252,7 +264,7 @@ add_link(iblink_conf_t *linkconf, char *lname, char *lport_str,
 			remove_free_port(linkconf, rport->remote);
 		rport->prop = *prop;
 	} else {
-		rport = add_port(linkconf, rname, rpn, prop);
+		rport = calloc_add_port(linkconf, rname, rpn, prop);
 		if (!rport) {
 			fprintf(linkconf->err_fd, "ERROR: failed to allocated lport\n");
 			return (-ENOMEM);

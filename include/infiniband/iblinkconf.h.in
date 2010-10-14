@@ -56,6 +56,7 @@ iblink_port_t *iblink_get_port(iblink_conf_t *linkconf, char *name, int p_num);
 
 int iblink_get_port_list(iblink_conf_t *linkconf, char *name,
 			iblink_port_list_t **list);
+	/* allocates memory must call iblink_free_port_list */
 void iblink_free_port_list(iblink_port_list_t *port_list);
 
 /* port */
