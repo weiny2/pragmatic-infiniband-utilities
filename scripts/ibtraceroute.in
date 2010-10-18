@@ -42,7 +42,7 @@ my %mlid_list = ();
 sub usage
 {
    my $prog = $_[0];
-   print "Usage: $prog [-ha] [-C <ca>] [-P <port>] [-m <mlid>] [-t <ms>] <ibnodeX> [<ibnodeY>]\n";
+   print "Usage: $prog [-halr] [-C <ca>] [-P <port>] [-m <mlid>] [-t <ms>] <ibnodeX> [<ibnodeY>]\n";
    print "   trace the ib route from <ibnodeX> to <ibnodeY>\n";
    print "   ibnode Y defaults to the local node if not specified\n";
    print "   -m <mlid> trace a multicast group route specified by mlid\n";
