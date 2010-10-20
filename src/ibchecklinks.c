@@ -70,6 +70,7 @@ static struct {
 	int pn_init;
 	int pn_armed;
 	int pn_active;
+	int pn_disabled;
 	int pn_sdr;
 	int pn_ddr;
 	int pn_qdr;
@@ -81,21 +82,22 @@ static struct {
 	int pn_12x;
 	int pn_undef;
 } totals = {
-	num_ports : 0,
-	pn_down   : 0,
-	pn_init   : 0,
-	pn_armed  : 0,
-	pn_active : 0,
-	pn_sdr    : 0,
-	pn_ddr    : 0,
-	pn_qdr    : 0,
-	pn_fdr    : 0,
-	pn_edr    : 0,
-	pn_1x     : 0,
-	pn_4x     : 0,
-	pn_8x     : 0,
-	pn_12x    : 0,
-	pn_undef  : 0
+	num_ports   : 0,
+	pn_down     : 0,
+	pn_init     : 0,
+	pn_armed    : 0,
+	pn_active   : 0,
+	pn_disabled : 0,
+	pn_sdr      : 0,
+	pn_ddr      : 0,
+	pn_qdr      : 0,
+	pn_fdr      : 0,
+	pn_edr      : 0,
+	pn_1x       : 0,
+	pn_4x       : 0,
+	pn_8x       : 0,
+	pn_12x      : 0,
+	pn_undef    : 0
 };
 
 typedef struct port_vis {
@@ -145,6 +147,8 @@ print_port_stats(void)
 	printf("Stats Summary: (%d total ports)\n", totals.num_ports);
 	if (totals.pn_down)
 		printf("   %d down ports(s)\n", totals.pn_down);
+	if (totals.pn_disabled)
+		printf("   %d disabled ports(s)\n", totals.pn_disabled);
 	if (totals.pn_1x)
 		printf("   %d link(s) at 1X\n", totals.pn_1x);
 	if (totals.pn_4x)
@@ -310,16 +314,20 @@ print_config_port(iblink_port_t *port)
 
 void compare_port(iblink_port_t *linkport, char *node_name, ibnd_node_t *node, ibnd_port_t *port)
 {
-	int iwidth, ispeed, istate;
+	int iwidth, ispeed, istate, iphysstate;
 
 	iwidth = mad_get_field(port->info, 0, IB_PORT_LINK_WIDTH_ACTIVE_F);
 	ispeed = mad_get_field(port->info, 0, IB_PORT_LINK_SPEED_ACTIVE_F);
 	istate = mad_get_field(port->info, 0, IB_PORT_STATE_F);
+	iphysstate = mad_get_field(port->info, 0, IB_PORT_PHYS_STATE_F);
 
 	iblink_port_t *rem_linkport = iblink_port_get_remote(linkport);
 
 	if (istate != IB_LINK_ACTIVE) {
-		printf("ERR: port down: ");
+		if (iphysstate == IB_PORT_PHYS_STATE_DISABLED)
+			printf("ERR: port disabled: ");
+		else
+			printf("ERR: port down: ");
 		print_port(node_name, node, port, rem_linkport);
 	} else {
 		char str[64];
@@ -398,7 +406,7 @@ invalid_active:
 
 void check_port(char *node_name, ibnd_node_t * node, ibnd_port_t * port)
 {
-	int iwidth, ispeed, istate;
+	int iwidth, ispeed, istate, iphysstate;
 	int n_undef = totals.pn_undef;
 
 	totals.num_ports++;
@@ -406,6 +414,7 @@ void check_port(char *node_name, ibnd_node_t * node, ibnd_port_t * port)
 	iwidth = mad_get_field(port->info, 0, IB_PORT_LINK_WIDTH_ACTIVE_F);
 	ispeed = mad_get_field(port->info, 0, IB_PORT_LINK_SPEED_ACTIVE_F);
 	istate = mad_get_field(port->info, 0, IB_PORT_STATE_F);
+	iphysstate = mad_get_field(port->info, 0, IB_PORT_PHYS_STATE_F);
 
 	switch (istate) {
 		case IB_LINK_DOWN: totals.pn_down++; break;
@@ -413,6 +422,11 @@ void check_port(char *node_name, ibnd_node_t * node, ibnd_port_t * port)
 		case IB_LINK_ARMED: totals.pn_armed++; break;
 		case IB_LINK_ACTIVE: totals.pn_active++; break;
 		default:  totals.pn_undef++; break;
+	}
+
+	switch (iphysstate) {
+		case IB_PORT_PHYS_STATE_DISABLED: totals.pn_disabled++; break;
+		default: break;
 	}
 
 	if (istate == IB_LINK_ACTIVE) {
