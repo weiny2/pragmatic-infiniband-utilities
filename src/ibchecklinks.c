@@ -291,7 +291,8 @@ void print_port(char *node_name, ibnd_node_t * node, ibnd_port_t * port, iblink_
 
 	printf("0x%016" PRIx64 " \"%s\" ", node->guid, node_name);
 	printf("%6d %4d[%2s] <==%s==>  %s",
-	       node->smalid, port->portnum, ext_port_str, link_str, remote_str);
+		port->base_lid ?  port->base_lid : port->node->smalid,
+		port->portnum, ext_port_str, link_str, remote_str);
 }
 
 void
