@@ -281,10 +281,18 @@ void print_port(char *node_name, ibnd_node_t * node, ibnd_port_t * port, iblink_
 		free(remap);
 	} else if (linkport) {
 		char prop[256];
-		snprintf(remote_str, 256, "       %4d[  ] \"%s\" (Should be: %s Active)\n",
-			iblink_port_get_port_num(linkport),
-			iblink_port_get_name(linkport),
-			iblink_prop_str(linkport, prop, 256));
+		if (iblink_port_num_dont_care(linkport))
+			snprintf(remote_str, 256,
+			"       <don't care>[  ] \"%s\" (Should be: %s "
+			"Active)\n",
+				iblink_port_get_name(linkport),
+				iblink_prop_str(linkport, prop, 256));
+		else
+			snprintf(remote_str, 256,
+			"       %4d[  ] \"%s\" (Should be: %s Active)\n",
+				iblink_port_get_port_num(linkport),
+				iblink_port_get_name(linkport),
+				iblink_prop_str(linkport, prop, 256));
 	} else
 		snprintf(remote_str, 256, "           [  ] \"\" ( )\n");
 
@@ -303,13 +311,20 @@ void
 print_config_port(iblink_port_t *port)
 {
 	char prop[256];
-	printf ("\"%s\" %d  <==(%s)==>  %4d \"%s\"\n",
+
+	printf ("\"%s\" %d  <==(%s)==>  ",
 		iblink_port_get_name(port),
 		iblink_port_get_port_num(port),
-		iblink_prop_str(port, prop, 256),
-		iblink_port_get_port_num(iblink_port_get_remote(port)),
-		iblink_port_get_name(iblink_port_get_remote(port))
-		);
+		iblink_prop_str(port, prop, 256));
+
+	if (iblink_port_num_dont_care(iblink_port_get_remote(port)))
+		printf ("<don't care> ");
+	else
+		printf ("%4d ",
+			iblink_port_get_port_num(iblink_port_get_remote(port)));
+
+	printf ("\"%s\"\n",
+		iblink_port_get_name(iblink_port_get_remote(port)));
 }
 
 void compare_port(iblink_port_t *linkport, char *node_name, ibnd_node_t *node, ibnd_port_t *port)
@@ -355,8 +370,11 @@ void compare_port(iblink_port_t *linkport, char *node_name, ibnd_node_t *node, i
 			rem_remap = remap_node_name(node_name_map,
 					port->remoteport->node->guid,
 					port->remoteport->node->nodedesc);
-			if (strcmp(rem_node_name, rem_remap) != 0
-				|| rem_port_num != port->remoteport->portnum) {
+			if ((!iblink_port_name_dont_care(rem_linkport) &&
+			    strcmp(rem_node_name, rem_remap) != 0)
+			    ||
+			    (!iblink_port_num_dont_care(rem_linkport) &&
+			    rem_port_num != port->remoteport->portnum)) {
 				printf("ERR: invalid link : ");
 				print_port(node_name, node, port, NULL);
 				printf("     should be    : ");

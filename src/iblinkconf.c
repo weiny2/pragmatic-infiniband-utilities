@@ -152,12 +152,39 @@ port_equal(iblink_port_t *port, char *n, int p)
 	return (strcmp((const char *)port->name, (const char *)n) == 0 && port->port_num == p);
 }
 
+static int
+_port_num_dont_care(int p)
+{
+	return (p == IBLINK_PORT_NUM_DONT_CARE);
+}
+
+static int
+_port_name_dont_care(char *n)
+{
+	return (n && strcmp(n, IBLINK_PORT_NAME_DONT_CARE) == 0);
+}
+
+int
+iblink_port_num_dont_care(iblink_port_t *port)
+{
+	return (_port_num_dont_care(port->port_num));
+}
+
+int
+iblink_port_name_dont_care(iblink_port_t *port)
+{
+	return (_port_name_dont_care(port->name));
+}
 
 static iblink_port_t *
 find_port(iblink_conf_t *linkconf, char *n, int p)
 {
 	iblink_port_t *cur;
 	int h = hash_name(n);
+
+	if (_port_name_dont_care(n) || _port_num_dont_care(p))
+		return (NULL);
+
 	for (cur = linkconf->ports[h]; cur; cur = cur->next)
 		if (port_equal(cur, n, p))
 			return (cur);
@@ -224,8 +251,13 @@ add_link(iblink_conf_t *linkconf, char *lname, char *lport_str,
 {
 	int found = 0;
 	iblink_port_t *lport, *rport;
-	int lpn = strtol(lport_str, NULL, 0);
-	int rpn = strtol(rport_str, NULL, 0);
+	int lpn = IBLINK_PORT_NUM_DONT_CARE;
+	int rpn = IBLINK_PORT_NUM_DONT_CARE;
+
+	if (strcmp(lport_str, "-") != 0)
+		lpn = strtol(lport_str, NULL, 0);
+	if (strcmp(rport_str, "-") != 0)
+		rpn = strtol(rport_str, NULL, 0);
 
 	lport = find_port(linkconf, lname, lpn);
 	rport = find_port(linkconf, rname, rpn);
@@ -689,7 +721,12 @@ debug_dump_link_conf(iblink_conf_t *linkconf)
 char *iblink_conf_get_name(iblink_conf_t *conf) { return (conf->name); }
 int iblink_prop_get_speed(iblink_prop_t *prop) { return (prop->speed); }
 int iblink_prop_get_width(iblink_prop_t *prop) { return (prop->width); }
-char *iblink_port_get_name(iblink_port_t *port) { return (port->name); }
+char *iblink_port_get_name(iblink_port_t *port)
+{
+	if (strcmp(port->name, IBLINK_PORT_NAME_DONT_CARE) == 0)
+		return ("<don't care>");
+	return (port->name);
+}
 int   iblink_port_get_port_num(iblink_port_t *port) { return (port->port_num); }
 iblink_prop_t *iblink_port_get_prop(iblink_port_t *port)
 	{ return (&port->prop); }

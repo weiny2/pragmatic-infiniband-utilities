@@ -30,6 +30,9 @@
 #define IBLINK_CONFIG_DIR "@PIU_CONFIG_PATH@/pragmaticIB"
 #define IBLINK_DEF_CONFIG "@PIU_CONFIG_PATH@/pragmaticIB/iblinkconf.xml"
 
+#define IBLINK_PORT_NUM_DONT_CARE -1
+#define IBLINK_PORT_NAME_DONT_CARE "-"
+
 /* These are opaque data types */
 typedef struct iblink_conf iblink_conf_t;
 typedef struct iblink_port iblink_port_t;
@@ -66,6 +69,8 @@ iblink_prop_t *iblink_port_get_prop(iblink_port_t *port);
 iblink_port_t *iblink_port_get_remote(iblink_port_t *port);
 void  iblink_port_set_user(iblink_port_t *port, void *user_data);
 void *iblink_port_get_user(iblink_port_t *port);
+int iblink_port_num_dont_care(iblink_port_t *port);
+int iblink_port_name_dont_care(iblink_port_t *port);
 
 /* iter functions */
 typedef void (*process_port_func)(iblink_port_t *port, void *user_data);

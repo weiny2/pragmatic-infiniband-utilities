@@ -20,5 +20,7 @@ IBLINKCONF_1.0 {
 		iblink_get_port_list;
 		iblink_iter_ports;
 		iblink_iter_port_list;
+		iblink_port_num_dont_care;
+		iblink_port_name_dont_care;
 	local: *;
 };
