@@ -464,7 +464,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS PROJECT VERSION RELEASE INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA CYGPATH_W PACKAGE ACLOCAL AUTOCONF AUTOMAKE AUTOHEADER MAKEINFO install_sh STRIP ac_ct_STRIP INSTALL_STRIP_PROGRAM mkdir_p AWK SET_MAKE am__leading_dot AMTAR am__tar am__untar MAINTAINER_MODE_TRUE MAINTAINER_MODE_FALSE MAINT CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT DEPDIR am__include am__quote AMDEP_TRUE AMDEP_FALSE AMDEPBACKSLASH CCDEPMODE am__fastdepCC_TRUE am__fastdepCC_FALSE build build_cpu build_vendor build_os host host_cpu host_vendor host_os SED EGREP LN_S ECHO AR ac_ct_AR RANLIB ac_ct_RANLIB CPP CXX CXXFLAGS ac_ct_CXX CXXDEPMODE am__fastdepCXX_TRUE am__fastdepCXX_FALSE CXXCPP F77 FFLAGS ac_ct_F77 LIBTOOL BASH iblinkconf_api_version ENABLE_GENDERS LIBGENDERS PIU_CONFIG_PATH PIU_SBIN_PATH DEBUG_TRUE DEBUG_FALSE LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS PROJECT VERSION RELEASE INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA CYGPATH_W PACKAGE ACLOCAL AUTOCONF AUTOMAKE AUTOHEADER MAKEINFO install_sh STRIP ac_ct_STRIP INSTALL_STRIP_PROGRAM mkdir_p AWK SET_MAKE am__leading_dot AMTAR am__tar am__untar MAINTAINER_MODE_TRUE MAINTAINER_MODE_FALSE MAINT CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT DEPDIR am__include am__quote AMDEP_TRUE AMDEP_FALSE AMDEPBACKSLASH CCDEPMODE am__fastdepCC_TRUE am__fastdepCC_FALSE build build_cpu build_vendor build_os host host_cpu host_vendor host_os SED EGREP LN_S ECHO AR ac_ct_AR RANLIB ac_ct_RANLIB CPP CXX CXXFLAGS ac_ct_CXX CXXDEPMODE am__fastdepCXX_TRUE am__fastdepCXX_FALSE CXXCPP F77 FFLAGS ac_ct_F77 LIBTOOL BASH ibfabricconf_api_version ENABLE_GENDERS LIBGENDERS PIU_CONFIG_PATH PIU_SBIN_PATH DEBUG_TRUE DEBUG_FALSE LIBOBJS LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -19576,9 +19576,9 @@ fi
 echo "$as_me:$LINENO: result: $ac_cv_version_script" >&5
 echo "${ECHO_T}$ac_cv_version_script" >&6
 
-iblinkconf_api_version=`grep LIBVERSION $srcdir/libiblinkconf.ver | sed 's/LIBVERSION=//'`
-if test -z $iblinkconf_api_version; then
-   echo "FAILED to find $srcdir/libiblinkconf.ver"
+ibfabricconf_api_version=`grep LIBVERSION $srcdir/libibfabricconf.ver | sed 's/LIBVERSION=//'`
+if test -z $ibfabricconf_api_version; then
+   echo "FAILED to find $srcdir/libibfabricconf.ver"
    exit 1
 fi
 
@@ -19708,7 +19708,7 @@ else
 fi
 
 
-                                                                                                                                                                          ac_config_files="$ac_config_files Makefile pragmatic-infiniband-utilities.spec scripts/voltaire-create-switch-map.pl scripts/qlogic-create-switch-map.pl scripts/ibcheckfabric scripts/ibtrackerrors scripts/ibnodesinmcast scripts/ibtraceroute scripts/ibcreateswitchmap.sh man/voltaire-create-switch-map.8 man/qlogic-create-switch-map.8 scripts/ibsrp man/ibsrp.8 man/ibtrackerrors.8 man/ibhcacounters.8 man/ibparselinkconf.8 include/infiniband/iblinkconf.h"
+                                                                                                                                                                          ac_config_files="$ac_config_files Makefile pragmatic-infiniband-utilities.spec scripts/voltaire-create-switch-map.pl scripts/qlogic-create-switch-map.pl scripts/ibcheckfabric scripts/ibtrackerrors scripts/ibnodesinmcast scripts/ibtraceroute scripts/ibcreateswitchmap.sh man/voltaire-create-switch-map.8 man/qlogic-create-switch-map.8 scripts/ibsrp man/ibsrp.8 man/ibtrackerrors.8 man/ibhcacounters.8 man/ibparsefabricconf.8 include/infiniband/ibfabricconf.h"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -20295,8 +20295,8 @@ do
   "man/ibsrp.8" ) CONFIG_FILES="$CONFIG_FILES man/ibsrp.8" ;;
   "man/ibtrackerrors.8" ) CONFIG_FILES="$CONFIG_FILES man/ibtrackerrors.8" ;;
   "man/ibhcacounters.8" ) CONFIG_FILES="$CONFIG_FILES man/ibhcacounters.8" ;;
-  "man/ibparselinkconf.8" ) CONFIG_FILES="$CONFIG_FILES man/ibparselinkconf.8" ;;
-  "include/infiniband/iblinkconf.h" ) CONFIG_FILES="$CONFIG_FILES include/infiniband/iblinkconf.h" ;;
+  "man/ibparsefabricconf.8" ) CONFIG_FILES="$CONFIG_FILES man/ibparsefabricconf.8" ;;
+  "include/infiniband/ibfabricconf.h" ) CONFIG_FILES="$CONFIG_FILES include/infiniband/ibfabricconf.h" ;;
   "depfiles" ) CONFIG_COMMANDS="$CONFIG_COMMANDS depfiles" ;;
   "config/config.h" ) CONFIG_HEADERS="$CONFIG_HEADERS config/config.h" ;;
   *) { { echo "$as_me:$LINENO: error: invalid argument: $ac_config_target" >&5
@@ -20456,7 +20456,7 @@ s,@FFLAGS@,$FFLAGS,;t t
 s,@ac_ct_F77@,$ac_ct_F77,;t t
 s,@LIBTOOL@,$LIBTOOL,;t t
 s,@BASH@,$BASH,;t t
-s,@iblinkconf_api_version@,$iblinkconf_api_version,;t t
+s,@ibfabricconf_api_version@,$ibfabricconf_api_version,;t t
 s,@ENABLE_GENDERS@,$ENABLE_GENDERS,;t t
 s,@LIBGENDERS@,$LIBGENDERS,;t t
 s,@PIU_CONFIG_PATH@,$PIU_CONFIG_PATH,;t t

@@ -136,7 +136,7 @@ usage(void)
 {
         fprintf(stderr,
 "%s [options]\n"
-"Usage: generate an xml config file based off the scanned fabric\n"
+"Usage: generate an xml fabric config file based off the scanned fabric\n"
 "\n"
 "Options:\n"
 "  --name <name> fabric name\n"

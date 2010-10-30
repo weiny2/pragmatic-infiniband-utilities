@@ -1,0 +1,26 @@
+.TH IBPARSEFABRICCONF 8 "Sept 29, 2010" "Pragmatic Infiniband Utilities" "Infiniband Diagnostics"
+
+.SH NAME
+ibparsefabricconf \- parse fabricconf file
+
+.SH SYNOPSIS
+.B ibparsefabricconf [options] [node] [port]
+
+.SH DESCRIPTION
+.PP
+ibparsefabricconf reads the ib fabric config file and reports the links configured
+there.  If node is specified then it will print the config for that node.
+Furthermore if port is specified limit the output to that single node/port.
+
+.SH OPTIONS
+
+.PP
+.TP
+\fB\-conf\fR
+Specify an alternate config file (default: @PIU_CONFIG_PATH@/pragmaticIB/ibfabricconf.xml)
+
+
+.SH AUTHOR
+.TP
+Ira Weiny
+.RI < weiny2@llnl.gov >

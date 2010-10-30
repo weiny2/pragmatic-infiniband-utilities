@@ -41,16 +41,16 @@ build_triplet = @build@
 host_triplet = @host@
 sbin_PROGRAMS = src/simple_rdma$(EXEEXT) src/rdma_cm_query$(EXEEXT) \
 	src/slurm_topology$(EXEEXT) src/ibgraphfabric$(EXEEXT) \
-	src/iblinkconffromfabric$(EXEEXT) src/ibparselinkconf$(EXEEXT) \
-	src/ibchecklinks$(EXEEXT)
+	src/ibfabricconffromfabric$(EXEEXT) \
+	src/ibparsefabricconf$(EXEEXT) src/ibchecklinks$(EXEEXT)
 DIST_COMMON = README $(am__configure_deps) \
-	$(libiblinkconfinclude_HEADERS) $(srcdir)/Makefile.am \
+	$(libibfabricconfinclude_HEADERS) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in \
 	$(srcdir)/pragmatic-infiniband-utilities.spec.in \
 	$(top_srcdir)/config/config.h.in $(top_srcdir)/configure \
-	$(top_srcdir)/include/infiniband/iblinkconf.h.in \
+	$(top_srcdir)/include/infiniband/ibfabricconf.h.in \
 	$(top_srcdir)/man/ibhcacounters.8.in \
-	$(top_srcdir)/man/ibparselinkconf.8.in \
+	$(top_srcdir)/man/ibparsefabricconf.8.in \
 	$(top_srcdir)/man/ibsrp.8.in \
 	$(top_srcdir)/man/ibtrackerrors.8.in \
 	$(top_srcdir)/man/qlogic-create-switch-map.8.in \
@@ -83,8 +83,8 @@ CONFIG_CLEAN_FILES = pragmatic-infiniband-utilities.spec \
 	scripts/ibtraceroute scripts/ibcreateswitchmap.sh \
 	man/voltaire-create-switch-map.8 \
 	man/qlogic-create-switch-map.8 scripts/ibsrp man/ibsrp.8 \
-	man/ibtrackerrors.8 man/ibhcacounters.8 man/ibparselinkconf.8 \
-	include/infiniband/iblinkconf.h
+	man/ibtrackerrors.8 man/ibhcacounters.8 \
+	man/ibparsefabricconf.8 include/infiniband/ibfabricconf.h
 am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
 am__vpath_adj = case $$p in \
     $(srcdir)/*) f=`echo "$$p" | sed "s|^$$srcdirstrip/||"`;; \
@@ -93,12 +93,12 @@ am__vpath_adj = case $$p in \
 am__strip_dir = `echo $$p | sed -e 's|^.*/||'`;
 am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(sbindir)" \
 	"$(DESTDIR)$(sbindir)" "$(DESTDIR)$(man8dir)" \
-	"$(DESTDIR)$(libiblinkconfincludedir)"
+	"$(DESTDIR)$(libibfabricconfincludedir)"
 libLTLIBRARIES_INSTALL = $(INSTALL)
 LTLIBRARIES = $(lib_LTLIBRARIES)
-libiblinkconf_la_LIBADD =
-am_libiblinkconf_la_OBJECTS = libiblinkconf_la-iblinkconf.lo
-libiblinkconf_la_OBJECTS = $(am_libiblinkconf_la_OBJECTS)
+libibfabricconf_la_LIBADD =
+am_libibfabricconf_la_OBJECTS = libibfabricconf_la-ibfabricconf.lo
+libibfabricconf_la_OBJECTS = $(am_libibfabricconf_la_OBJECTS)
 sbinPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(sbin_PROGRAMS)
 am_src_ibchecklinks_OBJECTS = ibchecklinks.$(OBJEXT) \
@@ -106,18 +106,19 @@ am_src_ibchecklinks_OBJECTS = ibchecklinks.$(OBJEXT) \
 src_ibchecklinks_OBJECTS = $(am_src_ibchecklinks_OBJECTS)
 src_ibchecklinks_LDADD = $(LDADD)
 am__dirstamp = $(am__leading_dot)dirstamp
+am_src_ibfabricconffromfabric_OBJECTS =  \
+	ibfabricconffromfabric.$(OBJEXT)
+src_ibfabricconffromfabric_OBJECTS =  \
+	$(am_src_ibfabricconffromfabric_OBJECTS)
+src_ibfabricconffromfabric_LDADD = $(LDADD)
 am_src_ibgraphfabric_OBJECTS = ibgraphfabric.$(OBJEXT) \
 	hostlist.$(OBJEXT)
 src_ibgraphfabric_OBJECTS = $(am_src_ibgraphfabric_OBJECTS)
 src_ibgraphfabric_LDADD = $(LDADD)
-am_src_iblinkconffromfabric_OBJECTS = iblinkconffromfabric.$(OBJEXT)
-src_iblinkconffromfabric_OBJECTS =  \
-	$(am_src_iblinkconffromfabric_OBJECTS)
-src_iblinkconffromfabric_LDADD = $(LDADD)
-am_src_ibparselinkconf_OBJECTS =  \
-	src_ibparselinkconf-ibparselinkconf.$(OBJEXT)
-src_ibparselinkconf_OBJECTS = $(am_src_ibparselinkconf_OBJECTS)
-src_ibparselinkconf_LDADD = $(LDADD)
+am_src_ibparsefabricconf_OBJECTS =  \
+	src_ibparsefabricconf-ibparsefabricconf.$(OBJEXT)
+src_ibparsefabricconf_OBJECTS = $(am_src_ibparsefabricconf_OBJECTS)
+src_ibparsefabricconf_LDADD = $(LDADD)
 am_src_rdma_cm_query_OBJECTS =  \
 	src_rdma_cm_query-rdma_cm_query.$(OBJEXT)
 src_rdma_cm_query_OBJECTS = $(am_src_rdma_cm_query_OBJECTS)
@@ -142,21 +143,22 @@ LTCOMPILE = $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) \
 CCLD = $(CC)
 LINK = $(LIBTOOL) --tag=CC --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
-SOURCES = $(libiblinkconf_la_SOURCES) $(src_ibchecklinks_SOURCES) \
-	$(src_ibgraphfabric_SOURCES) \
-	$(src_iblinkconffromfabric_SOURCES) \
-	$(src_ibparselinkconf_SOURCES) $(src_rdma_cm_query_SOURCES) \
-	$(src_simple_rdma_SOURCES) $(src_slurm_topology_SOURCES)
-DIST_SOURCES = $(libiblinkconf_la_SOURCES) $(src_ibchecklinks_SOURCES) \
-	$(src_ibgraphfabric_SOURCES) \
-	$(src_iblinkconffromfabric_SOURCES) \
-	$(src_ibparselinkconf_SOURCES) $(src_rdma_cm_query_SOURCES) \
-	$(src_simple_rdma_SOURCES) $(src_slurm_topology_SOURCES)
+SOURCES = $(libibfabricconf_la_SOURCES) $(src_ibchecklinks_SOURCES) \
+	$(src_ibfabricconffromfabric_SOURCES) \
+	$(src_ibgraphfabric_SOURCES) $(src_ibparsefabricconf_SOURCES) \
+	$(src_rdma_cm_query_SOURCES) $(src_simple_rdma_SOURCES) \
+	$(src_slurm_topology_SOURCES)
+DIST_SOURCES = $(libibfabricconf_la_SOURCES) \
+	$(src_ibchecklinks_SOURCES) \
+	$(src_ibfabricconffromfabric_SOURCES) \
+	$(src_ibgraphfabric_SOURCES) $(src_ibparsefabricconf_SOURCES) \
+	$(src_rdma_cm_query_SOURCES) $(src_simple_rdma_SOURCES) \
+	$(src_slurm_topology_SOURCES)
 man8dir = $(mandir)/man8
 NROFF = nroff
 MANS = $(man_MANS)
-libiblinkconfincludeHEADERS_INSTALL = $(INSTALL_HEADER)
-HEADERS = $(libiblinkconfinclude_HEADERS)
+libibfabricconfincludeHEADERS_INSTALL = $(INSTALL_HEADER)
+HEADERS = $(libibfabricconfinclude_HEADERS)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -264,7 +266,7 @@ host_alias = @host_alias@
 host_cpu = @host_cpu@
 host_os = @host_os@
 host_vendor = @host_vendor@
-iblinkconf_api_version = @iblinkconf_api_version@
+ibfabricconf_api_version = @ibfabricconf_api_version@
 includedir = @includedir@
 infodir = @infodir@
 install_sh = @install_sh@
@@ -288,7 +290,7 @@ INCLUDES = -Iinclude \
 @DEBUG_TRUE@DBGFLAGS = -ggdb -D_DEBUG_
 ACLOCAL_AMFLAGS = -I config
 AM_CFLAGS = -Wall $(DBGFLAGS)
-lib_LTLIBRARIES = libiblinkconf.la
+lib_LTLIBRARIES = libibfabricconf.la
 mySCRIPTS = scripts/ibgetgid \
 				scripts/ibgetlid \
 				scripts/ibtraceroute \
@@ -317,7 +319,7 @@ man_MANS = man/ibbouncelinks.8 \
 				man/ibtrackerrors.8 \
 				man/ibhcacounters.8 \
 				man/ibsrp.8 \
-				man/ibparselinkconf.8
+				man/ibparsefabricconf.8
 
 sbin_SCRIPTS = $(mySCRIPTS)
 src_simple_rdma_SOURCES = src/simple_rdma.c
@@ -330,22 +332,22 @@ src_slurm_topology_SOURCES = src/slurm_topology.c src/hostlist.c src/hostlist.h
 src_slurm_topology_LDFLAGS = -losmcomp -libmad -libnetdisc $(LIBGENDERS)
 src_ibgraphfabric_SOURCES = src/ibgraphfabric.c src/hostlist.c src/hostlist.h
 src_ibgraphfabric_LDFLAGS = -losmcomp -libmad -libnetdisc
-src_iblinkconffromfabric_SOURCES = src/iblinkconffromfabric.c
-src_iblinkconffromfabric_LDFLAGS = -losmcomp -libmad -libnetdisc
-libiblinkconf_la_SOURCES = src/iblinkconf.c
-libiblinkconf_la_CFLAGS = -I/usr/include/libxml2 -Wall $(DBGFLAGS)
-libiblinkconf_la_LDFLAGS = -version-info $(iblinkconf_api_version) \
-	-export-dynamic $(libiblinkconf_version_script) \
+src_ibfabricconffromfabric_SOURCES = src/ibfabricconffromfabric.c
+src_ibfabricconffromfabric_LDFLAGS = -losmcomp -libmad -libnetdisc
+libibfabricconf_la_SOURCES = src/ibfabricconf.c
+libibfabricconf_la_CFLAGS = -I/usr/include/libxml2 -Wall $(DBGFLAGS)
+libibfabricconf_la_LDFLAGS = -version-info $(ibfabricconf_api_version) \
+	-export-dynamic $(libibfabricconf_version_script) \
 	-libmad -lxml2 -lz -lm
 
-libiblinkconf_la_DEPENDENCIES = src/libiblinkconf.map
-libiblinkconfincludedir = $(includedir)/infiniband
-libiblinkconfinclude_HEADERS = include/infiniband/iblinkconf.h
-src_ibparselinkconf_SOURCES = src/ibparselinkconf.c
-src_ibparselinkconf_CFLAGS = -I$(includedir)
-src_ibparselinkconf_LDFLAGS = -liblinkconf
+libibfabricconf_la_DEPENDENCIES = src/libibfabricconf.map
+libibfabricconfincludedir = $(includedir)/infiniband
+libibfabricconfinclude_HEADERS = include/infiniband/ibfabricconf.h
+src_ibparsefabricconf_SOURCES = src/ibparsefabricconf.c
+src_ibparsefabricconf_CFLAGS = -I$(includedir)
+src_ibparsefabricconf_LDFLAGS = -libfabricconf
 src_ibchecklinks_SOURCES = src/ibchecklinks.c src/hostlist.c src/hostlist.h
-src_ibchecklinks_LDFLAGS = -losmcomp -libmad -libnetdisc -liblinkconf
+src_ibchecklinks_LDFLAGS = -losmcomp -libmad -libnetdisc -libfabricconf
 EXTRA_DIST = \
 	META \
 	ChangeLog \
@@ -355,9 +357,9 @@ EXTRA_DIST = \
 	scripts \
 	sysconf/ibsrp.conf \
 	etc/pragmaticIB.conf \
-	chassis_linkconf \
-	src/libiblinkconf.map \
-	libiblinkconf.ver
+	chassis_fabricconf \
+	src/libibfabricconf.map \
+	libibfabricconf.ver
 
 all: all-am
 
@@ -441,9 +443,9 @@ man/ibtrackerrors.8: $(top_builddir)/config.status $(top_srcdir)/man/ibtrackerro
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 man/ibhcacounters.8: $(top_builddir)/config.status $(top_srcdir)/man/ibhcacounters.8.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
-man/ibparselinkconf.8: $(top_builddir)/config.status $(top_srcdir)/man/ibparselinkconf.8.in
+man/ibparsefabricconf.8: $(top_builddir)/config.status $(top_srcdir)/man/ibparsefabricconf.8.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
-include/infiniband/iblinkconf.h: $(top_builddir)/config.status $(top_srcdir)/include/infiniband/iblinkconf.h.in
+include/infiniband/ibfabricconf.h: $(top_builddir)/config.status $(top_srcdir)/include/infiniband/ibfabricconf.h.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 install-libLTLIBRARIES: $(lib_LTLIBRARIES)
 	@$(NORMAL_INSTALL)
@@ -472,8 +474,8 @@ clean-libLTLIBRARIES:
 	  echo "rm -f \"$${dir}/so_locations\""; \
 	  rm -f "$${dir}/so_locations"; \
 	done
-libiblinkconf.la: $(libiblinkconf_la_OBJECTS) $(libiblinkconf_la_DEPENDENCIES) 
-	$(LINK) -rpath $(libdir) $(libiblinkconf_la_LDFLAGS) $(libiblinkconf_la_OBJECTS) $(libiblinkconf_la_LIBADD) $(LIBS)
+libibfabricconf.la: $(libibfabricconf_la_OBJECTS) $(libibfabricconf_la_DEPENDENCIES) 
+	$(LINK) -rpath $(libdir) $(libibfabricconf_la_LDFLAGS) $(libibfabricconf_la_OBJECTS) $(libibfabricconf_la_LIBADD) $(LIBS)
 install-sbinPROGRAMS: $(sbin_PROGRAMS)
 	@$(NORMAL_INSTALL)
 	test -z "$(sbindir)" || $(mkdir_p) "$(DESTDIR)$(sbindir)"
@@ -508,15 +510,15 @@ src/$(am__dirstamp):
 src/ibchecklinks$(EXEEXT): $(src_ibchecklinks_OBJECTS) $(src_ibchecklinks_DEPENDENCIES) src/$(am__dirstamp)
 	@rm -f src/ibchecklinks$(EXEEXT)
 	$(LINK) $(src_ibchecklinks_LDFLAGS) $(src_ibchecklinks_OBJECTS) $(src_ibchecklinks_LDADD) $(LIBS)
+src/ibfabricconffromfabric$(EXEEXT): $(src_ibfabricconffromfabric_OBJECTS) $(src_ibfabricconffromfabric_DEPENDENCIES) src/$(am__dirstamp)
+	@rm -f src/ibfabricconffromfabric$(EXEEXT)
+	$(LINK) $(src_ibfabricconffromfabric_LDFLAGS) $(src_ibfabricconffromfabric_OBJECTS) $(src_ibfabricconffromfabric_LDADD) $(LIBS)
 src/ibgraphfabric$(EXEEXT): $(src_ibgraphfabric_OBJECTS) $(src_ibgraphfabric_DEPENDENCIES) src/$(am__dirstamp)
 	@rm -f src/ibgraphfabric$(EXEEXT)
 	$(LINK) $(src_ibgraphfabric_LDFLAGS) $(src_ibgraphfabric_OBJECTS) $(src_ibgraphfabric_LDADD) $(LIBS)
-src/iblinkconffromfabric$(EXEEXT): $(src_iblinkconffromfabric_OBJECTS) $(src_iblinkconffromfabric_DEPENDENCIES) src/$(am__dirstamp)
-	@rm -f src/iblinkconffromfabric$(EXEEXT)
-	$(LINK) $(src_iblinkconffromfabric_LDFLAGS) $(src_iblinkconffromfabric_OBJECTS) $(src_iblinkconffromfabric_LDADD) $(LIBS)
-src/ibparselinkconf$(EXEEXT): $(src_ibparselinkconf_OBJECTS) $(src_ibparselinkconf_DEPENDENCIES) src/$(am__dirstamp)
-	@rm -f src/ibparselinkconf$(EXEEXT)
-	$(LINK) $(src_ibparselinkconf_LDFLAGS) $(src_ibparselinkconf_OBJECTS) $(src_ibparselinkconf_LDADD) $(LIBS)
+src/ibparsefabricconf$(EXEEXT): $(src_ibparsefabricconf_OBJECTS) $(src_ibparsefabricconf_DEPENDENCIES) src/$(am__dirstamp)
+	@rm -f src/ibparsefabricconf$(EXEEXT)
+	$(LINK) $(src_ibparsefabricconf_LDFLAGS) $(src_ibparsefabricconf_OBJECTS) $(src_ibparsefabricconf_LDADD) $(LIBS)
 src/rdma_cm_query$(EXEEXT): $(src_rdma_cm_query_OBJECTS) $(src_rdma_cm_query_DEPENDENCIES) src/$(am__dirstamp)
 	@rm -f src/rdma_cm_query$(EXEEXT)
 	$(LINK) $(src_rdma_cm_query_LDFLAGS) $(src_rdma_cm_query_OBJECTS) $(src_rdma_cm_query_LDADD) $(LIBS)
@@ -554,11 +556,11 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hostlist.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ibchecklinks.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ibfabricconffromfabric.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ibgraphfabric.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/iblinkconffromfabric.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libiblinkconf_la-iblinkconf.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libibfabricconf_la-ibfabricconf.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/slurm_topology.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/src_ibparselinkconf-ibparselinkconf.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/src_ibparsefabricconf-ibparsefabricconf.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/src_rdma_cm_query-rdma_cm_query.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/src_simple_rdma-simple_rdma.Po@am__quote@
 
@@ -583,12 +585,12 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LTCOMPILE) -c -o $@ $<
 
-libiblinkconf_la-iblinkconf.lo: src/iblinkconf.c
-@am__fastdepCC_TRUE@	if $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libiblinkconf_la_CFLAGS) $(CFLAGS) -MT libiblinkconf_la-iblinkconf.lo -MD -MP -MF "$(DEPDIR)/libiblinkconf_la-iblinkconf.Tpo" -c -o libiblinkconf_la-iblinkconf.lo `test -f 'src/iblinkconf.c' || echo '$(srcdir)/'`src/iblinkconf.c; \
-@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/libiblinkconf_la-iblinkconf.Tpo" "$(DEPDIR)/libiblinkconf_la-iblinkconf.Plo"; else rm -f "$(DEPDIR)/libiblinkconf_la-iblinkconf.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/iblinkconf.c' object='libiblinkconf_la-iblinkconf.lo' libtool=yes @AMDEPBACKSLASH@
+libibfabricconf_la-ibfabricconf.lo: src/ibfabricconf.c
+@am__fastdepCC_TRUE@	if $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libibfabricconf_la_CFLAGS) $(CFLAGS) -MT libibfabricconf_la-ibfabricconf.lo -MD -MP -MF "$(DEPDIR)/libibfabricconf_la-ibfabricconf.Tpo" -c -o libibfabricconf_la-ibfabricconf.lo `test -f 'src/ibfabricconf.c' || echo '$(srcdir)/'`src/ibfabricconf.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/libibfabricconf_la-ibfabricconf.Tpo" "$(DEPDIR)/libibfabricconf_la-ibfabricconf.Plo"; else rm -f "$(DEPDIR)/libibfabricconf_la-ibfabricconf.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/ibfabricconf.c' object='libibfabricconf_la-ibfabricconf.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libiblinkconf_la_CFLAGS) $(CFLAGS) -c -o libiblinkconf_la-iblinkconf.lo `test -f 'src/iblinkconf.c' || echo '$(srcdir)/'`src/iblinkconf.c
+@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libibfabricconf_la_CFLAGS) $(CFLAGS) -c -o libibfabricconf_la-ibfabricconf.lo `test -f 'src/ibfabricconf.c' || echo '$(srcdir)/'`src/ibfabricconf.c
 
 ibchecklinks.o: src/ibchecklinks.c
 @am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT ibchecklinks.o -MD -MP -MF "$(DEPDIR)/ibchecklinks.Tpo" -c -o ibchecklinks.o `test -f 'src/ibchecklinks.c' || echo '$(srcdir)/'`src/ibchecklinks.c; \
@@ -618,6 +620,20 @@ hostlist.obj: src/hostlist.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o hostlist.obj `if test -f 'src/hostlist.c'; then $(CYGPATH_W) 'src/hostlist.c'; else $(CYGPATH_W) '$(srcdir)/src/hostlist.c'; fi`
 
+ibfabricconffromfabric.o: src/ibfabricconffromfabric.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT ibfabricconffromfabric.o -MD -MP -MF "$(DEPDIR)/ibfabricconffromfabric.Tpo" -c -o ibfabricconffromfabric.o `test -f 'src/ibfabricconffromfabric.c' || echo '$(srcdir)/'`src/ibfabricconffromfabric.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/ibfabricconffromfabric.Tpo" "$(DEPDIR)/ibfabricconffromfabric.Po"; else rm -f "$(DEPDIR)/ibfabricconffromfabric.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/ibfabricconffromfabric.c' object='ibfabricconffromfabric.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o ibfabricconffromfabric.o `test -f 'src/ibfabricconffromfabric.c' || echo '$(srcdir)/'`src/ibfabricconffromfabric.c
+
+ibfabricconffromfabric.obj: src/ibfabricconffromfabric.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT ibfabricconffromfabric.obj -MD -MP -MF "$(DEPDIR)/ibfabricconffromfabric.Tpo" -c -o ibfabricconffromfabric.obj `if test -f 'src/ibfabricconffromfabric.c'; then $(CYGPATH_W) 'src/ibfabricconffromfabric.c'; else $(CYGPATH_W) '$(srcdir)/src/ibfabricconffromfabric.c'; fi`; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/ibfabricconffromfabric.Tpo" "$(DEPDIR)/ibfabricconffromfabric.Po"; else rm -f "$(DEPDIR)/ibfabricconffromfabric.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/ibfabricconffromfabric.c' object='ibfabricconffromfabric.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o ibfabricconffromfabric.obj `if test -f 'src/ibfabricconffromfabric.c'; then $(CYGPATH_W) 'src/ibfabricconffromfabric.c'; else $(CYGPATH_W) '$(srcdir)/src/ibfabricconffromfabric.c'; fi`
+
 ibgraphfabric.o: src/ibgraphfabric.c
 @am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT ibgraphfabric.o -MD -MP -MF "$(DEPDIR)/ibgraphfabric.Tpo" -c -o ibgraphfabric.o `test -f 'src/ibgraphfabric.c' || echo '$(srcdir)/'`src/ibgraphfabric.c; \
 @am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/ibgraphfabric.Tpo" "$(DEPDIR)/ibgraphfabric.Po"; else rm -f "$(DEPDIR)/ibgraphfabric.Tpo"; exit 1; fi
@@ -632,33 +648,19 @@ ibgraphfabric.obj: src/ibgraphfabric.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o ibgraphfabric.obj `if test -f 'src/ibgraphfabric.c'; then $(CYGPATH_W) 'src/ibgraphfabric.c'; else $(CYGPATH_W) '$(srcdir)/src/ibgraphfabric.c'; fi`
 
-iblinkconffromfabric.o: src/iblinkconffromfabric.c
-@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT iblinkconffromfabric.o -MD -MP -MF "$(DEPDIR)/iblinkconffromfabric.Tpo" -c -o iblinkconffromfabric.o `test -f 'src/iblinkconffromfabric.c' || echo '$(srcdir)/'`src/iblinkconffromfabric.c; \
-@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/iblinkconffromfabric.Tpo" "$(DEPDIR)/iblinkconffromfabric.Po"; else rm -f "$(DEPDIR)/iblinkconffromfabric.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/iblinkconffromfabric.c' object='iblinkconffromfabric.o' libtool=no @AMDEPBACKSLASH@
+src_ibparsefabricconf-ibparsefabricconf.o: src/ibparsefabricconf.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(src_ibparsefabricconf_CFLAGS) $(CFLAGS) -MT src_ibparsefabricconf-ibparsefabricconf.o -MD -MP -MF "$(DEPDIR)/src_ibparsefabricconf-ibparsefabricconf.Tpo" -c -o src_ibparsefabricconf-ibparsefabricconf.o `test -f 'src/ibparsefabricconf.c' || echo '$(srcdir)/'`src/ibparsefabricconf.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/src_ibparsefabricconf-ibparsefabricconf.Tpo" "$(DEPDIR)/src_ibparsefabricconf-ibparsefabricconf.Po"; else rm -f "$(DEPDIR)/src_ibparsefabricconf-ibparsefabricconf.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/ibparsefabricconf.c' object='src_ibparsefabricconf-ibparsefabricconf.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o iblinkconffromfabric.o `test -f 'src/iblinkconffromfabric.c' || echo '$(srcdir)/'`src/iblinkconffromfabric.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(src_ibparsefabricconf_CFLAGS) $(CFLAGS) -c -o src_ibparsefabricconf-ibparsefabricconf.o `test -f 'src/ibparsefabricconf.c' || echo '$(srcdir)/'`src/ibparsefabricconf.c
 
-iblinkconffromfabric.obj: src/iblinkconffromfabric.c
-@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT iblinkconffromfabric.obj -MD -MP -MF "$(DEPDIR)/iblinkconffromfabric.Tpo" -c -o iblinkconffromfabric.obj `if test -f 'src/iblinkconffromfabric.c'; then $(CYGPATH_W) 'src/iblinkconffromfabric.c'; else $(CYGPATH_W) '$(srcdir)/src/iblinkconffromfabric.c'; fi`; \
-@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/iblinkconffromfabric.Tpo" "$(DEPDIR)/iblinkconffromfabric.Po"; else rm -f "$(DEPDIR)/iblinkconffromfabric.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/iblinkconffromfabric.c' object='iblinkconffromfabric.obj' libtool=no @AMDEPBACKSLASH@
+src_ibparsefabricconf-ibparsefabricconf.obj: src/ibparsefabricconf.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(src_ibparsefabricconf_CFLAGS) $(CFLAGS) -MT src_ibparsefabricconf-ibparsefabricconf.obj -MD -MP -MF "$(DEPDIR)/src_ibparsefabricconf-ibparsefabricconf.Tpo" -c -o src_ibparsefabricconf-ibparsefabricconf.obj `if test -f 'src/ibparsefabricconf.c'; then $(CYGPATH_W) 'src/ibparsefabricconf.c'; else $(CYGPATH_W) '$(srcdir)/src/ibparsefabricconf.c'; fi`; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/src_ibparsefabricconf-ibparsefabricconf.Tpo" "$(DEPDIR)/src_ibparsefabricconf-ibparsefabricconf.Po"; else rm -f "$(DEPDIR)/src_ibparsefabricconf-ibparsefabricconf.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/ibparsefabricconf.c' object='src_ibparsefabricconf-ibparsefabricconf.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o iblinkconffromfabric.obj `if test -f 'src/iblinkconffromfabric.c'; then $(CYGPATH_W) 'src/iblinkconffromfabric.c'; else $(CYGPATH_W) '$(srcdir)/src/iblinkconffromfabric.c'; fi`
-
-src_ibparselinkconf-ibparselinkconf.o: src/ibparselinkconf.c
-@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(src_ibparselinkconf_CFLAGS) $(CFLAGS) -MT src_ibparselinkconf-ibparselinkconf.o -MD -MP -MF "$(DEPDIR)/src_ibparselinkconf-ibparselinkconf.Tpo" -c -o src_ibparselinkconf-ibparselinkconf.o `test -f 'src/ibparselinkconf.c' || echo '$(srcdir)/'`src/ibparselinkconf.c; \
-@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/src_ibparselinkconf-ibparselinkconf.Tpo" "$(DEPDIR)/src_ibparselinkconf-ibparselinkconf.Po"; else rm -f "$(DEPDIR)/src_ibparselinkconf-ibparselinkconf.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/ibparselinkconf.c' object='src_ibparselinkconf-ibparselinkconf.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(src_ibparselinkconf_CFLAGS) $(CFLAGS) -c -o src_ibparselinkconf-ibparselinkconf.o `test -f 'src/ibparselinkconf.c' || echo '$(srcdir)/'`src/ibparselinkconf.c
-
-src_ibparselinkconf-ibparselinkconf.obj: src/ibparselinkconf.c
-@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(src_ibparselinkconf_CFLAGS) $(CFLAGS) -MT src_ibparselinkconf-ibparselinkconf.obj -MD -MP -MF "$(DEPDIR)/src_ibparselinkconf-ibparselinkconf.Tpo" -c -o src_ibparselinkconf-ibparselinkconf.obj `if test -f 'src/ibparselinkconf.c'; then $(CYGPATH_W) 'src/ibparselinkconf.c'; else $(CYGPATH_W) '$(srcdir)/src/ibparselinkconf.c'; fi`; \
-@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/src_ibparselinkconf-ibparselinkconf.Tpo" "$(DEPDIR)/src_ibparselinkconf-ibparselinkconf.Po"; else rm -f "$(DEPDIR)/src_ibparselinkconf-ibparselinkconf.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/ibparselinkconf.c' object='src_ibparselinkconf-ibparselinkconf.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(src_ibparselinkconf_CFLAGS) $(CFLAGS) -c -o src_ibparselinkconf-ibparselinkconf.obj `if test -f 'src/ibparselinkconf.c'; then $(CYGPATH_W) 'src/ibparselinkconf.c'; else $(CYGPATH_W) '$(srcdir)/src/ibparselinkconf.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(src_ibparsefabricconf_CFLAGS) $(CFLAGS) -c -o src_ibparsefabricconf-ibparsefabricconf.obj `if test -f 'src/ibparsefabricconf.c'; then $(CYGPATH_W) 'src/ibparsefabricconf.c'; else $(CYGPATH_W) '$(srcdir)/src/ibparsefabricconf.c'; fi`
 
 src_rdma_cm_query-rdma_cm_query.o: src/rdma_cm_query.c
 @am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(src_rdma_cm_query_CFLAGS) $(CFLAGS) -MT src_rdma_cm_query-rdma_cm_query.o -MD -MP -MF "$(DEPDIR)/src_rdma_cm_query-rdma_cm_query.Tpo" -c -o src_rdma_cm_query-rdma_cm_query.o `test -f 'src/rdma_cm_query.c' || echo '$(srcdir)/'`src/rdma_cm_query.c; \
@@ -756,22 +758,22 @@ uninstall-man8:
 	  echo " rm -f '$(DESTDIR)$(man8dir)/$$inst'"; \
 	  rm -f "$(DESTDIR)$(man8dir)/$$inst"; \
 	done
-install-libiblinkconfincludeHEADERS: $(libiblinkconfinclude_HEADERS)
+install-libibfabricconfincludeHEADERS: $(libibfabricconfinclude_HEADERS)
 	@$(NORMAL_INSTALL)
-	test -z "$(libiblinkconfincludedir)" || $(mkdir_p) "$(DESTDIR)$(libiblinkconfincludedir)"
-	@list='$(libiblinkconfinclude_HEADERS)'; for p in $$list; do \
+	test -z "$(libibfabricconfincludedir)" || $(mkdir_p) "$(DESTDIR)$(libibfabricconfincludedir)"
+	@list='$(libibfabricconfinclude_HEADERS)'; for p in $$list; do \
 	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
 	  f=$(am__strip_dir) \
-	  echo " $(libiblinkconfincludeHEADERS_INSTALL) '$$d$$p' '$(DESTDIR)$(libiblinkconfincludedir)/$$f'"; \
-	  $(libiblinkconfincludeHEADERS_INSTALL) "$$d$$p" "$(DESTDIR)$(libiblinkconfincludedir)/$$f"; \
+	  echo " $(libibfabricconfincludeHEADERS_INSTALL) '$$d$$p' '$(DESTDIR)$(libibfabricconfincludedir)/$$f'"; \
+	  $(libibfabricconfincludeHEADERS_INSTALL) "$$d$$p" "$(DESTDIR)$(libibfabricconfincludedir)/$$f"; \
 	done
 
-uninstall-libiblinkconfincludeHEADERS:
+uninstall-libibfabricconfincludeHEADERS:
 	@$(NORMAL_UNINSTALL)
-	@list='$(libiblinkconfinclude_HEADERS)'; for p in $$list; do \
+	@list='$(libibfabricconfinclude_HEADERS)'; for p in $$list; do \
 	  f=$(am__strip_dir) \
-	  echo " rm -f '$(DESTDIR)$(libiblinkconfincludedir)/$$f'"; \
-	  rm -f "$(DESTDIR)$(libiblinkconfincludedir)/$$f"; \
+	  echo " rm -f '$(DESTDIR)$(libibfabricconfincludedir)/$$f'"; \
+	  rm -f "$(DESTDIR)$(libibfabricconfincludedir)/$$f"; \
 	done
 
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
@@ -954,7 +956,7 @@ check: check-am
 all-am: Makefile $(LTLIBRARIES) $(PROGRAMS) $(SCRIPTS) $(MANS) \
 		$(HEADERS)
 installdirs:
-	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(sbindir)" "$(DESTDIR)$(sbindir)" "$(DESTDIR)$(man8dir)" "$(DESTDIR)$(libiblinkconfincludedir)"; do \
+	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(sbindir)" "$(DESTDIR)$(sbindir)" "$(DESTDIR)$(man8dir)" "$(DESTDIR)$(libibfabricconfincludedir)"; do \
 	  test -z "$$dir" || $(mkdir_p) "$$dir"; \
 	done
 install: install-am
@@ -1004,7 +1006,7 @@ info: info-am
 
 info-am:
 
-install-data-am: install-libiblinkconfincludeHEADERS install-man
+install-data-am: install-libibfabricconfincludeHEADERS install-man
 
 install-exec-am: install-libLTLIBRARIES install-sbinPROGRAMS \
 	install-sbinSCRIPTS
@@ -1038,7 +1040,7 @@ ps: ps-am
 ps-am:
 
 uninstall-am: uninstall-info-am uninstall-libLTLIBRARIES \
-	uninstall-libiblinkconfincludeHEADERS uninstall-man \
+	uninstall-libibfabricconfincludeHEADERS uninstall-man \
 	uninstall-sbinPROGRAMS uninstall-sbinSCRIPTS
 
 uninstall-man: uninstall-man8
@@ -1052,14 +1054,14 @@ uninstall-man: uninstall-man8
 	distuninstallcheck dvi dvi-am html html-am info info-am \
 	install install-am install-data install-data-am install-exec \
 	install-exec-am install-exec-hook install-info install-info-am \
-	install-libLTLIBRARIES install-libiblinkconfincludeHEADERS \
+	install-libLTLIBRARIES install-libibfabricconfincludeHEADERS \
 	install-man install-man8 install-sbinPROGRAMS \
 	install-sbinSCRIPTS install-strip installcheck installcheck-am \
 	installdirs maintainer-clean maintainer-clean-generic \
 	mostlyclean mostlyclean-compile mostlyclean-generic \
 	mostlyclean-libtool pdf pdf-am ps ps-am tags uninstall \
 	uninstall-am uninstall-info-am uninstall-libLTLIBRARIES \
-	uninstall-libiblinkconfincludeHEADERS uninstall-man \
+	uninstall-libibfabricconfincludeHEADERS uninstall-man \
 	uninstall-man8 uninstall-sbinPROGRAMS uninstall-sbinSCRIPTS
 
 
@@ -1068,7 +1070,7 @@ install-exec-hook:
 	$(top_srcdir)/config/install-sh -m 755 $(top_builddir)/scripts/ibsrp $(DESTDIR)/$(sysconfdir)/init.d/ibsrp
 	$(top_srcdir)/config/install-sh -m 755 $(top_builddir)/sysconf/ibsrp.conf $(DESTDIR)/$(sysconfdir)/sysconfig/ibsrp.conf
 	$(top_srcdir)/config/install-sh -m 644 $(top_builddir)/etc/pragmaticIB.conf $(DESTDIR)/$(sysconfdir)/pragmaticIB/pragmaticIB.conf
-	for file in $(top_builddir)/chassis_linkconf/*.xml; do \
+	for file in $(top_builddir)/chassis_fabricconf/*.xml; do \
 		$(top_srcdir)/config/install-sh -m 644 $$file $(DESTDIR)/$(sysconfdir)/pragmaticIB/; \
 	done
 # Tell versions [3.59,3.63) of GNU make to not export all variables.

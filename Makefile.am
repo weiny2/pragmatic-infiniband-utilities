@@ -14,14 +14,14 @@ ACLOCAL_AMFLAGS = -I config
 
 AM_CFLAGS = -Wall $(DBGFLAGS)
 
-lib_LTLIBRARIES = libiblinkconf.la
+lib_LTLIBRARIES = libibfabricconf.la
 
 sbin_PROGRAMS = src/simple_rdma \
 					src/rdma_cm_query \
 					src/slurm_topology \
 					src/ibgraphfabric \
-					src/iblinkconffromfabric \
-					src/ibparselinkconf \
+					src/ibfabricconffromfabric \
+					src/ibparsefabricconf \
 					src/ibchecklinks
 
 mySCRIPTS = scripts/ibgetgid \
@@ -52,7 +52,7 @@ man_MANS = man/ibbouncelinks.8 \
 				man/ibtrackerrors.8 \
 				man/ibhcacounters.8 \
 				man/ibsrp.8 \
-				man/ibparselinkconf.8
+				man/ibparsefabricconf.8
 
 sbin_SCRIPTS = $(mySCRIPTS)
 
@@ -70,26 +70,26 @@ src_slurm_topology_LDFLAGS = -losmcomp -libmad -libnetdisc $(LIBGENDERS)
 src_ibgraphfabric_SOURCES = src/ibgraphfabric.c src/hostlist.c src/hostlist.h
 src_ibgraphfabric_LDFLAGS = -losmcomp -libmad -libnetdisc
 
-src_iblinkconffromfabric_SOURCES = src/iblinkconffromfabric.c
-src_iblinkconffromfabric_LDFLAGS = -losmcomp -libmad -libnetdisc
+src_ibfabricconffromfabric_SOURCES = src/ibfabricconffromfabric.c
+src_ibfabricconffromfabric_LDFLAGS = -losmcomp -libmad -libnetdisc
 
-libiblinkconf_la_SOURCES = src/iblinkconf.c
-libiblinkconf_la_CFLAGS = -I/usr/include/libxml2 -Wall $(DBGFLAGS)
-libiblinkconf_la_LDFLAGS = -version-info $(iblinkconf_api_version) \
-	-export-dynamic $(libiblinkconf_version_script) \
+libibfabricconf_la_SOURCES = src/ibfabricconf.c
+libibfabricconf_la_CFLAGS = -I/usr/include/libxml2 -Wall $(DBGFLAGS)
+libibfabricconf_la_LDFLAGS = -version-info $(ibfabricconf_api_version) \
+	-export-dynamic $(libibfabricconf_version_script) \
 	-libmad -lxml2 -lz -lm
-libiblinkconf_la_DEPENDENCIES = src/libiblinkconf.map
+libibfabricconf_la_DEPENDENCIES = src/libibfabricconf.map
 
-libiblinkconfincludedir = $(includedir)/infiniband
+libibfabricconfincludedir = $(includedir)/infiniband
 
-libiblinkconfinclude_HEADERS = include/infiniband/iblinkconf.h
+libibfabricconfinclude_HEADERS = include/infiniband/ibfabricconf.h
 
-src_ibparselinkconf_SOURCES = src/ibparselinkconf.c
-src_ibparselinkconf_CFLAGS = -I$(includedir)
-src_ibparselinkconf_LDFLAGS = -liblinkconf
+src_ibparsefabricconf_SOURCES = src/ibparsefabricconf.c
+src_ibparsefabricconf_CFLAGS = -I$(includedir)
+src_ibparsefabricconf_LDFLAGS = -libfabricconf
 
 src_ibchecklinks_SOURCES = src/ibchecklinks.c src/hostlist.c src/hostlist.h
-src_ibchecklinks_LDFLAGS = -losmcomp -libmad -libnetdisc -liblinkconf
+src_ibchecklinks_LDFLAGS = -losmcomp -libmad -libnetdisc -libfabricconf
 
 
 EXTRA_DIST = \
@@ -101,16 +101,16 @@ EXTRA_DIST = \
 	scripts \
 	sysconf/ibsrp.conf \
 	etc/pragmaticIB.conf \
-	chassis_linkconf \
-	src/libiblinkconf.map \
-	libiblinkconf.ver
+	chassis_fabricconf \
+	src/libibfabricconf.map \
+	libibfabricconf.ver
 
 install-exec-hook:
 	$(top_srcdir)/config/install-sh -m 755 -d $(DESTDIR)/$(sysconfdir)/init.d
 	$(top_srcdir)/config/install-sh -m 755 $(top_builddir)/scripts/ibsrp $(DESTDIR)/$(sysconfdir)/init.d/ibsrp
 	$(top_srcdir)/config/install-sh -m 755 $(top_builddir)/sysconf/ibsrp.conf $(DESTDIR)/$(sysconfdir)/sysconfig/ibsrp.conf
 	$(top_srcdir)/config/install-sh -m 644 $(top_builddir)/etc/pragmaticIB.conf $(DESTDIR)/$(sysconfdir)/pragmaticIB/pragmaticIB.conf
-	for file in $(top_builddir)/chassis_linkconf/*.xml; do \
+	for file in $(top_builddir)/chassis_fabricconf/*.xml; do \
 		$(top_srcdir)/config/install-sh -m 644 $$file $(DESTDIR)/$(sysconfdir)/pragmaticIB/; \
 	done
 

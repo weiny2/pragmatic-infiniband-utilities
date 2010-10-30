@@ -50,12 +50,12 @@ AC_CACHE_CHECK(whether ld accepts --version-script, ac_cv_version_script,
         ac_cv_version_script=no
     fi)
 
-iblinkconf_api_version=`grep LIBVERSION $srcdir/libiblinkconf.ver | sed 's/LIBVERSION=//'`
-if test -z $iblinkconf_api_version; then
-   echo "FAILED to find $srcdir/libiblinkconf.ver"
+ibfabricconf_api_version=`grep LIBVERSION $srcdir/libibfabricconf.ver | sed 's/LIBVERSION=//'`
+if test -z $ibfabricconf_api_version; then
+   echo "FAILED to find $srcdir/libibfabricconf.ver"
    exit 1
 fi
-AC_SUBST(iblinkconf_api_version)
+AC_SUBST(ibfabricconf_api_version)
 
 
 if test $genders = yes; then
@@ -103,7 +103,7 @@ AC_CONFIG_FILES([Makefile
                man/ibsrp.8
                man/ibtrackerrors.8
                man/ibhcacounters.8
-               man/ibparselinkconf.8
-               include/infiniband/iblinkconf.h
+               man/ibparsefabricconf.8
+               include/infiniband/ibfabricconf.h
                ])
 AC_OUTPUT

@@ -30,9 +30,9 @@
 #include <getopt.h>
 #include <string.h>
 #include <iba/ib_types.h>
-#include <infiniband/iblinkconf.h>
+#include <infiniband/ibfabricconf.h>
 
-char *linkconf_file = NULL;
+char *fabricconf_file = NULL;
 char *argv0 = NULL;
 
 char *delim_out = NULL;
@@ -79,29 +79,29 @@ char *linkwidth_str(int width)
 }
 
 void
-print_port(iblink_port_t *port, void *user_data)
+print_port(ibfc_port_t *port, void *user_data)
 {
 	char prop[256];
 	if (delim_out)
 		printf("%s%s%d%s%d%s%s%s%s%s%s\n",
-			iblink_port_get_name(port),
+			ibfc_port_get_name(port),
 			delim_out,
-			iblink_port_get_port_num(port),
+			ibfc_port_get_port_num(port),
 			delim_out,
-			iblink_port_get_port_num(iblink_port_get_remote(port)),
+			ibfc_port_get_port_num(ibfc_port_get_remote(port)),
 			delim_out,
-			iblink_port_get_name(iblink_port_get_remote(port)),
+			ibfc_port_get_name(ibfc_port_get_remote(port)),
 			delim_out,
-			linkspeed_str(iblink_prop_get_speed(iblink_port_get_prop(port))),
+			linkspeed_str(ibfc_prop_get_speed(ibfc_port_get_prop(port))),
 			delim_out,
-			linkwidth_str(iblink_prop_get_width(iblink_port_get_prop(port))));
+			linkwidth_str(ibfc_prop_get_width(ibfc_port_get_prop(port))));
 	else
 		printf ("\"%30s\" %4d  ==(%s)==>  %4d \"%s\"\n",
-			iblink_port_get_name(port),
-			iblink_port_get_port_num(port),
-			iblink_prop_str(port, prop, 256),
-			iblink_port_get_port_num(iblink_port_get_remote(port)),
-			iblink_port_get_name(iblink_port_get_remote(port))
+			ibfc_port_get_name(port),
+			ibfc_port_get_port_num(port),
+			ibfc_prop_str(port, prop, 256),
+			ibfc_port_get_port_num(ibfc_port_get_remote(port)),
+			ibfc_port_get_name(ibfc_port_get_remote(port))
 			);
 }
 
@@ -112,19 +112,19 @@ usage(void)
 {
         fprintf(stderr,
 "%s [options] [node] [port]\n"
-"Usage: parse the linkconf file\n"
+"Usage: parse the fabricconf file\n"
 "\n"
 "Options:\n"
-"  --conf, -c <file> Use an alternate link config file (default: %s)\n"
-"  --warn_dup, -w If duplicated link configs are found warn about them\n"
+"  --conf, -c <file> Use an alternate fabric config file (default: %s)\n"
+"  --warn_dup, -w If duplicated fabric configs are found warn about them\n"
 "  --check_dup only print duplicates\n"
 "  --delim_out, -d <deliminator> output colums deliminated by <deliminator>\n"
 "  [node] if node is specified print ports for that node\n"
 "  [port] if port is specified print information for just that port (default \"all\")\n"
-"         if neither node nor port is specified print all links in config file\n"
+"         if neither node nor port is specified print entire config file\n"
 "\n"
 , argv0,
-IBLINK_DEF_CONFIG
+IBFC_DEF_CONFIG
 );
         return (0);
 }
@@ -133,7 +133,7 @@ IBLINK_DEF_CONFIG
 int
 main(int argc, char **argv)
 {
-	iblink_conf_t *linkconf;
+	ibfc_conf_t *fabricconf;
 	int rc = 0;
 	int warn_dup = 0;
 	int check_dup = 0;
@@ -156,7 +156,7 @@ main(int argc, char **argv)
                 switch (ch)
                 {
 			case 'c':
-				linkconf_file = strdup(optarg);
+				fabricconf_file = strdup(optarg);
 				break;
 			case 'w':
 				warn_dup = 1;
@@ -176,21 +176,21 @@ main(int argc, char **argv)
 	argc -= optind;
 	argv += optind;
 
-	linkconf = iblink_alloc_conf();
-	if (!linkconf) {
-		fprintf(stderr, "ERROR: Failed to alloc linkconf\n");
+	fabricconf = ibfc_alloc_conf();
+	if (!fabricconf) {
+		fprintf(stderr, "ERROR: Failed to alloc fabricconf\n");
 		exit(1);
 	}
 
 	if (check_dup)
-		iblink_set_stderr(linkconf, stdout);
+		ibfc_set_stderr(fabricconf, stdout);
 
-	iblink_set_warn_dup(linkconf, warn_dup | check_dup);
-	rc = iblink_parse_file(linkconf_file, linkconf);
+	ibfc_set_warn_dup(fabricconf, warn_dup | check_dup);
+	rc = ibfc_parse_file(fabricconf_file, fabricconf);
 
 	if (rc) {
-		fprintf(stderr, "ERROR: failed to parse link config "
-			"\"%s\":%s\n", linkconf_file, strerror(rc));
+		fprintf(stderr, "ERROR: failed to parse fabric config "
+			"\"%s\":%s\n", fabricconf_file, strerror(rc));
 		return (rc);
 	}
 
@@ -198,43 +198,43 @@ main(int argc, char **argv)
 		goto done;
 
 	if (delim_out) {
-		printf("Fabric Name%s%s\n", delim_out, iblink_conf_get_name(linkconf));
+		printf("Fabric Name%s%s\n", delim_out, ibfc_conf_get_name(fabricconf));
 		printf("Node%sPort%sRem Port%sRem Node%sSpeed%sWidth\n",
 			delim_out, delim_out, delim_out, delim_out, delim_out);
 	} else
-		printf("Fabric Name: %s\n", iblink_conf_get_name(linkconf));
+		printf("Fabric Name: %s\n", ibfc_conf_get_name(fabricconf));
 
 	if (argv[0]) {
 		char prop[256];
 		int p_num = 1;
 		if (argv[1]) {
 			p_num = strtol(argv[1], NULL, 0);
-			iblink_port_t *port = iblink_get_port(linkconf, argv[0], p_num);
+			ibfc_port_t *port = ibfc_get_port(fabricconf, argv[0], p_num);
 			if (port)
 				print_port(port, NULL);
 			else
 				fprintf (stderr, "ERROR: \"%s\":%d port not found\n",
 					argv[0], p_num);
 		} else {
-			iblink_port_list_t *port_list;
-			int rc = iblink_get_port_list(linkconf, argv[0],
+			ibfc_port_list_t *port_list;
+			int rc = ibfc_get_port_list(fabricconf, argv[0],
 							&port_list);
 			if (rc) {
 				fprintf(stderr, "ERROR: Failed to get port "
 					"list for \"%s\":%s\n",
 					argv[0], strerror(rc));
 			} else {
-				iblink_iter_port_list(port_list, print_port,
+				ibfc_iter_port_list(port_list, print_port,
 							NULL);
-				iblink_free_port_list(port_list);
+				ibfc_free_port_list(port_list);
 			}
 		}
 	} else {
-		iblink_iter_ports(linkconf, print_port, NULL);
+		ibfc_iter_ports(fabricconf, print_port, NULL);
 	}
 
 done:
-	iblink_free(linkconf);
+	ibfc_free(fabricconf);
 
 	return (rc);
 }

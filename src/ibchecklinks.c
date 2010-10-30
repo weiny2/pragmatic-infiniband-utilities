@@ -48,14 +48,14 @@
 
 #include <complib/cl_nodenamemap.h>
 #include <infiniband/ibnetdisc.h>
-#include <infiniband/iblinkconf.h>
+#include <infiniband/ibfabricconf.h>
 
 #include "hostlist.h"
 
 static char *node_name_map_file = NULL;
 static nn_map_t *node_name_map = NULL;
-static iblink_conf_t *linkconf = NULL;
-static char *linkconffile = NULL;
+static ibfc_conf_t *fabricconf = NULL;
+static char *fabricconffile = NULL;
 static char *ibd_ca = NULL;
 static int ibd_ca_port = 1;
 static int ibd_timeout = 100;
@@ -216,7 +216,7 @@ void get_msg(char *width_msg, char *speed_msg, int msg_size, ibnd_port_t * port)
 }
 
 void print_port(char *node_name, ibnd_node_t * node, ibnd_port_t * port,
-		iblink_port_t *linkport, int inc_attributes)
+		ibfc_port_t *portconf, int inc_attributes)
 {
 	char width[64], speed[64], state[64], physstate[64];
 	char remote_guid_str[256];
@@ -288,19 +288,19 @@ void print_port(char *node_name, ibnd_node_t * node, ibnd_port_t * port,
 			 port->remoteport->portnum, ext_port_str, remap,
 			 width_msg, speed_msg);
 		free(remap);
-	} else if (linkport) {
+	} else if (portconf) {
 		char prop[256];
-		if (iblink_port_num_dont_care(linkport))
+		if (ibfc_port_num_dont_care(portconf))
 			snprintf(remote_str, 256,
 			" <don't care> \"%s\" (Should be: %s Active)\n",
-				iblink_port_get_name(linkport),
-				iblink_prop_str(linkport, prop, 256));
+				ibfc_port_get_name(portconf),
+				ibfc_prop_str(portconf, prop, 256));
 		else
 			snprintf(remote_str, 256,
 			" %4d \"%s\" (Should be: %s Active)\n",
-				iblink_port_get_port_num(linkport),
-				iblink_port_get_name(linkport),
-				iblink_prop_str(linkport, prop, 256));
+				ibfc_port_get_port_num(portconf),
+				ibfc_port_get_name(portconf),
+				ibfc_prop_str(portconf, prop, 256));
 	} else
 		snprintf(remote_str, 256, " [  ] \"\" ( )\n");
 
@@ -321,23 +321,23 @@ void print_port(char *node_name, ibnd_node_t * node, ibnd_port_t * port,
 }
 
 void
-print_config_port(iblink_port_t *port)
+print_config_port(ibfc_port_t *port)
 {
 	printf ("\"%s\" %d  <==>  ",
-		iblink_port_get_name(port),
-		iblink_port_get_port_num(port));
+		ibfc_port_get_name(port),
+		ibfc_port_get_port_num(port));
 
-	if (iblink_port_num_dont_care(iblink_port_get_remote(port)))
+	if (ibfc_port_num_dont_care(ibfc_port_get_remote(port)))
 		printf ("<don't care> ");
 	else
 		printf ("%4d ",
-			iblink_port_get_port_num(iblink_port_get_remote(port)));
+			ibfc_port_get_port_num(ibfc_port_get_remote(port)));
 
 	printf ("\"%s\"\n",
-		iblink_port_get_name(iblink_port_get_remote(port)));
+		ibfc_port_get_name(ibfc_port_get_remote(port)));
 }
 
-void compare_port(iblink_port_t *linkport, char *node_name, ibnd_node_t *node, ibnd_port_t *port)
+void compare_port(ibfc_port_t *portconf, char *node_name, ibnd_node_t *node, ibnd_port_t *port)
 {
 	int iwidth, ispeed, istate, iphysstate;
 
@@ -346,23 +346,25 @@ void compare_port(iblink_port_t *linkport, char *node_name, ibnd_node_t *node, i
 	istate = mad_get_field(port->info, 0, IB_PORT_STATE_F);
 	iphysstate = mad_get_field(port->info, 0, IB_PORT_PHYS_STATE_F);
 
-	iblink_port_t *rem_linkport = iblink_port_get_remote(linkport);
+	ibfc_port_t *rem_portconf = ibfc_port_get_remote(portconf);
 
 	if (istate != IB_LINK_ACTIVE) {
 		if (hostlist_find(downhosts_list,
-				iblink_port_get_name(rem_linkport)) == -1) {
+				ibfc_port_get_name(rem_portconf)) == -1) {
 			if (iphysstate == IB_PORT_PHYS_STATE_DISABLED)
 				printf("ERR: port disabled: ");
 			else
 				printf("ERR: port down    : ");
-			print_port(node_name, node, port, rem_linkport, 0);
+			print_port(node_name, node, port, rem_portconf, 0);
 		}
 	} else {
 		char str[64];
-		int conf_width = iblink_prop_get_width(iblink_port_get_prop(linkport));
-		int conf_speed = iblink_prop_get_speed(iblink_port_get_prop(linkport));
-		int rem_port_num = iblink_port_get_port_num(rem_linkport);
-		char *rem_node_name = iblink_port_get_name(rem_linkport);
+		int conf_width = ibfc_prop_get_width(
+					ibfc_port_get_prop(portconf));
+		int conf_speed = ibfc_prop_get_speed(
+					ibfc_port_get_prop(portconf));
+		int rem_port_num = ibfc_port_get_port_num(rem_portconf);
+		char *rem_node_name = ibfc_port_get_name(rem_portconf);
 		char *rem_remap = NULL;
 		ibnd_port_t *remport = port->remoteport;
 
@@ -383,20 +385,20 @@ void compare_port(iblink_port_t *linkport, char *node_name, ibnd_node_t *node, i
 			rem_remap = remap_node_name(node_name_map,
 					port->remoteport->node->guid,
 					port->remoteport->node->nodedesc);
-			if ((!iblink_port_name_dont_care(rem_linkport) &&
+			if ((!ibfc_port_name_dont_care(rem_portconf) &&
 			    strcmp(rem_node_name, rem_remap) != 0)
 			    ||
-			    (!iblink_port_num_dont_care(rem_linkport) &&
+			    (!ibfc_port_num_dont_care(rem_portconf) &&
 			    rem_port_num != port->remoteport->portnum)) {
 				printf("ERR: invalid link : ");
 				print_port(node_name, node, port, NULL, 0);
 				printf("     Should be    : ");
-				print_config_port(linkport);
+				print_config_port(portconf);
 			}
 			free(rem_remap);
 		} else {
 			fprintf(stderr, "ERR: query failure: ");
-			print_port(node_name, node, port, rem_linkport, 1);
+			print_port(node_name, node, port, rem_portconf, 1);
 		}
 	}
 }
@@ -404,12 +406,12 @@ void compare_port(iblink_port_t *linkport, char *node_name, ibnd_node_t *node, i
 void check_config(char *node_name, ibnd_node_t *node, ibnd_port_t *port)
 {
 	int istate;
-	iblink_port_t *linkport = NULL;
+	ibfc_port_t *portconf = NULL;
 
-	linkport = iblink_get_port(linkconf, node_name, port->portnum);
+	portconf = ibfc_get_port(fabricconf, node_name, port->portnum);
 	istate = mad_get_field(port->info, 0, IB_PORT_STATE_F);
-	if (linkport) {
-		compare_port(linkport, node_name, node, port);
+	if (portconf) {
+		compare_port(portconf, node_name, node, port);
 	} else if (istate == IB_LINK_ACTIVE) {
 		char *remote_name = NULL;
 		ibnd_node_t *remnode;
@@ -423,9 +425,9 @@ void check_config(char *node_name, ibnd_node_t *node, ibnd_port_t *port)
 		remnode = remport->node;
 		remote_name = remap_node_name(node_name_map, remnode->guid,
 					remnode->nodedesc);
-		linkport = iblink_get_port(linkconf, remote_name, remport->portnum);
-		if (linkport) {
-			compare_port(linkport, remote_name, remnode, remport);
+		portconf = ibfc_get_port(fabricconf, remote_name, remport->portnum);
+		if (portconf) {
+			compare_port(portconf, remote_name, remnode, remport);
 		} else {
 invalid_active:
 			printf("ERR: Unconfigured active link: ");
@@ -481,7 +483,7 @@ void check_port(char *node_name, ibnd_node_t * node, ibnd_port_t * port)
 		print_port(node_name, node, port, NULL, 1);
 	}
 
-	if (linkconf)
+	if (fabricconf)
 		check_config(node_name, node, port);
 }
 
@@ -513,11 +515,11 @@ int usage(void)
 {
         fprintf(stderr,
 "%s [options]\n"
-"Usage: Check fabric and compare to link config file\n"
+"Usage: Check fabric and compare to fabric config file\n"
 "\n"
 "Options:\n"
-"  --config, -c <config> Use an alternate link config file (default: %s)\n"
-"  --warn_dup, -w If duplicated link configs are found warn about them\n"
+"  --config, -c <config> Use an alternate fabric config file (default: %s)\n"
+"  --warn_dup, -w print warning about duplicate links found in fabric config\n"
 "  --downhosts <hostlist> specify hosts which are known to be off"
 "  -S <guid> generate for the node specified by the port guid\n"
 "  -G <guid> Same as \"-S\" for compatibility with other diags\n"
@@ -531,7 +533,7 @@ int usage(void)
 "  --timeout, -t <ms>    timeout in ms\n"
 "\n"
 , argv0
-, IBLINK_DEF_CONFIG
+, IBFC_DEF_CONFIG
 );
         return (0);
 }
@@ -601,7 +603,7 @@ int main(int argc, char **argv)
 				config.max_smps = atoi(optarg);
 				break;
 			case 'c':
-				linkconffile = strdup(optarg);
+				fabricconffile = strdup(optarg);
 				break;
 			case 's':
 				/* srcport is not required when resolving via IB_DEST_LID */
@@ -624,17 +626,17 @@ int main(int argc, char **argv)
 
 	downhosts_list = hostlist_create(downhosts);
 
-	linkconf = iblink_alloc_conf();
-	if (!linkconf) {
-		fprintf(stderr, "ERROR: Failed to alloc linkconf\n");
+	fabricconf = ibfc_alloc_conf();
+	if (!fabricconf) {
+		fprintf(stderr, "ERROR: Failed to alloc fabricconf\n");
 		exit(1);
 	}
-	iblink_set_warn_dup(linkconf, warn_dup);
+	ibfc_set_warn_dup(fabricconf, warn_dup);
 
-	if (iblink_parse_file(linkconffile, linkconf)) {
+	if (ibfc_parse_file(fabricconffile, fabricconf)) {
 		fprintf(stderr, "WARN: Failed to parse link config file...\n");
-		iblink_free(linkconf);
-		linkconf = NULL;
+		ibfc_free(fabricconf);
+		fabricconf = NULL;
 	}
 
 	ibmad_port = mad_rpc_open_port(ibd_ca, ibd_ca_port, mgmt_classes, 3);
@@ -719,7 +721,7 @@ int main(int argc, char **argv)
 close_port:
 	close_node_name_map(node_name_map);
 	mad_rpc_close_port(ibmad_port);
-	iblink_free(linkconf);
+	ibfc_free(fabricconf);
 	free_seen();
 	exit(rc);
 }
