@@ -215,7 +215,8 @@ void get_msg(char *width_msg, char *speed_msg, int msg_size, ibnd_port_t * port)
 				      buf, 64, &max_speed));
 }
 
-void print_port(char *node_name, ibnd_node_t * node, ibnd_port_t * port, iblink_port_t *linkport)
+void print_port(char *node_name, ibnd_node_t * node, ibnd_port_t * port,
+		iblink_port_t *linkport, int inc_attributes)
 {
 	char width[64], speed[64], state[64], physstate[64];
 	char remote_guid_str[256];
@@ -241,23 +242,26 @@ void print_port(char *node_name, ibnd_node_t * node, ibnd_port_t * port, iblink_
 	width_msg[0] = '\0';
 	speed_msg[0] = '\0';
 
-	/* C14-24.2.1 states that a down port allows for invalid data to be
-	 * returned for all PortInfo components except PortState and
-	 * PortPhysicalState */
-	if (istate != IB_LINK_DOWN) {
-		n = snprintf(link_str, 256, "(%3s %9s %6s/%8s)",
-		     mad_dump_val(IB_PORT_LINK_WIDTH_ACTIVE_F, width, 64,
-				  &iwidth),
-		     mad_dump_val(IB_PORT_LINK_SPEED_ACTIVE_F, speed, 64,
-				  &ispeed),
-		     mad_dump_val(IB_PORT_STATE_F, state, 64, &istate),
-		     mad_dump_val(IB_PORT_PHYS_STATE_F, physstate, 64,
-				  &iphystate));
-	} else {
-		n = snprintf(link_str, 256, "(              %6s/%8s)",
-		     mad_dump_val(IB_PORT_STATE_F, state, 64, &istate),
-		     mad_dump_val(IB_PORT_PHYS_STATE_F, physstate, 64,
-				  &iphystate));
+	if (inc_attributes)
+	{
+		/* C14-24.2.1 states that a down port allows for invalid data to be
+		 * returned for all PortInfo components except PortState and
+		 * PortPhysicalState */
+		if (istate != IB_LINK_DOWN) {
+			n = snprintf(link_str, 256, "(%s %s %6s/%8s)",
+			     mad_dump_val(IB_PORT_LINK_WIDTH_ACTIVE_F, width, 64,
+					  &iwidth),
+			     mad_dump_val(IB_PORT_LINK_SPEED_ACTIVE_F, speed, 64,
+					  &ispeed),
+			     mad_dump_val(IB_PORT_STATE_F, state, 64, &istate),
+			     mad_dump_val(IB_PORT_PHYS_STATE_F, physstate, 64,
+					  &iphystate));
+		} else {
+			n = snprintf(link_str, 256, "(%6s/%8s)",
+			     mad_dump_val(IB_PORT_STATE_F, state, 64, &istate),
+			     mad_dump_val(IB_PORT_PHYS_STATE_F, physstate, 64,
+					  &iphystate));
+		}
 	}
 
 	if (port->remoteport) {
@@ -288,18 +292,17 @@ void print_port(char *node_name, ibnd_node_t * node, ibnd_port_t * port, iblink_
 		char prop[256];
 		if (iblink_port_num_dont_care(linkport))
 			snprintf(remote_str, 256,
-			"       <don't care>[  ] \"%s\" (Should be: %s "
-			"Active)\n",
+			" <don't care> \"%s\" (Should be: %s Active)\n",
 				iblink_port_get_name(linkport),
 				iblink_prop_str(linkport, prop, 256));
 		else
 			snprintf(remote_str, 256,
-			"       %4d[  ] \"%s\" (Should be: %s Active)\n",
+			" %4d \"%s\" (Should be: %s Active)\n",
 				iblink_port_get_port_num(linkport),
 				iblink_port_get_name(linkport),
 				iblink_prop_str(linkport, prop, 256));
 	} else
-		snprintf(remote_str, 256, "           [  ] \"\" ( )\n");
+		snprintf(remote_str, 256, " [  ] \"\" ( )\n");
 
 	if (port->ext_portnum)
 		snprintf(ext_port_str, 256, "%d", port->ext_portnum);
@@ -307,20 +310,22 @@ void print_port(char *node_name, ibnd_node_t * node, ibnd_port_t * port, iblink_
 		ext_port_str[0] = '\0';
 
 	printf("0x%016" PRIx64 " \"%s\" ", node->guid, node_name);
-	printf("%6d %4d[%2s] <==%s==>  %s",
-		port->base_lid ?  port->base_lid : port->node->smalid,
-		port->portnum, ext_port_str, link_str, remote_str);
+	if (link_str[0] != '\0')
+		printf("%6d %4d[%2s] <==%s==>  %s",
+			port->base_lid ?  port->base_lid : port->node->smalid,
+			port->portnum, ext_port_str, link_str, remote_str);
+	else
+		printf("%6d %4d[%2s] <==>  %s",
+			port->base_lid ?  port->base_lid : port->node->smalid,
+			port->portnum, ext_port_str, remote_str);
 }
 
 void
 print_config_port(iblink_port_t *port)
 {
-	char prop[256];
-
-	printf ("\"%s\" %d  <==(%s)==>  ",
+	printf ("\"%s\" %d  <==>  ",
 		iblink_port_get_name(port),
-		iblink_port_get_port_num(port),
-		iblink_prop_str(port, prop, 256));
+		iblink_port_get_port_num(port));
 
 	if (iblink_port_num_dont_care(iblink_port_get_remote(port)))
 		printf ("<don't care> ");
@@ -349,8 +354,8 @@ void compare_port(iblink_port_t *linkport, char *node_name, ibnd_node_t *node, i
 			if (iphysstate == IB_PORT_PHYS_STATE_DISABLED)
 				printf("ERR: port disabled: ");
 			else
-				printf("ERR: port down: ");
-			print_port(node_name, node, port, rem_linkport);
+				printf("ERR: port down    : ");
+			print_port(node_name, node, port, rem_linkport, 0);
 		}
 	} else {
 		char str[64];
@@ -365,13 +370,13 @@ void compare_port(iblink_port_t *linkport, char *node_name, ibnd_node_t *node, i
 			printf("ERR: width != %s: ",
 				mad_dump_val(IB_PORT_LINK_WIDTH_ACTIVE_F,
 					str, 64, &conf_width));
-			print_port(node_name, node, port, NULL);
+			print_port(node_name, node, port, NULL, 1);
 		}
 		if (ispeed != conf_speed) {
 			printf("ERR: speed != %s: ",
 				mad_dump_val(IB_PORT_LINK_SPEED_ACTIVE_F,
 					str, 64, &conf_speed));
-			print_port(node_name, node, port, NULL);
+			print_port(node_name, node, port, NULL, 1);
 		}
 
 		if (remport) {
@@ -384,14 +389,14 @@ void compare_port(iblink_port_t *linkport, char *node_name, ibnd_node_t *node, i
 			    (!iblink_port_num_dont_care(rem_linkport) &&
 			    rem_port_num != port->remoteport->portnum)) {
 				printf("ERR: invalid link : ");
-				print_port(node_name, node, port, NULL);
-				printf("     should be    : ");
+				print_port(node_name, node, port, NULL, 0);
+				printf("     Should be    : ");
 				print_config_port(linkport);
 			}
 			free(rem_remap);
 		} else {
-			fprintf(stderr, "ERR: query failure; ");
-			print_port(node_name, node, port, rem_linkport);
+			fprintf(stderr, "ERR: query failure: ");
+			print_port(node_name, node, port, rem_linkport, 1);
 		}
 	}
 }
@@ -424,7 +429,7 @@ void check_config(char *node_name, ibnd_node_t *node, ibnd_port_t *port)
 		} else {
 invalid_active:
 			printf("ERR: Unconfigured active link: ");
-			print_port(node_name, node, port, NULL);
+			print_port(node_name, node, port, NULL, 1);
 		}
 		free(remote_name); /* OK; may be null */
 	}
@@ -473,7 +478,7 @@ void check_port(char *node_name, ibnd_node_t * node, ibnd_port_t * port)
 
 	if (totals.pn_undef > n_undef) {
 		printf("WARN: Undefined value found: ");
-		print_port(node_name, node, port, NULL);
+		print_port(node_name, node, port, NULL, 1);
 	}
 
 	if (linkconf)
@@ -698,8 +703,13 @@ int main(int argc, char **argv)
 			check_node(node, NULL);
 		else
 			fprintf(stderr, "Failed to find node: %s\n", dr_path);
-	} else
-		ibnd_iter_nodes(fabric, check_node, NULL);
+	} else {
+		/* We are wanting to check all nodes on the fabric,
+		 * however all nodes must be connected to switch.  This utility
+		 * does is not very useful on a point to point link.
+		 */
+		ibnd_iter_nodes_type(fabric, check_node, IB_NODE_SWITCH, NULL);
+	}
 
 	ibnd_destroy_fabric(fabric);
 	hostlist_destroy(downhosts_list);
