@@ -518,7 +518,7 @@ int usage(void)
 "Usage: Check fabric and compare to fabric config file\n"
 "\n"
 "Options:\n"
-"  --config, -c <config> Use an alternate fabric config file (default: %s)\n"
+"  --config, -c <ibfabricconf> Specify an alternate fabric config file (default: %s)\n"
 "  --warn_dup, -w print warning about duplicate links found in fabric config\n"
 "  --downhosts <hostlist> specify hosts which are known to be off"
 "  -S <guid> generate for the node specified by the port guid\n"

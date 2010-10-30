@@ -1,0 +1,56 @@
+.TH IBCHECKLINKS 8 "Oct 30, 2010" "Pragmatic Infiniband Utilities" "Infiniband Diagnostics"
+
+.SH NAME
+ibchecklinks \- scan ibfabric and check agains ib fabric config
+
+.SH SYNOPSIS
+.B ibchecklinks [options]
+
+.SH DESCRIPTION
+.PP
+ibchecklinks scans an attached IB fabric, reads the ib fabric config file, and
+compares the two.  Checks performed include invalid cabling, downed/disabled
+ports, invalid speed, and invalid width's.
+
+.SH OPTIONS
+
+.PP
+.TP
+\fB\-config, \-c <ibfabricconf>\fR
+Specify an alternate config file (default: @PIU_CONFIG_PATH@/pragmaticIB/ibfabricconf.xml)
+
+\fB\-\-warn_dup, \-w\fR
+print warning about duplicate links found in fabric config
+
+\fB\-\-downhosts <hostlist>\fR
+specify hosts which are known to be off
+
+.TP
+\fB\-S <guid>\fR
+Output only the switch specified by <guid> (hex format)
+.TP
+\fB\-D <direct_route>\fR
+Output only the switch specified by the direct route path.
+.TP
+\fB\-\-outstanding_smps, \-o <outstanding_smps>\fR
+specify the number of outstanding smps on the wire.  This option can greatly
+increase the scalabily of the scan.  However, specifing this number too high
+may result in VL15 drops across the fabric and result in incresed retries to
+gather the data.  This is because Nodes are only required to have buffer space
+for 1 VL15 packet.
+.TP
+\fB\-\-hops \-n <hops>\fR
+hops to progress away from node given in -G,-S, or -D, default == 0
+.TP
+\fB\-\-node\-name\-map <map>\fR
+specify alternate node name map
+.TP
+\fB\-C <ca_name>\fR    use the specified ca_name for the search.
+.TP
+\fB\-P <ca_port>\fR    use the specified ca_port for the search.
+
+
+.SH AUTHOR
+.TP
+Ira Weiny
+.RI < weiny2@llnl.gov >

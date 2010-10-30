@@ -19708,7 +19708,7 @@ else
 fi
 
 
-                                                                                                                                                                          ac_config_files="$ac_config_files Makefile pragmatic-infiniband-utilities.spec scripts/voltaire-create-switch-map.pl scripts/qlogic-create-switch-map.pl scripts/ibcheckfabric scripts/ibtrackerrors scripts/ibnodesinmcast scripts/ibtraceroute scripts/ibcreateswitchmap.sh man/voltaire-create-switch-map.8 man/qlogic-create-switch-map.8 scripts/ibsrp man/ibsrp.8 man/ibtrackerrors.8 man/ibhcacounters.8 man/ibparsefabricconf.8 include/infiniband/ibfabricconf.h"
+                                                                                                                                                                                    ac_config_files="$ac_config_files Makefile pragmatic-infiniband-utilities.spec scripts/voltaire-create-switch-map.pl scripts/qlogic-create-switch-map.pl scripts/ibcheckfabric scripts/ibtrackerrors scripts/ibnodesinmcast scripts/ibtraceroute scripts/ibcreateswitchmap.sh man/voltaire-create-switch-map.8 man/qlogic-create-switch-map.8 scripts/ibsrp man/ibsrp.8 man/ibtrackerrors.8 man/ibhcacounters.8 man/ibparsefabricconf.8 man/ibchecklinks.8 include/infiniband/ibfabricconf.h"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -20296,6 +20296,7 @@ do
   "man/ibtrackerrors.8" ) CONFIG_FILES="$CONFIG_FILES man/ibtrackerrors.8" ;;
   "man/ibhcacounters.8" ) CONFIG_FILES="$CONFIG_FILES man/ibhcacounters.8" ;;
   "man/ibparsefabricconf.8" ) CONFIG_FILES="$CONFIG_FILES man/ibparsefabricconf.8" ;;
+  "man/ibchecklinks.8" ) CONFIG_FILES="$CONFIG_FILES man/ibchecklinks.8" ;;
   "include/infiniband/ibfabricconf.h" ) CONFIG_FILES="$CONFIG_FILES include/infiniband/ibfabricconf.h" ;;
   "depfiles" ) CONFIG_COMMANDS="$CONFIG_COMMANDS depfiles" ;;
   "config/config.h" ) CONFIG_HEADERS="$CONFIG_HEADERS config/config.h" ;;

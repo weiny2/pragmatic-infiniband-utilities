@@ -49,6 +49,7 @@ DIST_COMMON = README $(am__configure_deps) \
 	$(srcdir)/pragmatic-infiniband-utilities.spec.in \
 	$(top_srcdir)/config/config.h.in $(top_srcdir)/configure \
 	$(top_srcdir)/include/infiniband/ibfabricconf.h.in \
+	$(top_srcdir)/man/ibchecklinks.8.in \
 	$(top_srcdir)/man/ibhcacounters.8.in \
 	$(top_srcdir)/man/ibparsefabricconf.8.in \
 	$(top_srcdir)/man/ibsrp.8.in \
@@ -84,7 +85,8 @@ CONFIG_CLEAN_FILES = pragmatic-infiniband-utilities.spec \
 	man/voltaire-create-switch-map.8 \
 	man/qlogic-create-switch-map.8 scripts/ibsrp man/ibsrp.8 \
 	man/ibtrackerrors.8 man/ibhcacounters.8 \
-	man/ibparsefabricconf.8 include/infiniband/ibfabricconf.h
+	man/ibparsefabricconf.8 man/ibchecklinks.8 \
+	include/infiniband/ibfabricconf.h
 am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
 am__vpath_adj = case $$p in \
     $(srcdir)/*) f=`echo "$$p" | sed "s|^$$srcdirstrip/||"`;; \
@@ -319,7 +321,8 @@ man_MANS = man/ibbouncelinks.8 \
 				man/ibtrackerrors.8 \
 				man/ibhcacounters.8 \
 				man/ibsrp.8 \
-				man/ibparsefabricconf.8
+				man/ibparsefabricconf.8 \
+				man/ibchecklinks.8
 
 sbin_SCRIPTS = $(mySCRIPTS)
 src_simple_rdma_SOURCES = src/simple_rdma.c
@@ -444,6 +447,8 @@ man/ibtrackerrors.8: $(top_builddir)/config.status $(top_srcdir)/man/ibtrackerro
 man/ibhcacounters.8: $(top_builddir)/config.status $(top_srcdir)/man/ibhcacounters.8.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 man/ibparsefabricconf.8: $(top_builddir)/config.status $(top_srcdir)/man/ibparsefabricconf.8.in
+	cd $(top_builddir) && $(SHELL) ./config.status $@
+man/ibchecklinks.8: $(top_builddir)/config.status $(top_srcdir)/man/ibchecklinks.8.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 include/infiniband/ibfabricconf.h: $(top_builddir)/config.status $(top_srcdir)/include/infiniband/ibfabricconf.h.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@

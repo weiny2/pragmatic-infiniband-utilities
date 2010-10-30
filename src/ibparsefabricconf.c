@@ -115,8 +115,8 @@ usage(void)
 "Usage: parse the fabricconf file\n"
 "\n"
 "Options:\n"
-"  --conf, -c <file> Use an alternate fabric config file (default: %s)\n"
-"  --warn_dup, -w If duplicated fabric configs are found warn about them\n"
+"  --config, -c <ibfabricconf> Use an alternate fabric config file (default: %s)\n"
+"  --warn_dup, -w print warning about duplicate links found in fabric config\n"
 "  --check_dup only print duplicates\n"
 "  --delim_out, -d <deliminator> output colums deliminated by <deliminator>\n"
 "  [node] if node is specified print ports for that node\n"
@@ -141,7 +141,7 @@ main(int argc, char **argv)
         static char const str_opts[] = "hc:wd:";
         static const struct option long_opts [] = {
            {"help", 0, 0, 'h'},
-           {"conf", 1, 0, 'c'},
+           {"config", 1, 0, 'c'},
            {"warn_dup", 0, 0, 'w'},
            {"check_dup", 0, 0, 1},
            {"delim_out", 1, 0, 'd'},

@@ -104,6 +104,7 @@ AC_CONFIG_FILES([Makefile
                man/ibtrackerrors.8
                man/ibhcacounters.8
                man/ibparsefabricconf.8
+               man/ibchecklinks.8
                include/infiniband/ibfabricconf.h
                ])
 AC_OUTPUT
