@@ -50,6 +50,8 @@
 #include <infiniband/ibnetdisc.h>
 #include <infiniband/iblinkconf.h>
 
+#include "hostlist.h"
+
 static char *node_name_map_file = NULL;
 static nn_map_t *node_name_map = NULL;
 static iblink_conf_t *linkconf = NULL;
@@ -57,6 +59,9 @@ static char *linkconffile = NULL;
 static char *ibd_ca = NULL;
 static int ibd_ca_port = 1;
 static int ibd_timeout = 100;
+
+static char *downhosts = NULL;
+hostlist_t downhosts_list;
 
 static uint64_t guid = 0;
 static char *guid_str = NULL;
@@ -339,11 +344,14 @@ void compare_port(iblink_port_t *linkport, char *node_name, ibnd_node_t *node, i
 	iblink_port_t *rem_linkport = iblink_port_get_remote(linkport);
 
 	if (istate != IB_LINK_ACTIVE) {
-		if (iphysstate == IB_PORT_PHYS_STATE_DISABLED)
-			printf("ERR: port disabled: ");
-		else
-			printf("ERR: port down: ");
-		print_port(node_name, node, port, rem_linkport);
+		if (hostlist_find(downhosts_list,
+				iblink_port_get_name(rem_linkport)) == -1) {
+			if (iphysstate == IB_PORT_PHYS_STATE_DISABLED)
+				printf("ERR: port disabled: ");
+			else
+				printf("ERR: port down: ");
+			print_port(node_name, node, port, rem_linkport);
+		}
 	} else {
 		char str[64];
 		int conf_width = iblink_prop_get_width(iblink_port_get_prop(linkport));
@@ -505,6 +513,7 @@ int usage(void)
 "Options:\n"
 "  --config, -c <config> Use an alternate link config file (default: %s)\n"
 "  --warn_dup, -w If duplicated link configs are found warn about them\n"
+"  --downhosts <hostlist> specify hosts which are known to be off"
 "  -S <guid> generate for the node specified by the port guid\n"
 "  -G <guid> Same as \"-S\" for compatibility with other diags\n"
 "  -D <dr_path> generate for the node specified by the DR path given\n"
@@ -541,6 +550,7 @@ int main(int argc, char **argv)
 		{"help", 0, 0, 'h'},
 		{"node-name-map", 1, 0, 1},
 		{"hops", 1, 0, 'n'},
+		{"downhosts", 1, 0, 2},
 		{"Ca", 1, 0, 'C'},
 		{"Port", 1, 0, 'P'},
 		{"timeout", 1, 0, 't'},
@@ -558,6 +568,9 @@ int main(int argc, char **argv)
                 {
 			case 1:
 				node_name_map_file = strdup(optarg);
+				break;
+			case 2:
+				downhosts = strdup(optarg);
 				break;
 			case 'S':
 			case 'G':
@@ -603,6 +616,8 @@ int main(int argc, char **argv)
 
 	argc -= optind;
 	argv += optind;
+
+	downhosts_list = hostlist_create(downhosts);
 
 	linkconf = iblink_alloc_conf();
 	if (!linkconf) {
@@ -687,6 +702,7 @@ int main(int argc, char **argv)
 		ibnd_iter_nodes(fabric, check_node, NULL);
 
 	ibnd_destroy_fabric(fabric);
+	hostlist_destroy(downhosts_list);
 
 	print_port_stats();
 

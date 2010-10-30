@@ -88,7 +88,7 @@ src_ibparselinkconf_SOURCES = src/ibparselinkconf.c
 src_ibparselinkconf_CFLAGS = -I$(includedir)
 src_ibparselinkconf_LDFLAGS = -liblinkconf
 
-src_ibchecklinks_SOURCES = src/ibchecklinks.c
+src_ibchecklinks_SOURCES = src/ibchecklinks.c src/hostlist.c src/hostlist.h
 src_ibchecklinks_LDFLAGS = -losmcomp -libmad -libnetdisc -liblinkconf
 
 

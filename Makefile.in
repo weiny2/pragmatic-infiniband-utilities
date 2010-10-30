@@ -101,7 +101,8 @@ am_libiblinkconf_la_OBJECTS = libiblinkconf_la-iblinkconf.lo
 libiblinkconf_la_OBJECTS = $(am_libiblinkconf_la_OBJECTS)
 sbinPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(sbin_PROGRAMS)
-am_src_ibchecklinks_OBJECTS = ibchecklinks.$(OBJEXT)
+am_src_ibchecklinks_OBJECTS = ibchecklinks.$(OBJEXT) \
+	hostlist.$(OBJEXT)
 src_ibchecklinks_OBJECTS = $(am_src_ibchecklinks_OBJECTS)
 src_ibchecklinks_LDADD = $(LDADD)
 am__dirstamp = $(am__leading_dot)dirstamp
@@ -343,7 +344,7 @@ libiblinkconfinclude_HEADERS = include/infiniband/iblinkconf.h
 src_ibparselinkconf_SOURCES = src/ibparselinkconf.c
 src_ibparselinkconf_CFLAGS = -I$(includedir)
 src_ibparselinkconf_LDFLAGS = -liblinkconf
-src_ibchecklinks_SOURCES = src/ibchecklinks.c
+src_ibchecklinks_SOURCES = src/ibchecklinks.c src/hostlist.c src/hostlist.h
 src_ibchecklinks_LDFLAGS = -losmcomp -libmad -libnetdisc -liblinkconf
 EXTRA_DIST = \
 	META \
@@ -603,20 +604,6 @@ ibchecklinks.obj: src/ibchecklinks.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o ibchecklinks.obj `if test -f 'src/ibchecklinks.c'; then $(CYGPATH_W) 'src/ibchecklinks.c'; else $(CYGPATH_W) '$(srcdir)/src/ibchecklinks.c'; fi`
 
-ibgraphfabric.o: src/ibgraphfabric.c
-@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT ibgraphfabric.o -MD -MP -MF "$(DEPDIR)/ibgraphfabric.Tpo" -c -o ibgraphfabric.o `test -f 'src/ibgraphfabric.c' || echo '$(srcdir)/'`src/ibgraphfabric.c; \
-@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/ibgraphfabric.Tpo" "$(DEPDIR)/ibgraphfabric.Po"; else rm -f "$(DEPDIR)/ibgraphfabric.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/ibgraphfabric.c' object='ibgraphfabric.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o ibgraphfabric.o `test -f 'src/ibgraphfabric.c' || echo '$(srcdir)/'`src/ibgraphfabric.c
-
-ibgraphfabric.obj: src/ibgraphfabric.c
-@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT ibgraphfabric.obj -MD -MP -MF "$(DEPDIR)/ibgraphfabric.Tpo" -c -o ibgraphfabric.obj `if test -f 'src/ibgraphfabric.c'; then $(CYGPATH_W) 'src/ibgraphfabric.c'; else $(CYGPATH_W) '$(srcdir)/src/ibgraphfabric.c'; fi`; \
-@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/ibgraphfabric.Tpo" "$(DEPDIR)/ibgraphfabric.Po"; else rm -f "$(DEPDIR)/ibgraphfabric.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/ibgraphfabric.c' object='ibgraphfabric.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o ibgraphfabric.obj `if test -f 'src/ibgraphfabric.c'; then $(CYGPATH_W) 'src/ibgraphfabric.c'; else $(CYGPATH_W) '$(srcdir)/src/ibgraphfabric.c'; fi`
-
 hostlist.o: src/hostlist.c
 @am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT hostlist.o -MD -MP -MF "$(DEPDIR)/hostlist.Tpo" -c -o hostlist.o `test -f 'src/hostlist.c' || echo '$(srcdir)/'`src/hostlist.c; \
 @am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/hostlist.Tpo" "$(DEPDIR)/hostlist.Po"; else rm -f "$(DEPDIR)/hostlist.Tpo"; exit 1; fi
@@ -630,6 +617,20 @@ hostlist.obj: src/hostlist.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/hostlist.c' object='hostlist.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o hostlist.obj `if test -f 'src/hostlist.c'; then $(CYGPATH_W) 'src/hostlist.c'; else $(CYGPATH_W) '$(srcdir)/src/hostlist.c'; fi`
+
+ibgraphfabric.o: src/ibgraphfabric.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT ibgraphfabric.o -MD -MP -MF "$(DEPDIR)/ibgraphfabric.Tpo" -c -o ibgraphfabric.o `test -f 'src/ibgraphfabric.c' || echo '$(srcdir)/'`src/ibgraphfabric.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/ibgraphfabric.Tpo" "$(DEPDIR)/ibgraphfabric.Po"; else rm -f "$(DEPDIR)/ibgraphfabric.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/ibgraphfabric.c' object='ibgraphfabric.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o ibgraphfabric.o `test -f 'src/ibgraphfabric.c' || echo '$(srcdir)/'`src/ibgraphfabric.c
+
+ibgraphfabric.obj: src/ibgraphfabric.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT ibgraphfabric.obj -MD -MP -MF "$(DEPDIR)/ibgraphfabric.Tpo" -c -o ibgraphfabric.obj `if test -f 'src/ibgraphfabric.c'; then $(CYGPATH_W) 'src/ibgraphfabric.c'; else $(CYGPATH_W) '$(srcdir)/src/ibgraphfabric.c'; fi`; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/ibgraphfabric.Tpo" "$(DEPDIR)/ibgraphfabric.Po"; else rm -f "$(DEPDIR)/ibgraphfabric.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/ibgraphfabric.c' object='ibgraphfabric.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o ibgraphfabric.obj `if test -f 'src/ibgraphfabric.c'; then $(CYGPATH_W) 'src/ibgraphfabric.c'; else $(CYGPATH_W) '$(srcdir)/src/ibgraphfabric.c'; fi`
 
 iblinkconffromfabric.o: src/iblinkconffromfabric.c
 @am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT iblinkconffromfabric.o -MD -MP -MF "$(DEPDIR)/iblinkconffromfabric.Tpo" -c -o iblinkconffromfabric.o `test -f 'src/iblinkconffromfabric.c' || echo '$(srcdir)/'`src/iblinkconffromfabric.c; \
