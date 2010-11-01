@@ -42,7 +42,8 @@ mySCRIPTS = scripts/ibgetgid \
 				scripts/lfts_sort.pl \
 				scripts/ibcreateswitchmap.sh \
 				scripts/ibhcacounters \
-				scripts/PIUHostlist.pm
+				scripts/PIUHostlist.pm \
+				scripts/check_qos_router_settings.sh
 
 man_MANS = man/ibbouncelinks.8 \
 				man/voltaire-create-switch-map.8 \
