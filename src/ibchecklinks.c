@@ -349,14 +349,28 @@ void compare_port(ibfc_port_t *portconf, char *node_name, ibnd_node_t *node, ibn
 	ibfc_port_t *rem_portconf = ibfc_port_get_remote(portconf);
 
 	if (istate != IB_LINK_ACTIVE) {
-		if (hostlist_find(downhosts_list,
-				ibfc_port_get_name(rem_portconf)) == -1) {
-			if (iphysstate == IB_PORT_PHYS_STATE_DISABLED)
-				printf("ERR: port disabled: ");
+		int print = 0;
+		int hostdown = 1;
+
+		if (downhosts && hostlist_find(downhosts_list,
+				ibfc_port_get_name(rem_portconf)) == -1)
+			hostdown = 0;
+
+		if (iphysstate == IB_PORT_PHYS_STATE_DISABLED) {
+			printf("ERR: port disabled");
+			if (downhosts && !hostdown)
+				printf(" (host UP): ");
 			else
-				printf("ERR: port down    : ");
-			print_port(node_name, node, port, rem_portconf, 0);
+				printf(": ");
+			print = 1;
+		} else {
+			if (!downhosts || !hostdown) {
+				printf("ERR: port down     : ");
+				print = 1;
+			}
 		}
+		if (print)
+			print_port(node_name, node, port, rem_portconf, 0);
 	} else {
 		char str[64];
 		int conf_width = ibfc_prop_get_width(
