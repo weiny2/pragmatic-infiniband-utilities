@@ -87,6 +87,7 @@ void ibfc_iter_port_list(ibfc_port_list_t *port_list,
 int ibfc_prop_get_speed(ibfc_prop_t *prop);
 int ibfc_prop_get_width(ibfc_prop_t *prop);
 char *ibfc_prop_str(ibfc_port_t *port, char ret[], unsigned n);
+char *ibfc_prop_get_length(ibfc_prop_t *prop);
 
 #endif /* _IBFABRICCONF_H_ */
 

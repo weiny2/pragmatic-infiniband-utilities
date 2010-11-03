@@ -82,12 +82,13 @@ char *dump_linkwidth_compat(uint32_t width)
 struct ibfc_prop {
 	uint8_t speed;
 	uint8_t width;
+	char *length;
+} IBCONF_DEFAULT_PROP =
+{
+	speed: IB_LINK_SPEED_ACTIVE_2_5,
+	width: IB_LINK_WIDTH_ACTIVE_1X,
+	length: ""
 };
-#define IBCONF_DEFAULT_PROP \
-{ \
-	speed: IB_LINK_SPEED_ACTIVE_2_5, \
-	width: IB_LINK_WIDTH_ACTIVE_1X \
-}
 
 #define HTSZ 137
 /* hash algo found here: http://www.cse.yorku.ca/~oz/hash.html */
@@ -124,6 +125,24 @@ struct ibfc_conf {
 	int warn_dup;
 };
 
+/**
+ * duplicate properties.
+ */
+static int
+dup_prop(ibfc_prop_t *dest, ibfc_prop_t *src)
+{
+	int rc = 0;
+
+	dest->speed = src->speed;
+	dest->width = src->width;
+	dest->length = strdup(src->length);
+	if (!dest->length) {
+		rc = -ENOMEM;
+		dest->length = IBCONF_DEFAULT_PROP.length;
+	}
+	return (rc);
+}
+
 static ibfc_port_t *
 calloc_port(char *name, int port_num, ibfc_prop_t *prop)
 {
@@ -135,14 +154,21 @@ calloc_port(char *name, int port_num, ibfc_prop_t *prop)
 	port->prev = NULL;
 	port->name = strdup(name);
 	port->port_num = port_num;
-	port->prop = *prop;
+	dup_prop(&port->prop, prop);
 	return (port);
 }
 
 static void
+_prop_free_chars(ibfc_prop_t *p)
+{
+	if (p->length != IBCONF_DEFAULT_PROP.length)
+		free(p->length);
+}
+static void
 free_port(ibfc_port_t *p)
 {
 	free(p->name);
+	_prop_free_chars(&p->prop);
 	free(p);
 }
 
@@ -205,8 +231,7 @@ remove_free_port(ibfc_conf_t *fabricconf, ibfc_port_t *port)
 	if (port->next)
 		port->next->prev = port->prev;
 
-	free(port->name);
-	free(port);
+	free_port(port);
 	return (0);
 }
 
@@ -274,7 +299,7 @@ add_link(ibfc_conf_t *fabricconf, char *lname, char *lport_str,
 		}
 		if (lport->remote != rport)
 			remove_free_port(fabricconf, lport->remote);
-		lport->prop = *prop;
+		dup_prop(&lport->prop, prop);
 	} else {
 		lport = calloc_add_port(fabricconf, lname, lpn, prop);
 		if (!lport) {
@@ -294,7 +319,7 @@ add_link(ibfc_conf_t *fabricconf, char *lname, char *lport_str,
 		}
 		if (rport->remote != lport)
 			remove_free_port(fabricconf, rport->remote);
-		rport->prop = *prop;
+		dup_prop(&rport->prop, prop);
 	} else {
 		rport = calloc_add_port(fabricconf, rname, rpn, prop);
 		if (!rport) {
@@ -321,37 +346,57 @@ add_link(ibfc_conf_t *fabricconf, char *lname, char *lport_str,
 static int
 parse_properties(xmlNode *node, ibfc_prop_t *prop)
 {
-	char *speed = NULL;
-	char *width = NULL;
+	int rc = 0;
+	char *prop_str = NULL;
 
-	if ((speed = (char *)xmlGetProp(node, (xmlChar *)"speed"))) {
-		if (strcmp(speed, "SDR") == 0)
+	if ((prop_str = (char *)xmlGetProp(node, (xmlChar *)"speed"))) {
+		if (strcmp(prop_str, "SDR") == 0)
 			prop->speed = IB_LINK_SPEED_ACTIVE_2_5;
-		if (strcmp(speed, "DDR") == 0)
+		if (strcmp(prop_str, "DDR") == 0)
 			prop->speed = IB_LINK_SPEED_ACTIVE_5;
-		if (strcmp(speed, "QDR") == 0)
+		if (strcmp(prop_str, "QDR") == 0)
 			prop->speed = IB_LINK_SPEED_ACTIVE_10;
 	}
+	xmlFree(prop_str);
 
-	if ((width = (char *)xmlGetProp(node, (xmlChar *)"width"))) {
-		if (strcmp(width, "1x") == 0 ||
-		    strcmp(width, "1X") == 0)
+	if ((prop_str = (char *)xmlGetProp(node, (xmlChar *)"width"))) {
+		if (strcmp(prop_str, "1x") == 0 ||
+		    strcmp(prop_str, "1X") == 0)
 			prop->width = IB_LINK_WIDTH_ACTIVE_1X;
-		if (strcmp(width, "4x") == 0 ||
-		    strcmp(width, "4X") == 0)
+		if (strcmp(prop_str, "4x") == 0 ||
+		    strcmp(prop_str, "4X") == 0)
 			prop->width = IB_LINK_WIDTH_ACTIVE_4X;
-		if (strcmp(width, "8x") == 0 ||
-		    strcmp(width, "8X") == 0)
+		if (strcmp(prop_str, "8x") == 0 ||
+		    strcmp(prop_str, "8X") == 0)
 			prop->width = IB_LINK_WIDTH_ACTIVE_8X;
-		if (strcmp(width, "12x") == 0 ||
-		    strcmp(width, "12X") == 0)
+		if (strcmp(prop_str, "12x") == 0 ||
+		    strcmp(prop_str, "12X") == 0)
 			prop->width = IB_LINK_WIDTH_ACTIVE_12X;
 	}
-	xmlFree(speed);
-	xmlFree(width);
-	return (0);
+	xmlFree(prop_str);
+
+	if ((prop_str = (char *)xmlGetProp(node, (xmlChar *)"length"))) {
+		prop->length = strdup((char *)prop_str);
+		if (!prop->length) {
+			rc = -ENOMEM;
+			prop->length = IBCONF_DEFAULT_PROP.length;
+		}
+	}
+	xmlFree(prop_str);
+
+	return (rc);
 }
 
+/** =========================================================================
+ * Properties sitting on the stack may have memory allocated when they are
+ * parsed into:
+ * free this memory if necessary
+ */
+static void
+free_stack_prop(ibfc_prop_t *p)
+{
+	_prop_free_chars(p);
+}
 
 typedef struct ch_pos_map {
 	struct ch_pos_map *next;
@@ -431,15 +476,15 @@ parse_port(char *node_name, xmlNode *portNode, ibfc_prop_t *parent_prop,
 {
 	xmlNode *cur = NULL;
 	char *port = (char *)xmlGetProp(portNode, (xmlChar *)"num");
-	/* inherit the properties from our parent */
-	ibfc_prop_t prop = *parent_prop;
+	ibfc_prop_t prop;
 	char *r_port = NULL;
 	char *r_node = NULL;
 
 	if (!port)
 		return (-EIO);
 
-	parse_properties(portNode, &prop);
+	dup_prop(&prop, parent_prop); /* inherit the properties from our parent */
+	parse_properties(portNode, &prop); /* fill in with anything new */
 
 	for (cur = portNode->children;
 	     cur;
@@ -460,6 +505,7 @@ parse_port(char *node_name, xmlNode *portNode, ibfc_prop_t *parent_prop,
 	xmlFree(port);
 	xmlFree(r_port);
 	xmlFree(r_node);
+	free_stack_prop(&prop);
 
 	return (0);
 }
@@ -470,12 +516,13 @@ parse_linklist(xmlNode *linklist, ibfc_prop_t *parent_prop,
 {
 	xmlNode *cur = NULL;
 	char *linklist_name = (char *)xmlGetProp(linklist, (xmlChar *)"name");
-	ibfc_prop_t prop = *parent_prop; /* inherit the properties from our parent */
+	ibfc_prop_t prop;
 
 	if (!linklist_name)
 		return (-EIO);
 
-	parse_properties(linklist, &prop);
+	dup_prop(&prop, parent_prop); /* inherit the properties from our parent */
+	parse_properties(linklist, &prop); /* fill in with anything new */
 
 	for (cur = linklist->children;
 	     cur;
@@ -486,6 +533,7 @@ parse_linklist(xmlNode *linklist, ibfc_prop_t *parent_prop,
 			}
 		}
 	}
+	free_stack_prop(&prop);
 	xmlFree(linklist_name);
 	return (0);
 }
@@ -569,7 +617,7 @@ parse_chassis(xmlNode *chassis, ibfc_prop_t *parent_prop,
 {
 	int rc = 0;
 	xmlNode *cur = NULL;
-	ibfc_prop_t prop = *parent_prop; /* inherit the properties from our parent */
+	ibfc_prop_t prop;
 	xmlChar *chassis_name = xmlGetProp(chassis, (xmlChar *)"name");
 	xmlChar *chassis_model = xmlGetProp(chassis, (xmlChar *)"model");
 	ch_map_t *ch_map = calloc(1, sizeof *ch_map);
@@ -587,7 +635,8 @@ parse_chassis(xmlNode *chassis, ibfc_prop_t *parent_prop,
 
 	ch_map->name = (char *)chassis_name;
 
-	parse_properties(chassis, &prop);
+	dup_prop(&prop, parent_prop); /* inherit the properties from our parent */
+	parse_properties(chassis, &prop); /* fill in with anything new */
 
 	/* first get a position/name map */
 	for (cur = chassis->children;
@@ -617,6 +666,7 @@ parse_chassis(xmlNode *chassis, ibfc_prop_t *parent_prop,
 		free(tmp);
 	}
 
+	free_stack_prop(&prop);
 	free(ch_map);
 
 free_xmlChar:
@@ -635,7 +685,7 @@ parse_fabric(xmlNode *fabric, ibfc_prop_t *parent_prop,
 	int rc = 0;
 	xmlNode *cur = NULL;
 	xmlAttr *attr = NULL;
-	ibfc_prop_t prop = *parent_prop;
+	ibfc_prop_t prop;
 	xmlChar *fabric_name = xmlGetProp(fabric, (xmlChar *)"name");
 
 	if (fabric_name) {
@@ -644,7 +694,8 @@ parse_fabric(xmlNode *fabric, ibfc_prop_t *parent_prop,
 	} else
 		fabricconf->name = strdup("fabric");
 
-	parse_properties(fabric, &prop);
+	dup_prop(&prop, parent_prop); /* inherit the properties from our parent */
+	parse_properties(fabric, &prop); /* fill in with anything new */
 
 	for (cur = fabric->children; cur; cur = cur->next) {
 		if (cur->type == XML_ELEMENT_NODE) {
@@ -669,6 +720,7 @@ parse_fabric(xmlNode *fabric, ibfc_prop_t *parent_prop,
 		if (rc)
 			break;
 	}
+	free_stack_prop(&prop);
 	return (rc);
 }
 
@@ -743,9 +795,10 @@ ibfc_prop_str(ibfc_port_t *port, char ret[], unsigned n)
 		return (NULL);
 
 	ret[0] = '\0';
-	snprintf(ret, n, "%s %s",
+	snprintf(ret, n, "%s %s %s",
 		dump_linkwidth_compat(port->prop.width),
-		dump_linkspeed_compat(port->prop.speed));
+		dump_linkspeed_compat(port->prop.speed),
+		port->prop.length);
 	return (ret);
 }
 
@@ -909,5 +962,11 @@ ibfc_iter_port_list(ibfc_port_list_t *port_list,
 	ibfc_port_t *port = NULL;
 	for (port = port_list->head; port; port = port->next)
 		func(port, user_data);
+}
+
+char *
+ibfc_prop_get_length(ibfc_prop_t *prop)
+{
+	return (prop->length);
 }
 

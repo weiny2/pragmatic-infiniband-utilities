@@ -22,5 +22,6 @@ IBLINKCONF_1.0 {
 		ibfc_iter_port_list;
 		ibfc_port_num_dont_care;
 		ibfc_port_name_dont_care;
+		ibfc_prop_get_length;
 	local: *;
 };
