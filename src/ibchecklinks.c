@@ -63,6 +63,8 @@ static int ibd_timeout = 100;
 static char *downhosts = NULL;
 hostlist_t downhosts_list;
 
+static int smlid = 0;
+
 static uint64_t guid = 0;
 static char *guid_str = NULL;
 static char *dr_path = NULL;
@@ -501,6 +503,30 @@ void check_port(char *node_name, ibnd_node_t * node, ibnd_port_t * port)
 		check_config(node_name, node, port);
 }
 
+void check_smlid(ibnd_port_t *port)
+{
+	int checklid = 0;
+	char *remap = NULL;
+
+	if (!port)
+		return;
+
+	if (port->node->type == IB_NODE_SWITCH)
+		port = port->node->ports[0];
+
+	remap = remap_node_name(node_name_map, port->node->guid,
+				    port->node->nodedesc);
+
+	checklid = mad_get_field(port->info, 0, IB_PORT_SMLID_F);
+
+	if (smlid != checklid) {
+		printf("ERROR smlid %d != specified %d on node %s\n", checklid,
+				smlid, remap);
+	}
+
+	free(remap);
+}
+
 void check_node(ibnd_node_t * node, void *user_data)
 {
 	int i = 0;
@@ -511,6 +537,8 @@ void check_node(ibnd_node_t * node, void *user_data)
 		ibnd_port_t *port = node->ports[i];
 		if (!port)
 			continue;
+		if (smlid)
+			check_smlid(port->remoteport);
 		if (!port_seen(node->guid, i)) {
 			check_port(remap, node, port);
 			mark_seen(node->guid, i);
@@ -545,6 +573,7 @@ int usage(void)
 "  --Ca, -C <ca>         Ca name to use\n"
 "  --Port, -P <port>     Ca port number to use\n"
 "  --timeout, -t <ms>    timeout in ms\n"
+"  --sm <smlid>    specify an sm lid to check for.\n"
 "\n"
 , argv0
 , IBFC_DEF_CONFIG
@@ -577,6 +606,7 @@ int main(int argc, char **argv)
 		{"timeout", 1, 0, 't'},
 		{"outstanding_smps", 1, 0, 'o'},
 		{"config", 1, 0, 'c'},
+		{"sm", 1, 0, 3},
 		{0, 0, 0, 0}
         };
 
@@ -592,6 +622,9 @@ int main(int argc, char **argv)
 				break;
 			case 2:
 				downhosts = strdup(optarg);
+				break;
+			case 3:
+				smlid = atoi(optarg);
 				break;
 			case 'S':
 			case 'G':
