@@ -71,6 +71,9 @@ static char *dr_path = NULL;
 static char *argv0 = NULL;
 static int all = 0;
 
+/* Global to set return code of utility when error is found */
+static int check_node_rc = 0;
+
 static struct {
 	int num_ports;
 	int pn_down;
@@ -371,8 +374,10 @@ void compare_port(ibfc_port_t *portconf, char *node_name, ibnd_node_t *node, ibn
 				print = 1;
 			}
 		}
-		if (print)
+		if (print) {
 			print_port(node_name, node, port, rem_portconf, 0);
+			check_node_rc = 1;
+		}
 	} else {
 		char str[64];
 		int conf_width = ibfc_prop_get_width(
@@ -389,12 +394,14 @@ void compare_port(ibfc_port_t *portconf, char *node_name, ibnd_node_t *node, ibn
 				mad_dump_val(IB_PORT_LINK_WIDTH_ACTIVE_F,
 					str, 64, &conf_width));
 			print_port(node_name, node, port, NULL, 1);
+			check_node_rc = 1;
 		}
 		if (ispeed != conf_speed) {
 			printf("ERR: speed != %s: ",
 				mad_dump_val(IB_PORT_LINK_SPEED_ACTIVE_F,
 					str, 64, &conf_speed));
 			print_port(node_name, node, port, NULL, 1);
+			check_node_rc = 1;
 		}
 
 		if (remport) {
@@ -410,11 +417,13 @@ void compare_port(ibfc_port_t *portconf, char *node_name, ibnd_node_t *node, ibn
 				print_port(node_name, node, port, NULL, 0);
 				printf("     Should be    : ");
 				print_config_port(portconf);
+				check_node_rc = 1;
 			}
 			free(rem_remap);
 		} else {
 			fprintf(stderr, "ERR: query failure: ");
 			print_port(node_name, node, port, rem_portconf, 1);
+			check_node_rc = 1;
 		}
 	}
 }
@@ -436,6 +445,7 @@ void check_config(char *node_name, ibnd_node_t *node, ibnd_port_t *port)
 			fprintf(stderr, "ERROR: ibnd error; port ACTIVE "
 					"but no remote port! (Lights on, "
 					"nobody home???)\n");
+			check_node_rc = 1;
 			goto invalid_active;
 		}
 		remnode = remport->node;
@@ -448,6 +458,7 @@ void check_config(char *node_name, ibnd_node_t *node, ibnd_port_t *port)
 invalid_active:
 			printf("ERR: Unconfigured active link: ");
 			print_port(node_name, node, port, NULL, 1);
+			check_node_rc = 1;
 		}
 		free(remote_name); /* OK; may be null */
 	}
@@ -497,6 +508,7 @@ void check_port(char *node_name, ibnd_node_t * node, ibnd_port_t * port)
 	if (totals.pn_undef > n_undef) {
 		printf("WARN: Undefined value found: ");
 		print_port(node_name, node, port, NULL, 1);
+		check_node_rc = 1;
 	}
 
 	if (fabricconf)
@@ -522,6 +534,7 @@ void check_smlid(ibnd_port_t *port)
 	if (smlid != checklid) {
 		printf("ERROR smlid %d != specified %d on node %s\n", checklid,
 				smlid, remap);
+		check_node_rc = 1;
 	}
 
 	free(remap);
@@ -586,7 +599,6 @@ int main(int argc, char **argv)
 	ib_portid_t sm_portid;
         char  ch = 0;
 	struct ibnd_config config = { 0 };
-	int rc = 0;
 	int resolved = -1;
 	int warn_dup = 0;
 	ibnd_fabric_t *fabric = NULL;
@@ -684,6 +696,7 @@ int main(int argc, char **argv)
 		fprintf(stderr, "WARN: Failed to parse link config file...\n");
 		ibfc_free(fabricconf);
 		fabricconf = NULL;
+		check_node_rc = 1;
 	}
 
 	ibmad_port = mad_rpc_open_port(ibd_ca, ibd_ca_port, mgmt_classes, 3);
@@ -725,7 +738,7 @@ int main(int argc, char **argv)
 	if (!fabric &&
 	    !(fabric = ibnd_discover_fabric(ibd_ca, ibd_ca_port, NULL, &config))) {
 		fprintf(stderr, "discover failed on %s:%d\n", ibd_ca, ibd_ca_port);
-		rc = 1;
+		check_node_rc = 1;
 		goto close_port;
 	}
 
@@ -770,5 +783,5 @@ close_port:
 	mad_rpc_close_port(ibmad_port);
 	ibfc_free(fabricconf);
 	free_seen();
-	exit(rc);
+	exit(check_node_rc);
 }
