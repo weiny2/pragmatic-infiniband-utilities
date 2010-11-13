@@ -532,7 +532,7 @@ void check_smlid(ibnd_port_t *port)
 	checklid = mad_get_field(port->info, 0, IB_PORT_SMLID_F);
 
 	if (smlid != checklid) {
-		printf("ERROR smlid %d != specified %d on node %s\n", checklid,
+		printf("ERROR smlid %d != %d (expected) on node %s\n", checklid,
 				smlid, remap);
 		check_node_rc = 1;
 	}
