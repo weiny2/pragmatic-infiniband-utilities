@@ -1,3 +1,7 @@
+- Mon Dec 20 2010 Albert Chu <chu11@llnl.gov>
+
+	* : Fix simple_rdma corner case bug.
+
 - Thu Oct 28 2010 Ira Weiny <weiny2@llnl.gov>
 
 	* : tag 1.1.4-2

@@ -290,6 +290,7 @@ wait_for_event(struct rdma_event_channel *channel,
 {
         struct rdma_cm_event *event;
         int                   rc = 0;
+	int                   rv = -1;
 
         if ((rc = rdma_get_cm_event(channel, &event)))
         {
@@ -297,12 +298,12 @@ wait_for_event(struct rdma_event_channel *channel,
                 return (rc);
         }
         fprintf(stderr, "got \"%s\" event\n", event_type_str(event->event));
-        rdma_ack_cm_event(event);
 
         if (event->event == requested_event)
-                return (0);
+		rv = 0;
 
-        return (-1);
+        rdma_ack_cm_event(event);
+        return (rv);
 }
 
 /*************************************************************************
