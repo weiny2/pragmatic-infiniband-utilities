@@ -644,9 +644,26 @@ parse_chassis(xmlNode *chassis, ibfc_prop_t *parent_prop,
 	     cur = cur->next) {
 		if (cur->type == XML_ELEMENT_NODE) {
 			if (strcmp((char *)cur->name, "node") == 0) {
-				ch_pos_map_t *n = malloc(sizeof *n);
-				n->pos = (char *)xmlGetProp(cur, (xmlChar *)"position");
-				n->name = (char *)xmlNodeGetContent(cur);
+				ch_pos_map_t *n = NULL;
+				char *pos = (char *)xmlGetProp(cur, (xmlChar *)"position");
+				char *name = (char *)xmlNodeGetContent(cur);
+
+				if (!pos || !name)
+				{
+					fprintf(fabricconf->err_fd, "Error "
+						"processing chassis \"%s\": "
+						"node \"%s\" position \"%s\""
+						"\n",
+						ch_map->name,
+						name ? name : "<unknown>",
+						pos ? pos : "<unknown>");
+						rc = -EIO;
+						goto free_pos_name_map;
+				}
+
+				n = malloc(sizeof *n);
+				n->pos = pos;
+				n->name = name;
 				n->next = ch_map->map;
 				ch_map->map = n;
 			}
@@ -657,6 +674,7 @@ parse_chassis(xmlNode *chassis, ibfc_prop_t *parent_prop,
 	/* read the model config */
 	rc = process_chassis_model(ch_map, (char *)chassis_model, &prop, fabricconf);
 
+free_pos_name_map:
 	/* free our position/name map */
 	while (ch_map->map) {
 		ch_pos_map_t *tmp = ch_map->map;
