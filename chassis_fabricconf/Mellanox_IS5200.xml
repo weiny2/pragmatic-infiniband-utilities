@@ -3,26 +3,52 @@
 
 <chassismap model="Mellanox_IS5200">
 <!--
-	The following positions are defined in this file
-	<node position="L01"></node>
-	<node position="L02"></node>
-	<node position="L03"></node>
-	<node position="L04"></node>
-	<node position="L05"></node>
-	<node position="L06"></node>
-	<node position="L07"></node>
-	<node position="L08"></node>
-	<node position="L09"></node>
-	<node position="L10"></node>
-	<node position="L11"></node>
-	<node position="L12"></node>
+	Example: define "ibcore1"
+		acepting default node names
+		"ibcore1 S01", "ibcore1 S02", etc.
+		"ibcore1 L01", "ibcore1 L02", "ibcore1 L03", etc.
 
-	<node position="S01">
-	<node position="S02">
-	<node position="S03">
-	<node position="S04">
-	<node position="S05">
-	<node position="S06">
+	<chassis name="ibcore1" model="Mellanox_IS5200">
+	</chassis>
+
+	Example: define "ibcore1" renaming spine boards
+		default for remainging
+		"ibcore1 L01", "ibcore1 L02", "ibcore1 L03", etc.
+
+	<chassis name="ibcore1" model="Mellanox_IS5200">
+		<node position="S01">ibcore1 Spine 01</node>
+		<node position="S02">ibcore1 Spine 02</node>
+		<node position="S03">ibcore1 Spine 03</node>
+		<node position="S04">ibcore1 Spine 04</node>
+		<node position="S05">ibcore1 Spine 05</node>
+		<node position="S06">ibcore1 Spine 06</node>
+	</chassis>
+
+	Note: names must be unique throughout the fabric.
+
+	The following positions are defined in this file
+
+	[name] should be replaced by the name you want specified
+
+	<node position="L01">[name]</node>
+	<node position="L02">[name]</node>
+	<node position="L03">[name]</node>
+	<node position="L04">[name]</node>
+	<node position="L05">[name]</node>
+	<node position="L06">[name]</node>
+	<node position="L07">[name]</node>
+	<node position="L08">[name]</node>
+	<node position="L09">[name]</node>
+	<node position="L10">[name]</node>
+	<node position="L11">[name]</node>
+	<node position="L12">[name]</node>
+
+	<node position="S01">[name]</node>
+	<node position="S02">[name]</node>
+	<node position="S03">[name]</node>
+	<node position="S04">[name]</node>
+	<node position="S05">[name]</node>
+	<node position="S06">[name]</node>
 -->
 	<linklist position="S06">
 		<port num="1"><r_port>34</r_port><r_node>L01</r_node></port>
