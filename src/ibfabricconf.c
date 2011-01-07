@@ -292,7 +292,7 @@ add_link(ibfc_conf_t *fabricconf, char *lname, char *lport_str,
 		if (fabricconf->warn_dup) {
 			fprintf(fabricconf->err_fd,
 				"WARN: redefining port "
-				"\"%s\":%d <-> %d:\"%s\"\n",
+				"\"%s\":%d\  ---> %d:\"%s\"\n",
 				lport->name, lport->port_num,
 				lport->remote->port_num, lport->remote->name);
 			found = 1;
@@ -312,7 +312,7 @@ add_link(ibfc_conf_t *fabricconf, char *lname, char *lport_str,
 		assert(rport->remote->remote == rport);
 		if (fabricconf->warn_dup) {
 			fprintf(fabricconf->err_fd, "WARN: redefining port "
-				"\"%s\":%d <-> %d:\"%s\"\n",
+				"\"%s\":%d  ---> %d:\"%s\"\n",
 				rport->name, rport->port_num,
 				rport->remote->port_num, rport->remote->name);
 			found = 1;
@@ -329,7 +329,7 @@ add_link(ibfc_conf_t *fabricconf, char *lname, char *lport_str,
 	}
 
 	if (found) {
-		fprintf(fabricconf->err_fd, "      NOW: \"%s\":%d <-> %d:\"%s\"\n",
+		fprintf(fabricconf->err_fd, "      New Link: \"%s\":%d  <-->  %d:\"%s\"\n",
 			lport->name, lport->port_num,
 			rport->port_num, rport->name);
 	}
