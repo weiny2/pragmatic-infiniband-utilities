@@ -292,7 +292,7 @@ add_link(ibfc_conf_t *fabricconf, char *lname, char *lport_str,
 		if (fabricconf->warn_dup) {
 			fprintf(fabricconf->err_fd,
 				"WARN: redefining port "
-				"\"%s\":%d\  ---> %d:\"%s\"\n",
+				"\"%s\":%d  ---> %d:\"%s\"\n",
 				lport->name, lport->port_num,
 				lport->remote->port_num, lport->remote->name);
 			found = 1;
@@ -421,8 +421,9 @@ map_pos(ch_map_t *ch_map, char *position)
 }
 
 static int
-remap_linklist(xmlNode *linklist, ch_map_t *ch_map)
+remap_linklist(xmlNode *linklist, ch_map_t *ch_map, ibfc_conf_t *fabricconf)
 {
+	int rc = 0;
 	xmlNode *cur;
 	for (cur = linklist->children; cur; cur = cur->next) {
 		if (strcmp((char *)cur->name, "port") == 0) {
@@ -430,7 +431,17 @@ remap_linklist(xmlNode *linklist, ch_map_t *ch_map)
 			for (child = cur->children; child; child = child->next) {
 				if (strcmp((char *)child->name, "r_node") == 0) {
 					char *pos = (char *)xmlNodeGetContent(child);
-					char *name = map_pos(ch_map, pos);
+					char *name = NULL;
+
+					if (!pos) {
+						fprintf(fabricconf->err_fd,
+							"ERROR: position not specified in "
+							"r_node\n");
+						rc = -EIO;
+						goto exit;
+					}
+
+					name = map_pos(ch_map, pos);
 					if (name)
 						xmlNodeSetContent(child, (xmlChar *)name);
 					else {
@@ -444,17 +455,29 @@ remap_linklist(xmlNode *linklist, ch_map_t *ch_map)
 			}
 		}
 	}
-	return (0);
+exit:
+	return (rc);
 }
 
 static int
-remap_chassis_doc(xmlNode *chassis, ch_map_t *ch_map)
+remap_chassis_doc(xmlNode *chassis, ch_map_t *ch_map, ibfc_conf_t *fabricconf)
 {
+	int rc = 0;
 	xmlNode *cur;
 	for (cur = chassis->children; cur; cur = cur->next) {
 		if (strcmp((char *)cur->name, "linklist") == 0) {
 			char *pos = (char *)xmlGetProp(cur, (xmlChar *)"position");
-			char *name = map_pos(ch_map, pos);
+			char *name = NULL;
+
+			if (!pos) {
+				fprintf(fabricconf->err_fd,
+					"ERROR: position not specified in "
+					"linklist\n");
+				rc = -EIO;
+				goto exit;
+			}
+
+			name = map_pos(ch_map, pos);
 			if (name)
 				xmlSetProp(cur, (xmlChar *)"name", (xmlChar *)name);
 			else {
@@ -464,10 +487,13 @@ remap_chassis_doc(xmlNode *chassis, ch_map_t *ch_map)
 			}
 			xmlFree(pos);
 
-			remap_linklist(cur, ch_map);
+			rc = remap_linklist(cur, ch_map, fabricconf);
+			if (rc)
+				goto exit;
 		}
 	}
-	return (0);
+exit:
+	return (rc);
 }
 
 static int
@@ -579,7 +605,7 @@ process_chassis_model(ch_map_t *ch_map, char *model,
 	/*Get the root element node */
 	root_element = xmlDocGetRootElement(chassis_doc);
 
-	/* replace all the content of this tree wit our ch_pos_map */
+	/* replace all the content of this tree with our ch_pos_map */
 	for (cur = root_element; cur; cur = cur->next)
 		if (cur->type == XML_ELEMENT_NODE)
 			if (strcmp((char *)cur->name, "chassismap") == 0) {
@@ -591,8 +617,14 @@ process_chassis_model(ch_map_t *ch_map, char *model,
 					rc = -EIO;
 					goto exit;
 				}
+				xmlFree(model_name);
 
-				remap_chassis_doc(cur, ch_map);
+				rc = remap_chassis_doc(cur, ch_map, fabricconf);
+				if (rc) {
+					fprintf(fabricconf->err_fd,
+						"ERROR: could not parse chassis file %s\n", file);
+					goto free_doc_exit;
+				}
 				parse_chassismap(cur, &prop, fabricconf);
 			}
 
@@ -602,6 +634,7 @@ xmlDocDump(f, chassis_doc);
 fclose(f);
 #endif
 
+free_doc_exit:
 	xmlFreeDoc(chassis_doc);
 exit:
 	free(file);
