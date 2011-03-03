@@ -26,8 +26,9 @@ print warning about duplicate links found in fabric config
 specify hosts which are known to be off
 
 .TP
-\fB\-S <guid>\fR
-Output only the switch specified by <guid> (hex format)
+\fB\[-S|-G] <guid>\fR
+Output only the switch specified by <guid> (hex format) [-S and -G are
+supported for compatiblity with other diags.
 .TP
 \fB\-D <direct_route>\fR
 Output only the switch specified by the direct route path.
@@ -48,6 +49,7 @@ specify alternate node name map
 \fB\-C <ca_name>\fR    use the specified ca_name for the search.
 .TP
 \fB\-P <ca_port>\fR    use the specified ca_port for the search.
+\fB\--timeout, -t <ms>\fR    Specify timeout to use on SMP queries, in ms
 
 
 .SH AUTHOR

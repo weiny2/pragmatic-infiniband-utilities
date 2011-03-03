@@ -534,7 +534,7 @@ int usage(void)
 "Options:\n"
 "  --config, -c <ibfabricconf> Specify an alternate fabric config file (default: %s)\n"
 "  --warn_dup, -w print warning about duplicate links found in fabric config\n"
-"  --downhosts <hostlist> specify hosts which are known to be off"
+"  --downhosts <hostlist> specify hosts which are known to be off\n"
 "  -S <guid> generate for the node specified by the port guid\n"
 "  -G <guid> Same as \"-S\" for compatibility with other diags\n"
 "  -D <dr_path> generate for the node specified by the DR path given\n"
