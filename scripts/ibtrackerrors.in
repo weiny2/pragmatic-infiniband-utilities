@@ -39,7 +39,7 @@ cd ${0%/*}
 
 function usage
 {
-   echo "Usage: $0 [-hcCls] [-S <err1,err2,...>] [-m <node-name-map>]"
+   echo "Usage: $0 [-hcCls] [-t <ms>] [-S <err1,err2,...>] [-m <node-name-map>]"
    echo "   Query errors on the subnet while logging"
    echo "   errors to $log_dir/$log_file"
    echo "   -c clear errors after querying (Also logs this event)"
@@ -48,6 +48,7 @@ function usage
    echo "   -S <err1,err2,...> suppress additional errors specified"
    echo "   -C attempt to clean up other instances and exit"
    echo "   -l remove lockfile and run anyway (USE WITH CAUTION)"
+   echo "   -t <ms> specifiy longer timeout for each query" 
 }
 
 function clean_up_subs
@@ -69,8 +70,9 @@ rm_lock="no"
 map_file=""
 sw_only="no"
 suppress="$SUPPRESS_ERRORS"
+timeout=""
 
-while getopts "hcClm:sS:" flag
+while getopts "hcClm:sS:t:" flag
 do
    case $flag in
       "h") usage; exit 0;;
@@ -86,6 +88,7 @@ do
               suppress="$suppress,$OPTARG"
            fi
       ;;
+      "t") timeout="-t $OPTARG";;
       *) usage; exit 1;;
    esac
 done
@@ -145,7 +148,7 @@ if [ "$suppress" != "" ]; then
 fi
 
 echo "Checking errors..."
-echo "Running: $query_errors_exe $suppress -r --data"
+echo "Running: $query_errors_exe $timeout $suppress -r --data"
 
 ts=`date`
 echo "" >> $log_dir/$log_file
