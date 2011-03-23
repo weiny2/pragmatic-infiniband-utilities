@@ -235,7 +235,7 @@ sub output_switch_routing
 			print "\n";
 		}
 		for $i (@ports) {
-			if ($comma) {
+			if (!$comma) {
 				printf("%12s", $i);
 			}
 			else {
