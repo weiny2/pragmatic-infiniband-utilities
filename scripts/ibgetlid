@@ -28,5 +28,9 @@ host=$1
 if [ "$host" == "" ]; then
    host=`hostname`
 fi
-rdma_cm_query -L $host
-
+saquery -L $host
+rc=$?
+if [ "$rc" != "0" ]; then
+   echo "$host not found in SA"
+fi
+echo $rc

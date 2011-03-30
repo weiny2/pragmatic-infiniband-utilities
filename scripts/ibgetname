@@ -40,18 +40,18 @@ if [ "$1" == "-i" ]; then
 fi
 
 lid=$1
-name=`smpquery nodedesc $lid`
+NR=`saquery $lid`
 rc=$?
 if [ "$rc" != "0" ]; then
-	echo "Error: 'smpquery nodedesc $lid' failed; perhaps $lid is not a valid lid?"
+	echo "LID ($lid) not found in SA"
 	exit $rc
 fi
 
-echo $name | sed -e 's/^Node Description:\.*\(.*\)/\1/'
+echo $NR | grep "NodeDescription" | sed -e 's/.*NodeDescription\.*\(.*\)/\1/'
 
 if [ "$print_info" == "y" ]; then
 	echo ""
-	smpquery nodeinfo $lid
+   echo "$NR"
 fi
 
 exit 0
