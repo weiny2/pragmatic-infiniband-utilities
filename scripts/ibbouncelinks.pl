@@ -29,12 +29,12 @@ use strict;
 use Getopt::Std;
 use IBswcountlimits;
 
-my $timeout = 25;
-my $ignore_hosts    = undef;
-my @ignore_hosts    = undef;
-my $going_to_sdr    = undef;
-my $going_to_ddr    = undef;
-my $going_to_qdr    = undef;
+my $timeout      = 25;
+my $ignore_hosts = undef;
+my @ignore_hosts = undef;
+my $going_to_sdr = undef;
+my $going_to_ddr = undef;
+my $going_to_qdr = undef;
 
 #
 # get_state(switch, port)
@@ -59,33 +59,33 @@ sub usage_and_exit
 {
 	my $prog = $_[0];
 	print
-"Usage: $prog [-h -t <timeout> -i <host1,host2,...> -R -S <guid> -O <guid:port>]\n".
-"   Bounce all the links on the network but the one connected to this HCA\n".
-"   -h This help message\n".
-"   -S only the switch specified by guid\n".
-"   -t <timeout> Change the timeout (Default: $timeout)\n".
-"   -i <host1,host2,...> Ignore links connected to hosts specified.\n".
-"   -s Specify we are going TO SDR mode (skip ports already at SDR)\n".
-"   -d Specify we are going TO DDR mode (skip ports already at DDR))\n".
-"   -q Specify we are going TO QDR mode (skip ports already at QDR))\n".
-"   -O <guid:port> bounce the link of a single port specified by <guid:port>\n".
-"";
+"Usage: $prog [-h -t <timeout> -i <host1,host2,...> -R -S <guid> -O <guid:port>]\n"
+	  . "   Bounce all the links on the network but the one connected to this HCA\n"
+	  . "   -h This help message\n"
+	  . "   -S only the switch specified by guid\n"
+	  . "   -t <timeout> Change the timeout (Default: $timeout)\n"
+	  . "   -i <host1,host2,...> Ignore links connected to hosts specified.\n"
+	  . "   -s Specify we are going TO SDR mode (skip ports already at SDR)\n"
+	  . "   -d Specify we are going TO DDR mode (skip ports already at DDR))\n"
+	  . "   -q Specify we are going TO QDR mode (skip ports already at QDR))\n"
+	  . "   -O <guid:port> bounce the link of a single port specified by <guid:port>\n"
+	  . "";
 	exit 0;
 }
 
-my $argv0          = `basename $0`;
-my $single_switch  = undef;
-my $single_link    = undef;
+my $argv0         = `basename $0`;
+my $single_switch = undef;
+my $single_link   = undef;
 chomp $argv0;
-if (!getopts("hsdqi:t:RS:O:"))    { usage_and_exit $argv0; }
+if (!getopts("hsdqi:t:RS:O:"))   { usage_and_exit $argv0; }
 if (defined $Getopt::Std::opt_h) { usage_and_exit $argv0; }
-if (defined $Getopt::Std::opt_S) { $single_switch   = $Getopt::Std::opt_S; }
-if (defined $Getopt::Std::opt_t) { $timeout = $Getopt::Std::opt_t; }
-if (defined $Getopt::Std::opt_i) { $ignore_hosts    = $Getopt::Std::opt_i; }
-if (defined $Getopt::Std::opt_s) { $going_to_sdr    = $Getopt::Std::opt_s; }
-if (defined $Getopt::Std::opt_d) { $going_to_ddr    = $Getopt::Std::opt_d; }
-if (defined $Getopt::Std::opt_q) { $going_to_qdr    = $Getopt::Std::opt_q; }
-if (defined $Getopt::Std::opt_O) { $single_link     = $Getopt::Std::opt_O; }
+if (defined $Getopt::Std::opt_S) { $single_switch = $Getopt::Std::opt_S; }
+if (defined $Getopt::Std::opt_t) { $timeout       = $Getopt::Std::opt_t; }
+if (defined $Getopt::Std::opt_i) { $ignore_hosts  = $Getopt::Std::opt_i; }
+if (defined $Getopt::Std::opt_s) { $going_to_sdr  = $Getopt::Std::opt_s; }
+if (defined $Getopt::Std::opt_d) { $going_to_ddr  = $Getopt::Std::opt_d; }
+if (defined $Getopt::Std::opt_q) { $going_to_qdr  = $Getopt::Std::opt_q; }
+if (defined $Getopt::Std::opt_O) { $single_link   = $Getopt::Std::opt_O; }
 
 my $hostname = `hostname`;
 chomp $hostname;
@@ -122,7 +122,7 @@ sub bounce_one
 	printf("Wait for \"Active\".");
 	while (get_state($switch, $port) ne "Active" && $time--) {
 		sleep 1;
-		printf (".");
+		printf(".");
 	}
 	if ($time <= 0) {
 		printf("   ($timeout sec) ERROR: Port failed to activate.\n");

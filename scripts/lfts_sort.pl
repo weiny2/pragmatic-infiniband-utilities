@@ -197,7 +197,7 @@ sub output_switch_routing
 			"009", "010", "011", "012", "013", "014", "015", "016",
 			"017", "018", "019", "020", "021", "022", "023", "024",
 			"025", "026", "027", "028", "029", "030", "031", "032",
-                        "033", "034", "035", "036"
+			"033", "034", "035", "036"
 		);
 		my $max_port;
 		my $flag = 0;
@@ -221,8 +221,7 @@ sub output_switch_routing
 
 		if ($comma) {
 			print "$switch_name,$switch_guid,$switch_lid\n";
-		}
-		else {
+		} else {
 			print "Switch Lid $switch_lid guid $switch_guid ($switch_name)\n";
 		}
 		if (!$comma) {
@@ -237,8 +236,7 @@ sub output_switch_routing
 		for $i (@ports) {
 			if (!$comma) {
 				printf("%12s", $i);
-			}
-			else {
+			} else {
 				printf("%s", $i);
 			}
 			if ($i == $max_port) {
@@ -270,8 +268,7 @@ sub output_switch_routing
 					$flag++;
 					if ($comma) {
 						printf("%s", $tmp);
-					}
-					else {
+					} else {
 						printf("%12s", $tmp);
 					}
 					if (@fields) {
