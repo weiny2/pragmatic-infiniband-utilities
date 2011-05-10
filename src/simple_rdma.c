@@ -353,10 +353,12 @@ send_client_rdma_eth(simple_context_t *context)
         client_data.rdma_eth.rkey = client_data.dma_region_mr->rkey;
         client_data.rdma_eth.size = sizeof(client_data.dma_region);
 
+	memset(&sg_entry, 0, sizeof(sg_entry));
         sg_entry.addr = (uint64_t)&client_data.rdma_eth;
         sg_entry.length = sizeof(client_data.rdma_eth);
         sg_entry.lkey = client_data.rdma_eth_mr->lkey;
 
+	memset(&snd_wr, 0, sizeof(snd_wr));
         snd_wr.next = NULL;
         snd_wr.sg_list = &sg_entry;
         snd_wr.num_sge = 1;
@@ -518,10 +520,12 @@ post_server_rec_work_req(simple_context_t *context)
         struct ibv_recv_wr  rec_wr;
         struct ibv_sge      sg_entry;
 
+	memset(&sg_entry, 0, sizeof(sg_entry));
         sg_entry.addr = (uint64_t)&context->server_data.remote_info;
         sg_entry.length = sizeof(context->server_data.remote_info);
         sg_entry.lkey = context->server_data.remote_info_mr->lkey;
 
+	memset(&rec_wr, 0, sizeof(rec_wr));
         rec_wr.next = NULL;
         rec_wr.sg_list = &sg_entry;
         rec_wr.num_sge = 1;
@@ -541,10 +545,12 @@ post_client_rec_work_req(simple_context_t *context)
         struct ibv_recv_wr  rec_wr;
         struct ibv_sge      sg_entry;
 
+	memset(&sg_entry, 0, sizeof(sg_entry));
         sg_entry.addr = (uint64_t)&client_data.rdma_eth;
         sg_entry.length = sizeof(client_data.rdma_eth);
         sg_entry.lkey = client_data.rdma_eth_mr->lkey;
 
+	memset(&rec_wr, 0, sizeof(rec_wr));
         rec_wr.next = NULL;
         rec_wr.sg_list = &sg_entry;
         rec_wr.num_sge = 1;
@@ -589,10 +595,12 @@ post_write_complete_msg(simple_context_t *context)
 	struct ibv_sge	    sg_list;
 	struct ibv_send_wr  wr;
 
+	memset(&sg_list, 0, sizeof(sg_list));
 	sg_list.addr = (uint64_t)&(context->server_data.remote_info);
 	sg_list.length = sizeof(context->server_data.remote_info);
 	sg_list.lkey = context->server_data.remote_info_mr->lkey;
 
+	memset(&wr, 0, sizeof(wr));
 	wr.next = NULL;
 	wr.sg_list = &sg_list;
 	wr.num_sge = 1;
@@ -612,11 +620,13 @@ post_rdma_write(simple_context_t *context)
 	struct ibv_sge	    sg_list;
 	struct ibv_send_wr  wr;
 
+	memset(&sg_list, 0, sizeof(sg_list));
 	sg_list.addr = (uint64_t)&(context->server_data.dma_region);
 	sg_list.length = (context->server_data.remote_info.size < sizeof(context->server_data.dma_region)) ?
 		 	  context->server_data.remote_info.size : sizeof(context->server_data.dma_region);
 	sg_list.lkey = context->server_data.dma_region_mr->lkey;
 
+	memset(&wr, 0, sizeof(wr));
 	wr.next = NULL;
 	wr.sg_list = &sg_list;
 	wr.num_sge = 1;
