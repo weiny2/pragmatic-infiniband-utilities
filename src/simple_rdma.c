@@ -1048,7 +1048,7 @@ client(const char *host)
 error_with_free:
 	//printf("Calling client disconnect\n");
 	rdma_disconnect(client_context.id);
-        //free_client_resources(&client_context);
+        free_client_resources(&client_context);
 error:
         rdma_destroy_id(client_context.id);
         return (rc);
