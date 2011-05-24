@@ -28,6 +28,7 @@ use strict;
 
 use lib '@PIU_SBIN_PATH@';
 use PIUHostlist;
+use PIUTranslate;
 
 use Getopt::Std;
 use IBswcountlimits;
@@ -146,7 +147,8 @@ sub get_hosts_in_mlid
       if ($line =~ /.*PortGid\.*(.*) \((.*)\)/) {
          $guid=$1;
          $name=$2;
-         push (@hosts, $2);
+	 $name=PIUTranslate::translate_to($name);
+         push (@hosts, $name);
          if ($line !~ /.*PortGid.*\(($cluster.*)\)/) {
             $host_errors{$guid} = $name;
 	 }
@@ -173,6 +175,9 @@ if ($report_missing eq "yes") {
 sub main
 {
    $IBswcountlimits::auth_check;
+
+   PIUTranslate::translate_load("@PIU_CONFIG_PATH@/piutranslate.conf");
+
    if ($report_mgid eq "yes") {
       print "MLID -> MGID mapping:\n";
       foreach my $mlid (@mlid_list) {

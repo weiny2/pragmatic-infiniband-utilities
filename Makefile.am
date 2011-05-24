@@ -35,6 +35,7 @@ mySCRIPTS = scripts/ibgetgid \
 				scripts/ibcreateswitchmap.sh \
 				scripts/ibhcacounters \
 				scripts/PIUHostlist.pm \
+				scripts/PIUTranslate.pm \
 				scripts/check_qos_router_settings.sh
 
 man_MANS = man/ibbouncelinks.8 \
