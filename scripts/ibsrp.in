@@ -45,7 +45,7 @@ startOpenSMCA2CA()
            smpquery -C $ch_adaptor -P $port -D nodeinfo 0,$port 2> /dev/null | grep NodeType | grep "Channel Adapter" > /dev/null
            ca=`echo $?`
            if [ "$ca" == "1" ]; then
-               $log_cmd "Port $port is not connected to a Channel Adaptor...  Skipping"
+               $log_cmd "Port $ch_adaptor:$port is not connected to a Channel Adaptor...  Skipping"
                continue
            fi
 
@@ -54,19 +54,19 @@ startOpenSMCA2CA()
            sm=`echo $?`
            if [ "$sm" == "0" ]; then
                # if the other end provides an SM we don't need to bother
-               $log_cmd "Port $port is connected to a Channel Adaptor which is SM capable...  Skipping OpenSM start"
+               $log_cmd "Port $ch_adaptor:$port is connected to a Channel Adaptor which is SM capable...  Skipping OpenSM start"
                continue
            fi
 
            port_guid=`smpquery -C $ch_adaptor -P $port -D nodeinfo 0 | grep PortGuid | sed -e "s/^PortGuid:\.*\(.*\)/\1/"`
            if [ "$port_guid" != "" ] ; then
-               $log_cmd "Starting OpenSM on port $port (guid $port_guid)"
+               $log_cmd "Starting OpenSM on port $ch_adaptor:$port (guid $port_guid)"
                opensm -g $port_guid -s 300 -f $LOG_DIR/opensm-$port.log 2>&1 > $LOG_DIR/opensm-$port.log &
                pid=$!
                sleep $OPENSM_SETTLE_TIMEOUT
                run=`ps -p $pid -o comm=`
                if [ x$run == x ]; then
-                    $log_cmd "Failed to start opensm; port $port, guid $port_guid: see $LOG_DIR/opensm-$port.log"
+                    $log_cmd "Failed to start opensm; port $ch_adaptor:$port, guid $port_guid: see $LOG_DIR/opensm-$port.log"
                     echo_failure
                     exit 1
                fi
