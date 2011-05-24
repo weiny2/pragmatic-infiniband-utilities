@@ -38,6 +38,9 @@ is_module()
 startOpenSMCA2CA()
 {
     for ch_adaptor in `ibstat -l`; do
+      if [ `ibstat $ch_adaptor | grep -c 'Link layer: Ethernet'` -ne 0 ]; then
+        $log_cmd "Adaptor $ch_adaptor is an ethernet device... Skipping smquery."
+      else
         ibstat $ch_adaptor | grep Port | grep -v GUID | cut -d ":" -f 1 | cut -d " " -f 2 | \
             while read port
         do
@@ -73,6 +76,7 @@ startOpenSMCA2CA()
                echo $pid >> $PID_DIR/opensm.pid
            fi
         done
+      fi
     done
 }
 
