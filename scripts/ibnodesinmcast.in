@@ -147,7 +147,7 @@ sub get_hosts_in_mlid
       if ($line =~ /.*PortGid\.*(.*) \((.*)\)/) {
          $guid=$1;
          $name=$2;
-	 $name=PIUTranslate::translate_to($name);
+	 $name=PIUTranslate::translate_from($name);
          push (@hosts, $name);
          if ($line !~ /.*PortGid.*\(($cluster.*)\)/) {
             $host_errors{$guid} = $name;
@@ -176,7 +176,7 @@ sub main
 {
    $IBswcountlimits::auth_check;
 
-   PIUTranslate::translate_load("@PIU_CONFIG_PATH@/piutranslate.conf");
+   PIUTranslate::translate_load("@PIU_CONFIG_PATH@/pragmaticIB/piutranslate.conf");
 
    if ($report_mgid eq "yes") {
       print "MLID -> MGID mapping:\n";

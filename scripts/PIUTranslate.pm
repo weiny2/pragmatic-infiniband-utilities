@@ -28,7 +28,7 @@
 #
 # Routines for translating between hostname types
 #
-# e.g. node1 HCA-1 -> node1
+# e.g. node1 -> node1 HCA-1
 #
 # Input file format
 #
