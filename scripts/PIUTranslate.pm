@@ -33,6 +33,8 @@
 # Input file format
 #
 # str,str
+# toIB=[perl match re]>[perl subs re]
+# fromIB=[perl match re]>[perl subs re]
 #
 
 use strict;
@@ -48,8 +50,15 @@ our @EXPORT_OK = qw(translate_load, translate_to, translate_from);
 if (!$PIUTranslate::included) {
     $PIUTranslate::included = 1;
 
+    my $cluster = `nodeattr -v cluster`;
+    chomp $cluster;
+
     my %ltor = ();
     my %rtol = ();
+    my $to_ibl = "$cluster(.*)";
+    my $to_ibr = "$cluster\\1 HCA-1";
+    my $from_ibl = "$cluster(.*) HCA-1";
+    my $from_ibr = "$cluster\\1";
 
     # Load a translate file
     sub translate_load
@@ -66,6 +75,15 @@ if (!$PIUTranslate::included) {
 
 		next if (/^\s*$/);    # skip blank lines
 
+		if (/^fromIB=(.*)/) {
+			($from_ibl, $from_ibr) = split('>', $1);
+			next;
+		}
+		if (/^toIB=(.*)/) {
+			($to_ibl, $to_ibr) = split('>', $1);
+			next;
+		}
+
 		($l, $r) = split(/,/);
 
 		$l =~ s/\s*$//;       # strip trailing spaces
@@ -81,6 +99,22 @@ if (!$PIUTranslate::included) {
 	}
     }
 
+    sub replace {
+	my $find = $_[0];
+	my $replace = $_[1];
+	my $rc = $_[2];
+
+	# Capture first
+	my @items = ( $rc =~ $find );
+	$rc =~ s/$find/$replace/;
+	for( reverse 0 .. $#items ){
+	    my $n = $_ + 1;
+	    $rc =~ s/\\$n/${items[$_]}/;
+	    $rc =~ s/\$$n/${items[$_]}/;
+	}
+	return $rc;
+    }
+
     sub translate_to
     {
 	my ($node) = @_;
@@ -88,9 +122,10 @@ if (!$PIUTranslate::included) {
 	if ($ltor{$node}) {
 	    return $ltor{$node};
 	}
-	else {
-	    return $node;
+	if ($to_ibl) {
+	    $node = replace($to_ibl, $to_ibr, $node);
 	}
+	return $node;
     }
 
     sub translate_from
@@ -100,9 +135,10 @@ if (!$PIUTranslate::included) {
 	if ($rtol{$node}) {
 	    return $rtol{$node};
 	}
-	else {
-	    return $node;
+	if ($from_ibl) {
+	    $node = replace($from_ibl, $from_ibr, $node);
 	}
+	return $node;
     }
 
 }    # PIUTranslate::included
