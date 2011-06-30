@@ -23,6 +23,7 @@ mySCRIPTS = scripts/ibgetgid \
 				scripts/ibtrackerrors \
 				scripts/ibcheckfabric \
 				scripts/ibnodesinmcast \
+				scripts/ibtranslatename \
 				scripts/ibbouncelinks.pl \
 				scripts/voltaire-create-switch-map.pl \
 				scripts/voltaire-get-guids.exp \
