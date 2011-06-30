@@ -33,102 +33,57 @@ my $sbindir="@PIU_SBIN_PATH@";
 sub usage_and_exit
 {
    my $prog = $_[0];
-   print "Usage: $prog [-hce][-m <node-name-map>\n";
+   print "Usage: $prog [-hced][-m <node-name-map>]\n";
 	print "   Check the status of the IB fabric\n";
-	print "   -c clear the IB errors after checking them\n";
-	print "   -e just check the IB errors\n";
+	print "   -c clear IB errors after check\n";
+	print "   -s SKIP the IB errors check\n";
+	print "   -d DON'T ignore down nodes\n";
 	print "   -m <node-name-map> specify a different node name map file\n";
 	print "\n";
 	exit 0
 }
 
+sub execute_sub_command
+{
+   my $cmd = $_[0];
+   system("$cmd");
+   if ($? == -1) {
+       print "ERROR: failed to execute: $cmd\n";
+   }
+   elsif ($? & 127) {
+       printf "ERROR: \"$cmd\" died with signal %d\n", ($? & 127);
+   }
+   return $? >> 8;
+}
+
 my $argv0 = `basename $0`;
-my $check_errors = undef;
+my $check_errors = "yes";
 my $map_file = "";
 my $clear_errors = "";
+my $ignore_down_nodes = "yes";
 $IBswcountlimits::auth_check;
 chomp $argv0;
-if (!getopts("hcem:")) { usage_and_exit $argv0; }
+if (!getopts("hcsdm:")) { usage_and_exit $argv0; }
 if (defined $Getopt::Std::opt_h) { usage_and_exit $argv0; }
-if (defined $Getopt::Std::opt_c) { $check_errors = "yes"; $clear_errors = "-c"; }
-if (defined $Getopt::Std::opt_e) { $check_errors = "yes"; }
+if (defined $Getopt::Std::opt_c) { $clear_errors = "-c"; }
+if (defined $Getopt::Std::opt_s) { $check_errors = "no"; }
+if (defined $Getopt::Std::opt_d) { $ignore_down_nodes = "no"; }
 if (defined $Getopt::Std::opt_m) { $map_file = "--node-name-map $Getopt::Std::opt_m"; }
 
-if ($check_errors eq "yes")
-{
-   print "Collecting port error information...\n";
-   my $errors = `$sbindir/ibtrackerrors $map_file $clear_errors`;
-   print $errors;
-}
-
-# check if we have the new iblinkinfo
-my $link_info_exe = "$sbindir/iblinkinfo";
-if ( -x $link_info_exe ) {
-	# this supports the map file option so add it here
-	$link_info_exe = "$link_info_exe $map_file";
-} else  {
-	# if not fall back to the previous version
-	$link_info_exe = "iblinkinfo.pl -R";
-}
-
-
-# check link stats
-print "Collecting port information...\n";
-print "Running: $link_info_exe\n";
-my $link_info_data = `$link_info_exe -l`;
-my @lines = split("\n", $link_info_data);
-
-my $down_port_cnt = 0;
-my $disabled_port_cnt = 0;
-my @disabled_ports = ();
-my $oneX_cnt = 0;
-my @oneX_ports = ();
-my $fourX_cnt = 0;
-my $twelveX_cnt = 0;
-my $sdr_cnt = 0;
-my $ddr_cnt = 0;
-my $qdr_cnt = 0;
-foreach my $line (@lines) {
-   # get link info
-   if ($line =~ /==\((.*)\)==>/) {
-      my $link_stats=$1;
-      # check for down links
-      if ($link_stats =~ /.*Down.*/) { $down_port_cnt++; }
-      if ($link_stats =~ /.*Disabled.*/) { $disabled_port_cnt++; push (@disabled_ports, $line); }
-      if ($link_stats =~ /.*Active.*/) {
-         # check for link line width
-         if ($link_stats =~ /.*1X.*/)  { $oneX_cnt++; push (@oneX_ports, $line); }
-         if ($link_stats =~ /.*4X.*/)  { $fourX_cnt++; }
-         if ($link_stats =~ /.*12X.*/) { $twelveX_cnt++; }
-         # check for link speed
-         if ($link_stats =~ /.*2.5 Gbps.*/)  { $sdr_cnt++; }
-         if ($link_stats =~ /.*5.0 Gbps.*/)  { $ddr_cnt++; }
-         if ($link_stats =~ /.*10.0 Gbps.*/) { $qdr_cnt++; }
-      }
+my $rc = 0;
+if ($check_errors eq "no") {
+   my $link_info_exe = "$sbindir/iblinkinfo -c $map_file";
+   if ($ignore_down_nodes eq "yes") {
+      my $downnodes = `whatsup -d`;
+      $downnodes = `$sbindir/ibtranslatename $downnodes`;
+      chomp $downnodes;
+      $link_info_exe = "$link_info_exe --downnodes '$downnodes'";
    }
+   $rc = execute_sub_command("$link_info_exe");
+} else {
+   my $errors_exe = "$sbindir/ibtrackerrors $map_file $clear_errors";
+   $rc = execute_sub_command("$errors_exe");
 }
 
-print "Switch Port Stats:\n";
-if ($down_port_cnt != 0)     { print "   $down_port_cnt down port(s)\n"; }
-if ($disabled_port_cnt != 0)
-{
-   print "   $disabled_port_cnt disabled port(s)\n";
-   foreach my $port (@disabled_ports) {
-      print "   $port\n";
-   }
-}
-if ($oneX_cnt != 0)
-{
-   print "   $oneX_cnt port(s) at 1X\n";
-   foreach my $port (@oneX_ports) {
-      print "   $port\n";
-   }
-}
-if ($fourX_cnt != 0)         { print "   $fourX_cnt port(s) Active at 4X\n"; }
-if ($twelveX_cnt != 0)       { print "   $twelveX_cnt port(s) Active at 12X\n"; }
-if ($sdr_cnt != 0)           { print "   $sdr_cnt port(s) Active at 2.5 Gbps (SDR) [Active]\n"; }
-if ($ddr_cnt != 0)           { print "   $ddr_cnt port(s) Active at 5.0 Gbps (DDR)\n"; }
-if ($qdr_cnt != 0)           { print "   $qdr_cnt port(s) Active at 10.0 Gbps (QDR)\n"; }
-
-#print "Node Port Stats:\n";
+exit $rc;
 
