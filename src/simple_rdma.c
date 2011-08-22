@@ -84,7 +84,7 @@ typedef struct
  * Global data.
  */
 char *argv0 = NULL;
-int   server_mode = 0;
+int   server_mode = 1;
 int   cycles = 1;
 int   query_qp_on_alloc = 0;
 struct
@@ -776,11 +776,11 @@ server(void)
                 return (rc);
         }
 
-        printf("main server id : %p\n", server_context.id);
+        printf("main server id : %p (listening on port %d)\n", server_context.id, COPY_PORT);
 
         /* bind */
         addr.sin_family = PF_INET;
-        addr.sin_port = COPY_PORT;
+        addr.sin_port = htons(COPY_PORT);
         addr.sin_addr.s_addr = INADDR_ANY;
         if ((rc = rdma_bind_addr(server_context.id, (struct sockaddr *)&addr)))
         {
@@ -794,8 +794,6 @@ server(void)
                 fprintf(stderr, "listen failed : %d\n", rc);
                 return (rc);
         }
-
-        printf("main server id : %p\n", server_context.id);
 
         while (1)
         {
@@ -996,7 +994,7 @@ client(const char *host)
 
         /* ??? */
         addr = *(struct sockaddr_in *)res->ai_addr;
-        addr.sin_port = COPY_PORT;
+        addr.sin_port = htons(COPY_PORT);
         if ( (rc =  rdma_resolve_addr(client_context.id, NULL, (struct sockaddr *)&addr, 2000))
               ||
              (rc = wait_for_event(client_context.channel, RDMA_CM_EVENT_ADDR_RESOLVED)) )
@@ -1063,7 +1061,7 @@ usage(void)
               "%s [-q -S -f <cycles> -H <host>]\n"
               "Usage: copy some data from client to server.\n"
               "       -q (server) query QP after allocation\n"
-              "       -S server mode\n"
+              "       -S server mode (Default with no options)\n"
               "       -H <host>\n"
               "       -f <cycles> stay connected to the server \"cycle\" times\n"
               "                   (forever == -1, default == 1)\n"
@@ -1099,7 +1097,10 @@ main(int argc, char *argv[])
                 {
                         case 'q': query_qp_on_alloc = 1; break;
                         case 'S': server_mode = 1; break;
-                        case 'H': host = strdup(optarg); break;
+                        case 'H':
+				host = strdup(optarg);
+				server_mode = 0;
+				break;
                         case 'f': cycles = atoi(optarg); break;
                         case 'h':
                         default:
