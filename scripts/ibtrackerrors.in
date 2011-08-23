@@ -55,8 +55,6 @@ function clean_up_subs
 {
    echo "Cleaning up old processes..."
    killall -9 ibqueryerrors
-   killall -9 ibclearerrors
-   killall -9 ibclearcounters
 }
 
 function rm_lock_file
@@ -117,29 +115,12 @@ if [ "$?" != "0" ]; then
    exit 1
 fi
 
-# check if we have the new ibqueryerrors
-query_errors_exe="$sbindir/ibqueryerrors"
-if [ -x $query_errors_exe ]; then
-   # if we do then we can use the map file
-   query_errors_exe="$query_errors_exe $map_file"
-   # this version also supports the switches option if the user wants that
-   if [ "$sw_only" == "yes" ]; then
-      query_errors_exe="$query_errors_exe --switch"
-   fi
-else
-   # if not fall back to the previous version
-   query_errors_exe="ibqueryerrors.pl -R"
+query_errors_exe="$sbindir/ibqueryerrors $map_file"
+if [ "$sw_only" == "yes" ]; then
+   query_errors_exe="$query_errors_exe --switch"
 fi
 
-# check if we have the new --clear-errors option.
-new_clear_option="no"
-$query_errors_exe -h 2>&1 | grep -e "--clear-errors" > /dev/null
-if [ "$?" == "0" ]; then
-   new_clear_option="yes"
-fi
-
-# if we have the new clear use it.
-if [ "$new_clear_option" == "yes" ] && [ "$clear_errors" == "yes" ]; then
+if [ "$clear_errors" == "yes" ]; then
    query_errors_exe="$query_errors_exe -k -K"
 fi
 
@@ -155,17 +136,17 @@ echo "" >> $log_dir/$log_file
 echo "" >> $log_dir/$log_file
 echo "     ***** ERRORS collected ($ts) *****" >> $log_dir/$log_file
 
-$query_errors_exe $suppress -r --data 2>&1 | tee -a $log_dir/$log_file
+downnodes=`whatsup -d`;
+downnodes=`$sbindir/ibtranslatename $downnodes`
+
+$query_errors_exe $suppress -r -f --downnodes="$downnodes" --data 2>&1 | tee -a $log_dir/$log_file
+rc=$PIPESTATUS
 
 if [ "$clear_errors" == "yes" ]; then
-   if [ "$new_clear_option" == "no" ]; then
-      echo " -c specified, clearing errors"
-      ibclearerrors; ibclearcounters
-   fi
    echo " -c specified, errors cleared"
    echo "     ***** ERRORS CLEARED ($ts) *****" >> $log_dir/$log_file
 fi
 
 rm_lock_file
-exit 0
+exit $rc
 
