@@ -1,0 +1,43 @@
+.TH IBCHECKFABRIC 8 "September 12, 2011" "Pragmatic Infiniband Utilities" "Infiniband Diagnostics"
+
+.SH NAME
+ibcheckfabric \- Perform complete check of the IB fabric
+
+.SH SYNOPSIS
+.B ibcheckfabric [-hcsd][-m <node-name-map>]
+
+
+.SH DESCRIPTION
+.PP
+ibcheckfabric is a wrapper script which performs 2 sweeps of the fabric using
+iblinkinfo and ibtrackerrors (ibqueryerrors) as it's underlying tools.
+
+.SH OPTIONS
+
+.PP
+.TP
+\fB\-h\fR
+	print help message
+.TP
+\fB\-c\fR
+	clear IB errors after check
+.TP
+\fB\-s\fR
+	SKIP the IB errors check
+.TP
+\fB\-d\fR
+	DON'T ignore down nodes
+.TP
+\fB\-m <node-name-map>\fR
+	specify a different node name map file
+
+
+.SH SEE ALSO
+.PP
+iblinkinfo, ibtrackerrors (ibqueryerrors)
+
+
+.SH AUTHOR
+.TP
+Ira Weiny
+.RI < weiny2@llnl.gov >

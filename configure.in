@@ -83,5 +83,8 @@ AC_CONFIG_FILES([Makefile
                man/ibsrp.8
                man/ibtrackerrors.8
                man/ibhcacounters.8
+               man/ibcheckfabric.8
+               man/ibtranslatename.8
+               man/ibnodesinmcast.8
                ])
 AC_OUTPUT

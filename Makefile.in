@@ -42,9 +42,12 @@ DIST_COMMON = README $(am__configure_deps) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in \
 	$(srcdir)/pragmatic-infiniband-utilities.spec.in \
 	$(top_srcdir)/config/config.h.in $(top_srcdir)/configure \
+	$(top_srcdir)/man/ibcheckfabric.8.in \
 	$(top_srcdir)/man/ibhcacounters.8.in \
+	$(top_srcdir)/man/ibnodesinmcast.8.in \
 	$(top_srcdir)/man/ibsrp.8.in \
 	$(top_srcdir)/man/ibtrackerrors.8.in \
+	$(top_srcdir)/man/ibtranslatename.8.in \
 	$(top_srcdir)/man/qlogic-create-switch-map.8.in \
 	$(top_srcdir)/man/voltaire-create-switch-map.8.in \
 	$(top_srcdir)/scripts/ibcheckfabric.in \
@@ -79,7 +82,8 @@ CONFIG_CLEAN_FILES = pragmatic-infiniband-utilities.spec \
 	scripts/ibtranslatename scripts/ibtraceroute \
 	scripts/ibcreateswitchmap.sh man/voltaire-create-switch-map.8 \
 	man/qlogic-create-switch-map.8 scripts/ibsrp man/ibsrp.8 \
-	man/ibtrackerrors.8 man/ibhcacounters.8
+	man/ibtrackerrors.8 man/ibhcacounters.8 man/ibcheckfabric.8 \
+	man/ibtranslatename.8 man/ibnodesinmcast.8
 CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(sbindir)" "$(DESTDIR)$(sbindir)" \
 	"$(DESTDIR)$(man8dir)"
@@ -324,7 +328,9 @@ man_MANS = man/ibbouncelinks.8 \
 				man/slurm_topology.8 \
 				man/ibtrackerrors.8 \
 				man/ibhcacounters.8 \
-				man/ibsrp.8
+				man/ibsrp.8 \
+				man/ibtranslatename.8 \
+				man/ibcheckfabric.8
 
 sbin_SCRIPTS = $(mySCRIPTS)
 src_simple_rdma_SOURCES = src/simple_rdma.c
@@ -431,6 +437,12 @@ man/ibsrp.8: $(top_builddir)/config.status $(top_srcdir)/man/ibsrp.8.in
 man/ibtrackerrors.8: $(top_builddir)/config.status $(top_srcdir)/man/ibtrackerrors.8.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 man/ibhcacounters.8: $(top_builddir)/config.status $(top_srcdir)/man/ibhcacounters.8.in
+	cd $(top_builddir) && $(SHELL) ./config.status $@
+man/ibcheckfabric.8: $(top_builddir)/config.status $(top_srcdir)/man/ibcheckfabric.8.in
+	cd $(top_builddir) && $(SHELL) ./config.status $@
+man/ibtranslatename.8: $(top_builddir)/config.status $(top_srcdir)/man/ibtranslatename.8.in
+	cd $(top_builddir) && $(SHELL) ./config.status $@
+man/ibnodesinmcast.8: $(top_builddir)/config.status $(top_srcdir)/man/ibnodesinmcast.8.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 install-sbinPROGRAMS: $(sbin_PROGRAMS)
 	@$(NORMAL_INSTALL)

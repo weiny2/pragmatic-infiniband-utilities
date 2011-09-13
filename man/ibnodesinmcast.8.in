@@ -31,6 +31,12 @@ gien a node report which groups it belongs to
 \fB\-g\fR
 report MGID info as well
 
+.SH FILES
+.PP
+@PIU_CONFIG_PATH@/pragmaticIB/piutranslate.conf
+
+See ibtranslatename for file format.
+
 .SH AUTHOR
 .TP
 Ira Weiny

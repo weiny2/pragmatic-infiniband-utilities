@@ -33,7 +33,7 @@ my $sbindir="@PIU_SBIN_PATH@";
 sub usage_and_exit
 {
    my $prog = $_[0];
-   print "Usage: $prog [-hced][-m <node-name-map>]\n";
+   print "Usage: $prog [-hcsd][-m <node-name-map>]\n";
 	print "   Check the status of the IB fabric\n";
 	print "   -c clear IB errors after check\n";
 	print "   -s SKIP the IB errors check\n";

@@ -1,0 +1,77 @@
+.TH IBTRANSLATENAME 8 "September 12, 2011" "Pragmatic Infiniband Utilities" "Infiniband Diagnostics"
+
+.SH NAME
+ibtranslatename \- Translate from IB name to cononical cluster name
+
+.SH SYNOPSIS
+.B ibtranslatename [-hf] [-s <char>]
+
+.SH DESCRIPTION
+.PP
+The Open Fabrics InfiniBand software stack forms the node description name from
+the hostname and HCA number.  The general form is "<hostname> HCA-X"  Where X
+is the number of the HCA in the system.  This is incompatible with most of the
+tools used in the CHAOS/TOSS operating system which expects a conoical name
+consisting of just the hostname.  In order to cross reference other tools with
+the InfiniBand tools ibtranslatename can read a config file and translate the
+"IB" name to cononical name and vice versa.
+
+The default behavior is to translate from cononical name to IB name.
+Furthermore, in the absence of a configuration for a particular node the
+default mapping is cononical name "<cluster_name>Y" translates to IB name
+"<cluster_name>Y HCA-1".  Where Y is the node number.
+
+.SH OPTIONS
+
+.PP
+.TP
+\fB\-h\fR
+	print help message
+.TP
+\fB\-f\fR
+	translate "from" IB name to cononical name
+.TP
+\fB\-s <char>\fR
+	use <char> to separate results: default ','
+
+
+.SH FILES
+.PP
+@PIU_CONFIG_PATH@/pragmaticIB/piutranslate.conf
+
+The file format of piutranslate.conf is:
+
+# Lines beginning with # are comments.
+.br
+# Specific translations from cononical name "LHS" to IB name "RHS"
+.br
+# Any number of these may be specified.
+.br
+hype138,hype138 HCA-3
+.br
+hype139,hype139 HCA-3
+.br
+hype140,hype140 HCA-3
+.br
+hype141,hype141 HCA-3
+
+# Global Regular expression defining a translation
+.br
+# "toIB"
+.br
+toIB=hype(.*)>hype\1 HCA-1
+
+# and "fromIB"
+.br
+fromIB=hype(.*) HCA-1>hype\1
+
+
+.SH REQUIREMENTS
+.PP
+.TP
+\fBnodeattr\fR -- from genders package
+
+.SH AUTHOR
+.TP
+Ira Weiny
+.RI < weiny2@llnl.gov >
