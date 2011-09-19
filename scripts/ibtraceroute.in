@@ -29,6 +29,7 @@ use strict;
 
 use lib '@PIU_SBIN_PATH@';
 use PIUHostlist;
+use PIUTranslate;
 
 use Getopt::Std;
 use IBswcountlimits;
@@ -110,6 +111,15 @@ if ($nodeX eq "") {
 	exit -1;
 }
 
+PIUTranslate::translate_load("@PIU_CONFIG_PATH@/pragmaticIB/piutranslate.conf");
+
+if ($nodeX ne "") {
+       $nodeX=PIUTranslate::translate_to($nodeX);
+}
+if ($nodeY ne "") {
+       $nodeY=PIUTranslate::translate_to($nodeY);
+}
+
 
 if ($ca_name ne "") {
 	$hca_opts = "-C $ca_name";
@@ -125,7 +135,7 @@ sub saquery_lid
 {
 	my ($node, $is_lid) = @_;
 	my $rc = 0;
-	my $data = `saquery $hca_opts $node`;
+	my $data = `saquery $hca_opts "$node"`;
 	my @lines = split("\n", $data);
 	foreach my $line (@lines) {
 		if ($line =~ /[ \t]*lid\.*(.*)/) {
