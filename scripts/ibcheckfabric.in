@@ -33,8 +33,10 @@ my $sbindir="@PIU_SBIN_PATH@";
 sub usage_and_exit
 {
    my $prog = $_[0];
-   print "Usage: $prog [-hcsd][-m <node-name-map>]\n";
+   print "Usage: $prog [-hcsd][-C <CA>][-P <port>][-m <node-name-map>]\n";
 	print "   Check the status of the IB fabric\n";
+	print "   -C <CA> CA name to use\n";
+	print "   -P <port> port to use\n";
 	print "   -c clear IB errors after check\n";
 	print "   -s SKIP the IB errors check\n";
 	print "   -d DON'T ignore down nodes\n";
@@ -61,18 +63,23 @@ my $check_errors = "yes";
 my $map_file = "";
 my $clear_errors = "";
 my $ignore_down_nodes = "yes";
+my $options = "";
 $IBswcountlimits::auth_check;
 chomp $argv0;
-if (!getopts("hcsdm:")) { usage_and_exit $argv0; }
+if (!getopts("hcsdm:C:P:")) { usage_and_exit $argv0; }
 if (defined $Getopt::Std::opt_h) { usage_and_exit $argv0; }
 if (defined $Getopt::Std::opt_c) { $clear_errors = "-c"; }
 if (defined $Getopt::Std::opt_s) { $check_errors = "no"; }
 if (defined $Getopt::Std::opt_d) { $ignore_down_nodes = "no"; }
 if (defined $Getopt::Std::opt_m) { $map_file = "--node-name-map $Getopt::Std::opt_m"; }
+if (defined $Getopt::Std::opt_C) { $options = "$options -C $Getopt::Std::opt_C"; }
+if (defined $Getopt::Std::opt_P) { $options = "$options -P $Getopt::Std::opt_P"; }
+
+print "IKW $options \n";
 
 my $rc = 0;
 if ($check_errors eq "no") {
-   my $link_info_exe = "$sbindir/iblinkinfo -c $map_file";
+   my $link_info_exe = "$sbindir/iblinkinfo $options -c $map_file";
    if ($ignore_down_nodes eq "yes") {
       my $downnodes = `whatsup -d`;
       $downnodes = `$sbindir/ibtranslatename $downnodes`;
@@ -81,7 +88,7 @@ if ($check_errors eq "no") {
    }
    $rc = execute_sub_command("$link_info_exe");
 } else {
-   my $errors_exe = "$sbindir/ibtrackerrors $map_file $clear_errors";
+   my $errors_exe = "$sbindir/ibtrackerrors $options $map_file $clear_errors";
    $rc = execute_sub_command("$errors_exe");
 }
 

@@ -4,7 +4,7 @@
 ibcheckfabric \- Perform complete check of the IB fabric
 
 .SH SYNOPSIS
-.B ibcheckfabric [-hcsd][-m <node-name-map>]
+.B ibcheckfabric [-hcsd][-C <CA>][-P <port>][-m <node-name-map>]
 
 
 .SH DESCRIPTION
@@ -30,7 +30,12 @@ iblinkinfo and ibtrackerrors (ibqueryerrors) as it's underlying tools.
 .TP
 \fB\-m <node-name-map>\fR
 	specify a different node name map file
-
+.TP
+\fB\-C <CA>\fR
+   CA name to use
+.TP
+\fB\-P <port>\fR
+   port to use"
 
 .SH SEE ALSO
 .PP

@@ -4,7 +4,7 @@
 ibtrackerrors \- Check Port Error counters 
 
 .SH SYNOPSIS
-.B ibtrackerrors [-hcCls] [-S <err1,err2,...>] [-m <node-name-map>]
+.B ibtrackerrors [-hcls][-C <CA>][-P <port>] [-S <err1,err2,...>] [-m <node-name-map>]
 
 .SH DESCRIPTION
 .PP
@@ -33,8 +33,11 @@ Scan the switches only.  Ignore HCA's, TCA's, and Routers.
 \fB\-S <err1,err2,...>\fR
 In addition to the errors suppressed by the config file suppress the errors specified.
 .TP
-\fB\-C\fR
-Attempt to clean up (kill ibqueryerrors) other instances and exit.
+\fB\-C <CA>\fR
+   CA name to use
+.TP
+\fB\-P <port>\fR
+   port to use"
 .TP
 \fB\-l\fR
 Remove lockfile and run anyway.  This option removes the lockfile protecting

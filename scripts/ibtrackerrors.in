@@ -39,9 +39,11 @@ cd ${0%/*}
 
 function usage
 {
-   echo "Usage: $0 [-hcCls] [-t <ms>] [-S <err1,err2,...>] [-m <node-name-map>]"
+   echo "Usage: $0 [-hcCls][-C <CA>][-P <port>][-t <ms>][-S <err1,err2,...>] [-m <node-name-map>]"
    echo "   Query errors on the subnet while logging"
    echo "   errors to $log_dir/$log_file"
+   echo "   -C <CA> CA name to use"
+   echo "   -P <port> port to use"
    echo "   -c clear errors after querying (Also logs this event)"
    echo "   -m <node-name-map> specify a different node name map file"
    echo "   -s scan switches only"
@@ -63,19 +65,17 @@ function rm_lock_file
 }
 
 clear_errors="no"
-clean_up="no"
 rm_lock="no"
 map_file=""
 sw_only="no"
 suppress="$SUPPRESS_ERRORS"
-timeout=""
+options=""
 
-while getopts "hcClm:sS:t:" flag
+while getopts "hclm:sS:t:C:P:" flag
 do
    case $flag in
       "h") usage; exit 0;;
       "c") clear_errors="yes";;
-      "C") clean_up="yes";;
       "l") rm_lock="yes";;
       "m") map_file="--node-name-map $OPTARG";;
       "s") sw_only="yes";;
@@ -86,7 +86,9 @@ do
               suppress="$suppress,$OPTARG"
            fi
       ;;
-      "t") timeout="-t $OPTARG";;
+      "t") options="$options -t $OPTARG";;
+      "C") options="$options -C $OPTARG";;
+      "P") options="$options -P $OPTARG";;
       *) usage; exit 1;;
    esac
 done
@@ -94,14 +96,9 @@ done
 
 shift $(($OPTIND - 1))
 
-if [ "$clean_up" == "yes" ]; then
-   clean_up_subs
-   killall -9 ibtrackerrors
-   exit 0
-fi
-
 if [ "$rm_lock" == "yes" ]; then
    clean_up_subs
+   killall -9 ibtrackerrors
    echo "Removing lockfile $lockfile"
    rm_lock_file
 fi
@@ -110,12 +107,12 @@ lockfile -r 0 $lockfile
 if [ "$?" != "0" ]; then
    echo "Failed to lock $lockfile"
    echo "  Please make sure that cron or another user is not running now."
-   echo "  If you are sure that another user is not running try -C and/or -l"
+   echo "  If you are sure that another user is not running try -l"
    echo "  Exiting..."
    exit 1
 fi
 
-query_errors_exe="$sbindir/ibqueryerrors $map_file"
+query_errors_exe="$sbindir/ibqueryerrors $options $map_file"
 if [ "$sw_only" == "yes" ]; then
    query_errors_exe="$query_errors_exe --switch"
 fi
