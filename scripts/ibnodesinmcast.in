@@ -68,8 +68,6 @@ my $report_missing = "no";
 my $report_list = "no";
 my @node_name = ();
 my $report_mgid = "no";
-my $ca_name = "";
-my $ca_port = "";
 my $saq_opts = "";
 my $report_non_std = "no";
 if (!getopts("hmt:rn:gC:P:c")) { usage_and_exit $argv0; }
@@ -79,18 +77,11 @@ if (defined $Getopt::Std::opt_t) { $sa_timeout_ms = $Getopt::Std::opt_t; }
 if (defined $Getopt::Std::opt_r) { $report_list = "yes"; }
 if (defined $Getopt::Std::opt_n) { push (@node_name, $Getopt::Std::opt_n); }
 if (defined $Getopt::Std::opt_g) { $report_mgid = "yes"; }
-if (defined $Getopt::Std::opt_C) { $ca_name = $Getopt::Std::opt_C; }
-if (defined $Getopt::Std::opt_P) { $ca_port = $Getopt::Std::opt_P; }
+if (defined $Getopt::Std::opt_C) { $saq_opts = "$saq_opts -C $Getopt::Std::opt_C"; }
+if (defined $Getopt::Std::opt_P) { $saq_opts = "$saq_opts -P $Getopt::Std::opt_P"; }
 if (defined $Getopt::Std::opt_c) { $report_non_std = "yes"; }
 
 my $mlid_single = $ARGV[0];
-
-if ($ca_name != "") {
-	$saq_opts = "-C $ca_name";
-}
-if ($ca_port != "") {
-	$saq_opts = "$saq_opts -P $ca_port";
-}
 
 if ($report_missing eq "yes") {
    $report_non_std = "yes";
