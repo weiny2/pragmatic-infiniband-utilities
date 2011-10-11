@@ -70,8 +70,8 @@ my $ca_name = "";
 my $ca_port = "";
 my $hca_opts = "";
 
-if (!getopts("hlm:t:aC:P:r")) { usage_and_exit $argv0; }
-if (defined $Getopt::Std::opt_h) { usage_and_exit $argv0; }
+if (!getopts("hlm:t:aC:P:r")) { usage $argv0; exit -1; }
+if (defined $Getopt::Std::opt_h) { usage $argv0; exit 0; }
 if (defined $Getopt::Std::opt_m) { $mlid = $Getopt::Std::opt_m; }
 if (defined $Getopt::Std::opt_t) { $timeout_ms = $Getopt::Std::opt_t; }
 if (defined $Getopt::Std::opt_a) { $report_all = "yes"; }
