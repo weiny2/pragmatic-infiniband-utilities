@@ -35,6 +35,7 @@ my @ignore_hosts = undef;
 my $going_to_sdr = undef;
 my $going_to_ddr = undef;
 my $going_to_qdr = undef;
+my $diag_options = "";
 
 #
 # get_state(switch, port)
@@ -45,7 +46,7 @@ sub get_state
 {
 	my $switch        = $_[0];
 	my $port          = $_[1];
-	my $portinfo_data = `smpquery -G portinfo $switch $port`;
+	my $portinfo_data = `smpquery $diag_options -G portinfo $switch $port`;
 	my $state         = "";
 	my @lines         = split("\n", $portinfo_data);
 	foreach my $line (@lines) {
@@ -69,6 +70,8 @@ sub usage_and_exit
 	  . "   -d Specify we are going TO DDR mode (skip ports already at DDR))\n"
 	  . "   -q Specify we are going TO QDR mode (skip ports already at QDR))\n"
 	  . "   -O <guid:port> bounce the link of a single port specified by <guid:port>\n"
+	  . "   -C <CA> use CA\n"
+	  . "   -P <port> use port\n"
 	  . "";
 	exit 0;
 }
@@ -77,7 +80,7 @@ my $argv0         = `basename $0`;
 my $single_switch = undef;
 my $single_link   = undef;
 chomp $argv0;
-if (!getopts("hsdqi:t:RS:O:"))   { usage_and_exit $argv0; }
+if (!getopts("hsdqi:t:RS:O:C:P:"))   { usage_and_exit $argv0; }
 if (defined $Getopt::Std::opt_h) { usage_and_exit $argv0; }
 if (defined $Getopt::Std::opt_S) { $single_switch = $Getopt::Std::opt_S; }
 if (defined $Getopt::Std::opt_t) { $timeout       = $Getopt::Std::opt_t; }
@@ -86,6 +89,8 @@ if (defined $Getopt::Std::opt_s) { $going_to_sdr  = $Getopt::Std::opt_s; }
 if (defined $Getopt::Std::opt_d) { $going_to_ddr  = $Getopt::Std::opt_d; }
 if (defined $Getopt::Std::opt_q) { $going_to_qdr  = $Getopt::Std::opt_q; }
 if (defined $Getopt::Std::opt_O) { $single_link   = $Getopt::Std::opt_O; }
+if (defined $Getopt::Std::opt_C) { $diag_options  = "$diag_options -C $Getopt::Std::opt_C"; }
+if (defined $Getopt::Std::opt_P) { $diag_options  = "$diag_options -P $Getopt::Std::opt_P"; }
 
 my $hostname = `hostname`;
 chomp $hostname;
@@ -117,7 +122,7 @@ sub bounce_one
 
 	printf("   Bouncing... ");
 
-	`ibportstate -G $switch $port reset`;
+	`ibportstate $diag_options -G $switch $port reset`;
 	my $time = $timeout;
 	printf("Wait for \"Active\".");
 	while (get_state($switch, $port) ne "Active" && $time--) {
