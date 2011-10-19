@@ -348,7 +348,7 @@ usage(void)
 {
         fprintf(stderr,
 "%s [options]\n"
-"Usage: generate a slurm topology file to be fed to slurm for better node utilization\n"
+"Usage: generate a dot file for better fabric visualization\n"
 "\n"
 "Options:\n"
 "  -S <guid> generate for the node specified by the port guid\n"
