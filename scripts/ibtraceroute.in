@@ -43,9 +43,10 @@ my %mlid_list = ();
 sub usage
 {
    my $prog = $_[0];
-   print "Usage: $prog [-halr] [-C <ca>] [-P <port>] [-m <mlid>] [-t <ms>] <ibnodeX> [<ibnodeY>]\n";
+   print "Usage: $prog [-halrk] [-C <ca>] [-P <port>] [-m <mlid>] [-t <ms>] <ibnodeX> [<ibnodeY>]\n";
    print "   trace the ib route from <ibnodeX> to <ibnodeY>\n";
    print "   ibnode Y defaults to the local node if not specified\n";
+   print "   This is a wrapper around the more primitive \"ibtracert\" tool\n";
    print "   -m <mlid> trace a multicast group route specified by mlid\n";
    print "   -t <msec>  Specify the timeout value to saquery (default $def_sa_timeout_ms)\n";
    print "   -a Report both unicast and _all_ multicast routes\n";
@@ -53,6 +54,7 @@ sub usage
    print "   -r Report valid MLid's and exit\n";
    print "   -C <ca> Ca name to use\n";
    print "   -P <port> Ca port number to use\n";
+   print "   -k skip node name translation\n";
 }
 
 my $argv0 = `basename $0`;
@@ -69,8 +71,9 @@ my $report_list = "no";
 my $ca_name = "";
 my $ca_port = "";
 my $hca_opts = "";
+my $skip_translate = "no";
 
-if (!getopts("hlm:t:aC:P:r")) { usage $argv0; exit -1; }
+if (!getopts("hlm:t:aC:P:rk")) { usage $argv0; exit -1; }
 if (defined $Getopt::Std::opt_h) { usage $argv0; exit 0; }
 if (defined $Getopt::Std::opt_m) { $mlid = $Getopt::Std::opt_m; }
 if (defined $Getopt::Std::opt_t) { $timeout_ms = $Getopt::Std::opt_t; }
@@ -79,6 +82,7 @@ if (defined $Getopt::Std::opt_C) { $ca_name = $Getopt::Std::opt_C; }
 if (defined $Getopt::Std::opt_P) { $ca_port = $Getopt::Std::opt_P; }
 if (defined $Getopt::Std::opt_l) { $nodes_are_lids = "yes"; }
 if (defined $Getopt::Std::opt_r) { $report_list = "yes"; }
+if (defined $Getopt::Std::opt_k) { $skip_translate = "yes"; }
 
 $nodeX = $ARGV[0];
 $nodeY = $ARGV[1];
@@ -111,13 +115,15 @@ if ($nodeX eq "") {
 	exit -1;
 }
 
-PIUTranslate::translate_load("@PIU_CONFIG_PATH@/pragmaticIB/piutranslate.conf");
+if ($skip_translate eq "no") {
+	PIUTranslate::translate_load("@PIU_CONFIG_PATH@/pragmaticIB/piutranslate.conf");
 
-if ($nodeX ne "") {
-       $nodeX=PIUTranslate::translate_to($nodeX);
-}
-if ($nodeY ne "") {
-       $nodeY=PIUTranslate::translate_to($nodeY);
+	if ($nodeX ne "") {
+		$nodeX=PIUTranslate::translate_to($nodeX);
+	}
+	if ($nodeY ne "") {
+		$nodeY=PIUTranslate::translate_to($nodeY);
+	}
 }
 
 
@@ -136,6 +142,10 @@ sub saquery_lid
 	my ($node, $is_lid) = @_;
 	my $rc = 0;
 	my $data = `saquery $hca_opts "$node"`;
+	if ($? != 0) {
+		printf STDERR "   cmd: saquery $hca_opts \"$node\"\n";
+		exit -1;
+	}
 	my @lines = split("\n", $data);
 	foreach my $line (@lines) {
 		if ($line =~ /[ \t]*lid\.*(.*)/) {
