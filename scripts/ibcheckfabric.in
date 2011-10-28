@@ -75,8 +75,6 @@ if (defined $Getopt::Std::opt_m) { $map_file = "--node-name-map $Getopt::Std::op
 if (defined $Getopt::Std::opt_C) { $options = "$options -C $Getopt::Std::opt_C"; }
 if (defined $Getopt::Std::opt_P) { $options = "$options -P $Getopt::Std::opt_P"; }
 
-print "IKW $options \n";
-
 my $rc = 0;
 if ($check_errors eq "no") {
    my $link_info_exe = "$sbindir/iblinkinfo $options -c $map_file";
