@@ -175,12 +175,17 @@ stop()
 
 status()
 {
-    echo "ib_srp module:"
+    echo -n "ib_srp module: "
     is_module ib_srp
     if [ "$?" == "0" ]; then
-        echo "   loaded with tablesize = " `cat /sys/module/ib_srp/parameters/srp_sg_tablesize`
+        echo "loaded"
+	echo "   module parameters:"
+	for file in `ls /sys/module/ib_srp/parameters/*`; do
+            file=`basename $file`
+            echo "      $file: " `cat /sys/module/ib_srp/parameters/$file`
+	done
     else
-        echo "   ERROR: not loaded"
+        echo "ERROR: not loaded"
     fi
 
     echo "opensm(s):"
