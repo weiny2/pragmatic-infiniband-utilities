@@ -7,7 +7,7 @@ License: GPL
 Group: System Environment/Libraries
 BuildRoot: %{_tmppath}/@PROJECT@-@VERSION@-@RELEASE@
 Source: @PROJECT@-@VERSION@.tar.gz
-Requires: libibverbs, librdmacm, libibmad, opensm, infiniband-diags, whatsup, bash
+Requires: libibverbs, librdmacm, libibmad, opensm, infiniband-diags, whatsup, bash, perftest
 BuildRequires: libibverbs-devel, librdmacm-devel, libibmad-devel, opensm-devel, infiniband-diags, whatsup
 Conflicts: llnl-ib-tools >= 1.0.0
 
