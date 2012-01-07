@@ -37,6 +37,9 @@ is_module()
 
 startOpenSMCA2CA()
 {
+    # some links, particularly QDR and faster, take some time to physically
+    # link.  Wait a configurable amount of time for them to settle.
+    test x$LINK_SETTLE_TIMEOUT != x && sleep $LINK_SETTLE_TIMEOUT
     for ch_adaptor in `ibstat -l`; do
       numport=`ibstat $ch_adaptor | grep Number | sed -e "s/.*:\(.*\)/\1/"`
       for port in `seq 1 $numport`; do
