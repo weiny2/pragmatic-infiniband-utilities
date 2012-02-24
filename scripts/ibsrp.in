@@ -1,7 +1,19 @@
 #!/bin/bash
 
-# chkconfig: 2345 95 05 
+# chkconfig: 2345 50 05
 # description: Activates/Deactivates direct connected InfiniBand SRP Interfaces
+
+### BEGIN INIT INFO
+# Provides: ibsrp
+# Required-Start: $rdma
+# Default-Start: 2 3 4 5
+# Default-Stop: 0 1 6
+# Short-Description: Start/Stop the ibsrp service
+# Description: Start/Stop the ibsrp service
+#              ibsrp service identify's point to point IB links which need to
+#              have an SM running on them to function.  In addition it loads
+#              the srp_daemon to bring up SRP targets found on those fabrics.
+### END INIT INFO
 
 . /etc/rc.d/init.d/functions
 
@@ -101,6 +113,12 @@ kill_daemons()
 
 start()
 {
+    if [ ! -f /var/lock/subsys/rdma ]; then
+	$log_cmd "rdma is not running: ibsrp depends on rdma"
+	echo_failure
+	exit 1
+    fi
+
     $log_cmd "Starting..."
 
     if [ -f $PID_DIR/opensm.pid ] || [ -f $PID_DIR/srp_daemon.pid ]; then
