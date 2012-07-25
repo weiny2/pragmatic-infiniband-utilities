@@ -77,7 +77,7 @@ if (defined $Getopt::Std::opt_P) { $options = "$options -P $Getopt::Std::opt_P";
 
 my $rc = 0;
 if ($check_errors eq "no") {
-   my $link_info_exe = "$sbindir/iblinkinfo $options -c $map_file";
+   my $link_info_exe = "$sbindir/iblinkinfo $options -f $map_file";
    if ($ignore_down_nodes eq "yes") {
       my $downnodes = `whatsup -d`;
       $downnodes = `$sbindir/ibtranslatename $downnodes`;
