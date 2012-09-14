@@ -49,14 +49,24 @@ my $lid;
 my $ports;
 my $interval = 5;
 
-my $lastxmitdata = 0;
-my $lastrcvdata  = 0;
-
 my $tab            = 0;
 my $gnuplot        = 0;
 my $gnuplotscratch = "/tmp/perfmon.tmp.$$";
 
+my $aggregate = 0;
+
+my $xmitoutput = 1;
+my $rcvoutput  = 1;
+
 my $counter = 0;
+
+my %lastxmitdata    = ();
+my %currentxmitdata = ();
+
+my %lastrcvdata    = ();
+my %currentrcvdata = ();
+
+my @portlist = ();
 
 sub usage
 {
@@ -66,35 +76,70 @@ sub usage
 	print "Usage: $prog -l <lid> -p <port(s)> [-i <interval>] [-v]\n";
 	print "  -l lid of switch to monitor\n";
 	print "  -p port(s) of switch to monitor\n";
-	print "     separate ports by comma for set of ports (i.e. 1,2,3,4)\n";
+	print "     input a single port (i.e. 1)\n";
+	print "     or separate ports by comma for set of ports (i.e. 1,2,3,4)\n";
+	print "     or separate ports by - for single range ports (i.e. 1-4)\n";
 	print "  -i interval seconds between poll (default 5)\n";
 	print "  -T tab delimited output\n";
 	print "  -G gnuplot data\n";
+	print "  -a aggregate data\n";
+	print "  -x output xmit data only\n";
+	print "  -r output rcv data only\n";
 	exit 2;
 }
 
 sub perfget
 {
 	my $perfdata;
-	my $tmpxmitdata;
-	my $tmprcvdata;
+	my @perfdatalines;
+	my $perfline;
+	my $currentport     = -1;    # b/c 0 is valid port
+	my $currentxmitdata = 0;
+	my $currentrcvdata  = 0;
 
-	$perfdata = `$perfquery -a -x -L $lid $ports`;
+	if ($aggregate) {
+		$perfdata = `$perfquery -a -x -L $lid $ports`;
+	} else {
+		$perfdata = `$perfquery -l -x -L $lid $ports`;
+	}
 
-	if ($perfdata =~ /PortXmitData:....................(.+)/) {
-		$tmpxmitdata = $1;
-	} else {
-		$tmpxmitdata = 0;
+	@perfdatalines = split("\n", $perfdata);
+
+	foreach $perfline (@perfdatalines) {
+		if ($perfline =~ /PortSelect:......................(.+)/) {
+
+			if (   $currentport != -1
+				&& $currentxmitdata != 0
+				&& $currentrcvdata != 0)
+			{
+				$currentxmitdata{$currentport} = $currentxmitdata;
+				$currentrcvdata{$currentport}  = $currentrcvdata;
+			}
+
+			$currentport     = $1;
+			$currentxmitdata = 0;
+			$currentrcvdata  = 0;
+			next;
+		}
+
+		if ($perfline =~ /PortXmitData:....................(.+)/) {
+			$currentxmitdata = $1;
+			next;
+		}
+
+		if ($perfline =~ /PortRcvData:.....................(.+)/) {
+			$currentrcvdata = $1;
+			next;
+		}
 	}
-	if ($perfdata =~ /PortRcvData:.....................(.+)/) {
-		$tmprcvdata = $1;
-	} else {
-		$tmprcvdata = 0;
+
+	if ($currentport != -1) {
+		$currentxmitdata{$currentport} = $currentxmitdata;
+		$currentrcvdata{$currentport}  = $currentrcvdata;
 	}
-	return ($tmpxmitdata, $tmprcvdata);
 }
 
-if (!getopts("hl:p:i:TG")) {
+if (!getopts("hl:p:i:TGaxr")) {
 	usage();
 }
 
@@ -128,6 +173,20 @@ if (defined($main::opt_G)) {
 	$gnuplot = 1;
 }
 
+if (defined($main::opt_a)) {
+	$aggregate = 1;
+}
+
+if (defined($main::opt_x)) {
+	$xmitoutput = 1;
+	$rcvoutput  = 0;
+}
+
+if (defined($main::opt_r)) {
+	$xmitoutput = 0;
+	$rcvoutput  = 1;
+}
+
 if ($gnuplot) {
 	unlink($gnuplotscratch);
 	open(GNUPLOT, "|gnuplot") || die "could not find gnuplot: $!";
@@ -135,47 +194,134 @@ if ($gnuplot) {
 	  || die "could not open $gnuplotscratch: $!";
 }
 
+if ($ports =~ /(.+)-(.+)/) {
+	my $tmpport1 = $1;
+	my $tmpport2 = $2;
+	if ($tmpport2 <= $tmpport1) {
+		print "invalid port range specified\n";
+		exit 1;
+	}
+	@portlist = ($tmpport1 .. $tmpport2);
+} elsif ($ports =~ /,/) {
+	@portlist = split(",", $ports);
+} else {
+	@portlist = ($ports);
+}
+
 while (1) {
-	my $currentxmitdata;
-	my $currentrcvdata;
-	my $diffxmitdatabytes;
-	my $diffrcvdatabytes;
+	my $diffdatabytes;
 	my $xmitrate;
 	my $rcvrate;
+	my $port;
+	my $gnuplot_datastr;
+	my $gnuplot_plotstr;
+	my $gnuplot_commastr;
+	my $loopcount = 0;
+	my $xmitcol;
+	my $rcvcol;
 
-	($currentxmitdata, $currentrcvdata) = perfget();
-	if (   $lastxmitdata != 0
-		&& $lastrcvdata != 0
-		&& $currentxmitdata >= $lastxmitdata
-		&& $currentrcvdata >= $lastrcvdata)
-	{
-		# data is in quad bytes
-		$diffxmitdatabytes = 4 * ($currentxmitdata - $lastxmitdata);
-		$diffrcvdatabytes  = 4 * ($currentrcvdata - $lastrcvdata);
+	perfget();
 
-		$xmitrate = $diffxmitdatabytes / $interval;
-		$rcvrate  = $diffrcvdatabytes / $interval;
+	if (keys(%lastxmitdata)) {
 
-		$xmitrate /= 1073741824;
-		$rcvrate  /= 1073741824;
-
-		if ($tab) {
-			print "$counter\t$xmitrate\t$rcvrate\n";
-			$counter++;
-		} elsif ($gnuplot) {
-			print GNUPLOTSCRATCH "$counter\t$xmitrate\t$rcvrate\n";
-			$counter++;
-
-			print GNUPLOT
-"plot '$gnuplotscratch' using 1:2 title 'Xmit' with linespoints, '$gnuplotscratch' using 1:3 title 'Rcv' with linespoints\n";
-		} else {
-			print "-----------------------------------------------\n";
-			print "Xmit = $xmitrate gigabytes/sec\n";
-			print "Rcv = $rcvrate gigabytes/sec\n";
-			print "-----------------------------------------------\n";
+		if ($gnuplot) {
+			$gnuplot_datastr  = "$counter";
+			$gnuplot_plotstr  = "plot ";
+			$gnuplot_commastr = "";
+		} elsif ($tab) {
+			print "$counter";
 		}
+
+		$loopcount = 0;
+		foreach $port (@portlist) {
+			# data is in quad bytes
+			# we check for defines if by chance missed/errored on poll
+			if ($xmitoutput) {
+				if (   defined($lastxmitdata{$port})
+					&& defined($currentxmitdata{$port}))
+				{
+					$diffdatabytes =
+					  4 * ($currentxmitdata{$port} - $lastxmitdata{$port});
+				} else {
+					$diffdatabytes = 0;
+				}
+
+				$xmitrate = $diffdatabytes / $interval;
+				$xmitrate /= 1073741824;
+			}
+
+			if ($rcvoutput) {
+				if (   defined($lastrcvdata{$port})
+					&& defined($currentrcvdata{$port}))
+				{
+					$diffdatabytes =
+					  4 * ($currentrcvdata{$port} - $lastrcvdata{$port});
+				} else {
+					$diffdatabytes = 0;
+
+				}
+				$rcvrate = $diffdatabytes / $interval;
+				$rcvrate /= 1073741824;
+			}
+
+			if ($gnuplot) {
+				if ($xmitoutput && $rcvoutput) {
+					$gnuplot_datastr .= "\t$port\t$xmitrate\t$rcvrate";
+					$xmitcol = 3 + $loopcount * 3;
+					$rcvcol  = 4 + $loopcount * 3;
+				} elsif ($xmitoutput) {
+					$gnuplot_datastr .= "\t$port\t$xmitrate";
+					$xmitcol = 3 + $loopcount * 2;
+				} else {
+					$gnuplot_datastr .= "\t$port\t$rcvrate";
+					$rcvcol = 3 + $loopcount * 2;
+				}
+
+				if ($xmitoutput) {
+					$gnuplot_plotstr .=
+"$gnuplot_commastr'$gnuplotscratch' using 1:$xmitcol title 'Xmit-$port' with linespoints";
+					$gnuplot_commastr = ", ";
+				}
+
+				if ($rcvoutput) {
+					$gnuplot_plotstr .=
+"$gnuplot_commastr'$gnuplotscratch' using 1:$rcvcol title 'Rcv-$port' with linespoints";
+					$gnuplot_commastr = ", ";
+				}
+			} elsif ($tab) {
+				if ($xmitoutput && $rcvoutput) {
+					print "\t$port\t$xmitrate\t$rcvrate";
+				} elsif ($xmitoutput) {
+					print "\t$port\t$xmitrate";
+				} else {
+					print "\t$port\t$rcvrate";
+				}
+			} else {
+				if ($xmitoutput) {
+					print
+"$counter: Xmit port=$port rate=$xmitrate gigabytes/sec\n";
+				}
+				if ($rcvoutput) {
+					print
+					  "$counter: Rcv port=$port rate=$rcvrate gigabytes/sec\n";
+				}
+			}
+			$loopcount++;
+		}
+
+		if ($gnuplot) {
+			print GNUPLOTSCRATCH "$gnuplot_datastr\n";
+			$gnuplot_plotstr .= "\n";
+			print GNUPLOT $gnuplot_plotstr;
+		} elsif ($tab) {
+			print "\n";
+		}
+
+		$counter++;
 	}
-	$lastxmitdata = $currentxmitdata;
-	$lastrcvdata  = $currentrcvdata;
+	%lastxmitdata    = %currentxmitdata;
+	%lastrcvdata     = %currentrcvdata;
+	%currentxmitdata = ();
+	%currentrcvdata  = ();
 	sleep($interval);
 }
