@@ -82,6 +82,7 @@ sub usage
 	print "  -i interval seconds between poll (default 5)\n";
 	print "  -T tab delimited output\n";
 	print "  -G gnuplot data\n";
+	print "  -s specify gnuplot scratch file\n";
 	print "  -a aggregate data\n";
 	print "  -x output xmit data only\n";
 	print "  -r output rcv data only\n";
@@ -139,7 +140,7 @@ sub perfget
 	}
 }
 
-if (!getopts("hl:p:i:TGaxr")) {
+if (!getopts("hl:p:i:TGs:axr")) {
 	usage();
 }
 
@@ -171,6 +172,10 @@ if (defined($main::opt_T)) {
 
 if (defined($main::opt_G)) {
 	$gnuplot = 1;
+}
+
+if (defined($main::opt_s)) {
+    $gnuplotscratch = $main::opt_s;
 }
 
 if (defined($main::opt_a)) {
