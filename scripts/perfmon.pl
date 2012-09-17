@@ -73,7 +73,7 @@ sub usage
 	my $prog = `basename $0`;
 
 	chomp($prog);
-	print "Usage: $prog -l <lid> -p <port(s)> [-i <interval>] [-v]\n";
+	print "Usage: $prog -l <lid> -p <port(s)> [-i <interval>] [-s <file>] [-TGaxr]\n";
 	print "  -l lid of switch to monitor\n";
 	print "  -p port(s) of switch to monitor\n";
 	print "     input a single port (i.e. 1)\n";
