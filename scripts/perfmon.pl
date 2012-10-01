@@ -45,8 +45,6 @@ use IO::Handle;
 my $perfquery = "/usr/sbin/perfquery";
 my $perfout;
 
-my $lid;
-my $ports;
 my $interval = 5;
 
 my $tab            = 0;
@@ -59,14 +57,22 @@ my $xmitoutput = 1;
 my $rcvoutput  = 1;
 
 my $counter = 0;
+my $maxcounts = -1;
 
-my %lastxmitdata    = ();
-my %currentxmitdata = ();
+my $minGBs = 0;
+my $maxGBs = 10;
 
-my %lastrcvdata    = ();
-my %currentrcvdata = ();
+my %nodes = ();
+
+my %glastxmitdata    = ();
+my %gcurrentxmitdata = ();
+
+my %glastrcvdata    = ();
+my %gcurrentrcvdata = ();
 
 my @portlist = ();
+my $ports;
+my @nodelist = ();
 
 sub usage
 {
@@ -75,22 +81,27 @@ sub usage
 	chomp($prog);
 	print "Usage: $prog -l <lid> -p <port(s)> [-i <interval>] [-s <file>] [-TGaxr]\n";
 	print "  -l lid of switch to monitor\n";
+	print "  -L <LIDs> comma separated list of nodes to monitor\n";
 	print "  -p port(s) of switch to monitor\n";
 	print "     input a single port (i.e. 1)\n";
 	print "     or separate ports by comma for set of ports (i.e. 1,2,3,4)\n";
 	print "     or separate ports by - for single range ports (i.e. 1-4)\n";
 	print "  -i interval seconds between poll (default 5)\n";
+	print "  -n <num> run for \"num\" iterations only (default -1 \"forever\")\n";
 	print "  -T tab delimited output\n";
 	print "  -G gnuplot data\n";
 	print "  -s specify gnuplot scratch file\n";
 	print "  -a aggregate data\n";
 	print "  -x output xmit data only\n";
 	print "  -r output rcv data only\n";
+	print "  -m <min GB/s> output only rates >= min GB/s (default: $minGBs GB/s)\n";
+	print "  -M <max GB/s> output only rates <= max GB/s (default: $maxGBs GB/s)\n";
 	exit 2;
 }
 
 sub perfget
 {
+	my $lid = $_[0];
 	my $perfdata;
 	my @perfdatalines;
 	my $perfline;
@@ -113,8 +124,8 @@ sub perfget
 				&& $currentxmitdata != 0
 				&& $currentrcvdata != 0)
 			{
-				$currentxmitdata{$currentport} = $currentxmitdata;
-				$currentrcvdata{$currentport}  = $currentrcvdata;
+				$gcurrentxmitdata{"$lid-$currentport"} = $currentxmitdata;
+				$gcurrentrcvdata{"$lid-$currentport"}  = $currentrcvdata;
 			}
 
 			$currentport     = $1;
@@ -135,12 +146,12 @@ sub perfget
 	}
 
 	if ($currentport != -1) {
-		$currentxmitdata{$currentport} = $currentxmitdata;
-		$currentrcvdata{$currentport}  = $currentrcvdata;
+		$gcurrentxmitdata{"$lid-$currentport"} = $currentxmitdata;
+		$gcurrentrcvdata{"$lid-$currentport"}  = $currentrcvdata;
 	}
 }
 
-if (!getopts("hl:p:i:TGs:axr")) {
+if (!getopts("hl:L:p:i:n:TGs:axrm:M:")) {
 	usage();
 }
 
@@ -149,10 +160,14 @@ if (defined($main::opt_h)) {
 }
 
 if (defined($main::opt_l)) {
-	$lid = $main::opt_l;
+	@nodelist = ( $main::opt_l );
 } else {
-	print "lid must be specified\n";
-	exit 1;
+	if (defined($main::opt_L)) {
+		@nodelist = split(",", $main::opt_L);
+	} else {
+		print "lid or node list must be specified\n";
+		exit 1;
+	}
 }
 
 if (defined($main::opt_p)) {
@@ -164,6 +179,10 @@ if (defined($main::opt_p)) {
 
 if (defined($main::opt_i)) {
 	$interval = $main::opt_i;
+}
+
+if (defined($main::opt_n)) {
+	$maxcounts = $main::opt_n;
 }
 
 if (defined($main::opt_T)) {
@@ -192,6 +211,15 @@ if (defined($main::opt_r)) {
 	$rcvoutput  = 1;
 }
 
+if (defined($main::opt_m)) {
+	$minGBs = $main::opt_m;
+}
+
+if (defined($main::opt_M)) {
+	$maxGBs = $main::opt_M;
+}
+
+
 if ($gnuplot) {
 	unlink($gnuplotscratch);
 	open(GNUPLOT, "|gnuplot") || die "could not find gnuplot: $!";
@@ -213,6 +241,10 @@ if ($ports =~ /(.+)-(.+)/) {
 	@portlist = ($ports);
 }
 
+if ($aggregate) {
+	@portlist = ("255");
+}
+
 while (1) {
 	my $diffdatabytes;
 	my $xmitrate;
@@ -225,108 +257,114 @@ while (1) {
 	my $xmitcol;
 	my $rcvcol;
 
-	perfget();
+	foreach my $node (@nodelist) {
+		perfget($node);
 
-	if (keys(%lastxmitdata)) {
-
-		if ($gnuplot) {
-			$gnuplot_datastr  = "$counter";
-			$gnuplot_plotstr  = "plot ";
-			$gnuplot_commastr = "";
-		} elsif ($tab) {
-			print "$counter";
-		}
-
-		$loopcount = 0;
-		foreach $port (@portlist) {
-			# data is in quad bytes
-			# we check for defines if by chance missed/errored on poll
-			if ($xmitoutput) {
-				if (   defined($lastxmitdata{$port})
-					&& defined($currentxmitdata{$port}))
-				{
-					$diffdatabytes =
-					  4 * ($currentxmitdata{$port} - $lastxmitdata{$port});
-				} else {
-					$diffdatabytes = 0;
-				}
-
-				$xmitrate = $diffdatabytes / $interval;
-				$xmitrate /= 1073741824;
-			}
-
-			if ($rcvoutput) {
-				if (   defined($lastrcvdata{$port})
-					&& defined($currentrcvdata{$port}))
-				{
-					$diffdatabytes =
-					  4 * ($currentrcvdata{$port} - $lastrcvdata{$port});
-				} else {
-					$diffdatabytes = 0;
-
-				}
-				$rcvrate = $diffdatabytes / $interval;
-				$rcvrate /= 1073741824;
-			}
+		if (keys(%glastxmitdata)) {
 
 			if ($gnuplot) {
-				if ($xmitoutput && $rcvoutput) {
-					$gnuplot_datastr .= "\t$port\t$xmitrate\t$rcvrate";
-					$xmitcol = 3 + $loopcount * 3;
-					$rcvcol  = 4 + $loopcount * 3;
-				} elsif ($xmitoutput) {
-					$gnuplot_datastr .= "\t$port\t$xmitrate";
-					$xmitcol = 3 + $loopcount * 2;
-				} else {
-					$gnuplot_datastr .= "\t$port\t$rcvrate";
-					$rcvcol = 3 + $loopcount * 2;
-				}
-
-				if ($xmitoutput) {
-					$gnuplot_plotstr .=
-"$gnuplot_commastr'$gnuplotscratch' using 1:$xmitcol title 'Xmit-$port' with linespoints";
-					$gnuplot_commastr = ", ";
-				}
-
-				if ($rcvoutput) {
-					$gnuplot_plotstr .=
-"$gnuplot_commastr'$gnuplotscratch' using 1:$rcvcol title 'Rcv-$port' with linespoints";
-					$gnuplot_commastr = ", ";
-				}
+				$gnuplot_datastr  = "$counter";
+				$gnuplot_plotstr  = "plot ";
+				$gnuplot_commastr = "";
 			} elsif ($tab) {
-				if ($xmitoutput && $rcvoutput) {
-					print "\t$port\t$xmitrate\t$rcvrate";
-				} elsif ($xmitoutput) {
-					print "\t$port\t$xmitrate";
-				} else {
-					print "\t$port\t$rcvrate";
-				}
-			} else {
-				if ($xmitoutput) {
-					print
-"$counter: Xmit port=$port rate=$xmitrate gigabytes/sec\n";
-				}
-				if ($rcvoutput) {
-					print
-					  "$counter: Rcv port=$port rate=$rcvrate gigabytes/sec\n";
-				}
+				print "$counter";
 			}
-			$loopcount++;
-		}
 
+			$loopcount = 0;
+			foreach $port (@portlist) {
+				# data is in quad bytes
+				# we check for defines if by chance missed/errored on poll
+				if ($xmitoutput) {
+					if ( defined($glastxmitdata{"$node-$port"})
+						&& defined($gcurrentxmitdata{"$node-$port"}))
+					{
+						$diffdatabytes =
+						  4 * ($gcurrentxmitdata{"$node-$port"} - $glastxmitdata{"$node-$port"});
+					} else {
+						$diffdatabytes = 0;
+					}
+					$xmitrate = $diffdatabytes / $interval;
+					$xmitrate /= 1073741824;
+				}
+
+				if ($rcvoutput) {
+					if ( defined($glastrcvdata{"$node-$port"})
+						&& defined($gcurrentrcvdata{"$node-$port"}))
+					{
+						$diffdatabytes =
+						  4 * ($gcurrentrcvdata{"$node-$port"} - $glastrcvdata{"$node-$port"});
+					} else {
+						$diffdatabytes = 0;
+					}
+					$rcvrate = $diffdatabytes / $interval;
+					$rcvrate /= 1073741824;
+				}
+
+				if ($gnuplot) {
+					if ($xmitoutput && $rcvoutput) {
+						$gnuplot_datastr .= "\t$node\t$port\t$xmitrate\t$rcvrate";
+						$xmitcol = 3 + $loopcount * 3;
+						$rcvcol  = 4 + $loopcount * 3;
+					} elsif ($xmitoutput) {
+						$gnuplot_datastr .= "\t$node\t$port\t$xmitrate";
+						$xmitcol = 3 + $loopcount * 2;
+					} else {
+						$gnuplot_datastr .= "\t$node\t$port\t$rcvrate";
+						$rcvcol = 3 + $loopcount * 2;
+					}
+
+					if ($xmitoutput) {
+						$gnuplot_plotstr .= "$gnuplot_commastr'$gnuplotscratch' using 1:$xmitcol title 'Xmit-$node-$port' with linespoints";
+						$gnuplot_commastr = ", ";
+					}
+
+					if ($rcvoutput) {
+						$gnuplot_plotstr .= "$gnuplot_commastr'$gnuplotscratch' using 1:$rcvcol title 'Rcv-$node-$port' with linespoints";
+						$gnuplot_commastr = ", ";
+					}
+				} elsif ($tab) {
+					if ($xmitoutput && $rcvoutput) {
+						print "\t$node\n$port\t$xmitrate\t$rcvrate";
+					} elsif ($xmitoutput) {
+						print "\t$node\n$port\t$xmitrate";
+					} else {
+						print "\t$node\n$port\t$rcvrate";
+					}
+				} else {
+					if ($xmitoutput) {
+						if ($minGBs <= $xmitrate && $xmitrate <= $maxGBs) {
+							print "$counter: Xmit node=$node port=$port rate=$xmitrate gigabytes/sec\n";
+						}
+					}
+					if ($rcvoutput) {
+						if ($minGBs <= $rcvrate && $rcvrate <= $maxGBs) {
+							print "$counter: Rcv node=$node port=$port rate=$rcvrate gigabytes/sec\n";
+						}
+					}
+				}
+				$loopcount++;
+			}
+		}
 		if ($gnuplot) {
 			print GNUPLOTSCRATCH "$gnuplot_datastr\n";
-			$gnuplot_plotstr .= "\n";
-			print GNUPLOT $gnuplot_plotstr;
-		} elsif ($tab) {
-			print "\n";
 		}
-
-		$counter++;
 	}
-	%lastxmitdata    = %currentxmitdata;
-	%lastrcvdata     = %currentrcvdata;
-	%currentxmitdata = ();
-	%currentrcvdata  = ();
+
+	if ($gnuplot) {
+		$gnuplot_plotstr .= "\n";
+		print GNUPLOT $gnuplot_plotstr;
+	} elsif ($tab) {
+		print "\n";
+	}
+
+	print "   *** End Sweep $counter ***\n";
+	$counter++;
+	if ($maxcounts > 0 && $counter > $maxcounts) {
+		exit (0);
+	}
+	%glastxmitdata    = %gcurrentxmitdata;
+	%glastrcvdata     = %gcurrentrcvdata;
+	%gcurrentxmitdata = ();
+	%gcurrentrcvdata  = ();
 	sleep($interval);
 }
