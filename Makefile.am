@@ -38,7 +38,8 @@ mySCRIPTS = scripts/ibgetgid \
 				scripts/PIUHostlist.pm \
 				scripts/PIUTranslate.pm \
 				scripts/check_qos_router_settings.sh \
-				scripts/perfmon.pl
+				scripts/perfmon.pl \
+				scripts/profile-switches.pl
 
 man_MANS = man/ibbouncelinks.8 \
 				man/voltaire-create-switch-map.8 \
