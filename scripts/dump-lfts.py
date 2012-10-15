@@ -32,8 +32,6 @@ import subprocess
 import sys
 import re
 
-nthreads = 32
-threads = []
 final_output = {}
 output_lock = Lock()
 
@@ -50,43 +48,55 @@ def ibroute(lid_list):
 		output_lock.release()
 
 
-# main
+def main():
+	nthreads = 32 # default
+	threads = []
 
-lids = []
+	try:
+		import multiprocessing
+		nthreads = multiprocessing.cpu_count()
+	except (ImportError, NotImplementedError):
+		nthreads = 32
 
-# get the list of lids from ibswitches
-p = subprocess.Popen(["ibswitches",], stdout=subprocess.PIPE)
-ibswout, err = p.communicate()
+	lids = []
 
-lines = ibswout.split('\n')
-for line in lines:
-	m = re.search('^.* lid ([0-9a-f]*) lmc .*$', line)
-	if m:
-		lids.append(m.group(1))
+	# get the list of lids from ibswitches
+	p = subprocess.Popen(["ibswitches",], stdout=subprocess.PIPE)
+	ibswout, err = p.communicate()
 
-# testing array
-#lids = [220, 55, 429, 551, 554, 561, 1165, 1168]
-#lids = [220, 55]
+	lines = ibswout.split('\n')
+	for line in lines:
+		m = re.search('^.* lid ([0-9a-f]*) lmc .*$', line)
+		if m:
+			lids.append(m.group(1))
 
-if len(lids) > nthreads:
-	chunk_size = (len(lids)/nthreads)+1
-else:
-	chunk_size = 1
+	# testing arrays
+	#lids = [220, 55, 429, 551, 554, 561, 1165, 1168]
+	#lids = [220, 55]
 
-sys.stderr.write ("lids length " +str(len(lids))+"\n")
-sys.stderr.write ("chunk_size " +str(chunk_size)+"\n")
-sys.stderr.write ("dump routes for switch lid: ")
-for i in list(xrange(0, len(lids), chunk_size)):
-	t = Thread(target=ibroute, args=(lids[i:i+chunk_size],))
-	t.start()
-	threads.append(t)
+	if len(lids) > nthreads:
+		chunk_size = (len(lids)/nthreads)+1
+	else:
+		chunk_size = 1
 
-while len(threads):
-	t = threads.pop()
-	t.join()
+	sys.stderr.write ("nthreads " +str(nthreads)+"\n")
+	sys.stderr.write ("lids length " +str(len(lids))+"\n")
+	sys.stderr.write ("chunk_size " +str(chunk_size)+"\n")
+	sys.stderr.write ("dump routes for switch lid: ")
+	for i in list(xrange(0, len(lids), chunk_size)):
+		t = Thread(target=ibroute, args=(lids[i:i+chunk_size],))
+		t.start()
+		threads.append(t)
+	while len(threads):
+		t = threads.pop()
+		t.join()
+	sys.stderr.write ("\n")
 
-# output these in the same order dump_lfts.sh would for consistency with 
-# the original tool
-for lid in lids:
-	sys.stdout.write(final_output[lid])
+	# output these in the same order dump_lfts.sh would for consistency with
+	# the original tool
+	for lid in lids:
+		sys.stdout.write(final_output[lid])
+
+if __name__ == "__main__":
+	main()
 
