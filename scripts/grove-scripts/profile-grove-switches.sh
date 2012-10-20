@@ -26,7 +26,7 @@
 #
 #################################################################################
 
-interval=5
+interval=60
 
 grove_switches=`cat grove_switches`
 ion_switches=`cat ion_switches`
