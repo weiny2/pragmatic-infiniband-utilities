@@ -74,6 +74,8 @@ my @portlist = ();
 my $ports;
 my @nodelist = ();
 
+my $suppress = 0;
+
 sub usage
 {
 	my $prog = `basename $0`;
@@ -96,6 +98,7 @@ sub usage
 	print "  -r output rcv data only\n";
 	print "  -m <min GB/s> output only rates >= min GB/s (default: $minGBs GB/s)\n";
 	print "  -M <max GB/s> output only rates <= max GB/s (default: $maxGBs GB/s)\n";
+	print "  -S <rate> suppress rate lower than <rate>\n";
 	exit 2;
 }
 
@@ -151,7 +154,7 @@ sub perfget
 	}
 }
 
-if (!getopts("hl:L:p:i:n:TGs:axrm:M:")) {
+if (!getopts("hl:L:p:i:n:TGs:axrm:M:S:")) {
 	usage();
 }
 
@@ -195,6 +198,10 @@ if (defined($main::opt_G)) {
 
 if (defined($main::opt_s)) {
     $gnuplotscratch = $main::opt_s;
+}
+
+if (defined($main::opt_S)) {
+    $suppress = $main::opt_S;
 }
 
 if (defined($main::opt_a)) {
@@ -248,7 +255,9 @@ if ($aggregate) {
 while (1) {
 	my $diffdatabytes;
 	my $xmitrate;
+	my $xmitGB;
 	my $rcvrate;
+	my $rcvGB;
 	my $port;
 	my $gnuplot_datastr;
 	my $gnuplot_plotstr;
@@ -285,6 +294,11 @@ while (1) {
 					}
 					$xmitrate = $diffdatabytes / $interval;
 					$xmitrate /= 1073741824;
+					$xmitGB = $diffdatabytes /= 1073741824;
+					if ($xmitrate < $suppress) {
+						$xmitrate = 0;
+						$xmitGB = 0;
+					}
 				}
 
 				if ($rcvoutput) {
@@ -298,6 +312,11 @@ while (1) {
 					}
 					$rcvrate = $diffdatabytes / $interval;
 					$rcvrate /= 1073741824;
+					$rcvGB = $diffdatabytes /= 1073741824;
+					if ($rcvrate < $suppress) {
+						$rcvrate = 0;
+						$rcvGB = 0;
+					}
 				}
 
 				if ($gnuplot) {
@@ -333,12 +352,12 @@ while (1) {
 				} else {
 					if ($xmitoutput) {
 						if ($minGBs <= $xmitrate && $xmitrate <= $maxGBs) {
-							print "$counter: Xmit node=$node port=$port rate=$xmitrate gigabytes/sec\n";
+							print "$counter: Xmit node=$node port=$port rate=$xmitrate gigabytes/sec ($xmitGB GB / $interval sec)\n";
 						}
 					}
 					if ($rcvoutput) {
 						if ($minGBs <= $rcvrate && $rcvrate <= $maxGBs) {
-							print "$counter: Rcv node=$node port=$port rate=$rcvrate gigabytes/sec\n";
+							print "$counter: Rcv node=$node port=$port rate=$rcvrate gigabytes/sec ($rcvGB GB / $interval sec)\n";
 						}
 					}
 				}
