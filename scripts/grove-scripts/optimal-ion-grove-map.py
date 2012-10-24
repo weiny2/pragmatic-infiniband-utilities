@@ -33,16 +33,6 @@ import sys
 import re
 import getopt
 
-# why does this not work now???  I don't know...
-#import sequoia_san_simulation
-
-import random
-num_ion = 768
-num_edge_switch = 32
-num_uplinks_per_edge = 12
-num_oss = 768
-num_files = num_ion
-
 class Switch:
 	def __init__(self, lid):
 		self.lid = lid
@@ -66,7 +56,6 @@ class Switch:
 				rc += ","
 			rc += "\n"
 		return self.uplinkcnt.__str__()+"\n"+rc
-		#return self.uplinkcnt.__str__()+"\n"
 
 	def add_uplink(self, port, node):
 		if port in self.uplinkcnt:
@@ -97,91 +86,52 @@ class Switch:
 		return 0
 
 
-# Assume round-robin for now, should be fine for immediate purposes
-# even though not true.
-#ion_mapping = [x%num_edge_switch for x in range(num_ion)]
+def generate_optimal_match(switch_map):
 
-def ion_to_edge(switch_map, ion_index):
+	# with 768 streams to 385 grove nodes we have to allow 2 streams to each grove node.
+	used_grove_nodes = {}
+
+	for i in xrange(1, 385):
+		used_grove_nodes["grove"+str(i)] = 0
+
+	# mark the upper half of the grove nodes as used so we don't route to them.
+	for i in xrange(385, 769):
+		used_grove_nodes["grove"+str(i)] = 2
+
+	#print "ION to grove map"
+	# for each switch
 	for lid in switch_map.keys():
-		if switch_map[lid].is_edge_for_ION("seqio"+str(ion_index+1)):
-			return lid
-	return 0
+		cnt = 1
+		balance_cnt = 0
 
-    #return ion_mapping[ion_index]
+		print "# SW "+str(lid)
+		port_cnt = {}
+		for port in switch_map[lid].groveports.keys():
+			port_cnt[port] = 0
 
-# assume same port mapping on each switch for now, round-robin
-# also not true, but shouldn't change distribution at full-scale
-#port_mapping = [x%num_uplinks_per_edge for x in range(num_oss)]
-def oss_to_port(switch_map, edge_index, oss_index):
-	return switch_map[edge_index].get_uplink_port("grove"+str(oss_index+1))
+		# for each ion
+		for ionport in switch_map[lid].ionports.keys():
+			found = 0
+			# find a grove node based on "free" uplinks
+			for port in sorted(switch_map[lid].groveports.keys()):
+				if port_cnt[port] <= balance_cnt:
+					for grove in switch_map[lid].groveports[port]:
+						if used_grove_nodes[grove] < 2:
+							print str(switch_map[lid].ionports[ionport][0])+", "+grove
+							used_grove_nodes[grove] += 1
+							found = 1
+							port_cnt[port] += 1
+							break;
+				if found:
+					break;
+			if found == 0:
+				print "ERROR: Failed to find uplink for " + str(switch_map[lid].ionports[ionport][0])
 
-def edge_port(switch_map, ion_index, oss_index):
-    """Given two integers representing the ion and oss
-    that are accessing and storing a file, respectively, this
-    function will return a tuple representing the edge switch
-    and port on the edge switch used to access the file."""
+			balance_cnt = int(cnt/6)
+			cnt += 1
 
-    # Look up the edge switch in use
-    edge = ion_to_edge(switch_map, ion_index)
-
-    # Look up the port used on the edge switch
-    port = oss_to_port(switch_map, edge, oss_index)
-
-    return (edge, port)
-
-
-def mean_stddev(array):
-    import math
-    mean = float(sum(array))/len(array)
-    tmp = [(mean-x)**2 for x in array]
-    stddev = math.sqrt(sum(tmp)/len(array))
-
-    return mean, stddev
-
-def run_simulation(switch_map):
-    global num_files
-    # each file is just represented by an integer from 0 to num_files
-
-    # first assign files evenly to servers
-    file_to_oss = [x%num_oss for x in range(num_files)]
-
-    # next randomly assign files to IONs
-    file_to_ion = [x%num_ion for x in range(num_files)]
-    random.shuffle(file_to_ion)
-
-    sys.stdout.write("processing... ")
-    # now map files to edge switch uplink ports
-    histogram = {}
-    for x in range(num_edge_switch):
-        for y in range(num_uplinks_per_edge):
-            histogram[(x, y)] = 0
-    for file_index in range(num_files):
-        ion_index = file_to_ion[file_index]
-        oss_index = file_to_oss[file_index]
-        port_tuple = edge_port(switch_map, ion_index, oss_index)
-        if port_tuple not in histogram:
-            histogram[port_tuple] = 0
-        histogram[port_tuple] += 1
-
-    sys.stdout.write("done\n")
-    #pprint(histogram)
-
-    mean, stddev = mean_stddev(histogram.values())
-    minval = min(histogram.values())
-    maxval = max(histogram.values())
-
-    print "Number of IONs :", num_ion
-    print "Number of OSSs :", num_oss
-    print "Number of uplinks per edge switch :", num_uplinks_per_edge
-    print "Number of files:", num_files
-    print
-    print "Files per uplink"
-    print "   Mean    =", mean
-    print "   Minimum =", minval
-    print "   Maximum =", maxval, "(%.2f%% over mean)" % ((maxval-mean)/mean*100)
-    print "   Std Dev = %.2f" % (stddev,), "(%.2f%%)" % ((stddev/mean)*100)
-    print
-    print "Observed Performance: %.2f%% (or worse)" % (mean/maxval*100)
+		sys.stdout.write("# ")
+		print port_cnt
 
 
 switch_map = {}
@@ -223,41 +173,32 @@ def ibroute(lid_list, cluster, cluster2):
 		# for prgress reporting
 		sys.stderr.write (str(lid) + ", ")
 
-
 def usage():
-	print ("Usage: "+sys.argv[0]+" [hs] [-i <iter>] [-n <num_files>] [-C <cluster2>] -c <cluster> -l <lidlist>")
-	print ("   -s suppress balance output and run lustre simulation")
-	print ("   -i <iter> number of iterations to run simulation")
-	print ("   -n <num_files> number lustre files to simulate")
-	print ("   -c <cluster> cluster string to check balancing of (grove)")
+	print ("Usage: "+sys.argv[0]+" [hp] [-C <cluster2>] -c <cluster> -l <lidlist>")
 	print ("   -C <cluster2> cluster string to check for \"downlinks\" (seqio)")
+	print ("   -c <cluster> cluster string to check balancing of (grove)")
 	print ("   -l <lidlist> list of lids for the switches to check")
 
 def main():
 	global num_files
-	suppress_output = 0
-	iter = 1
+	print_only = 0
 	cluster = ""
 	cluster2 = ""
 	swlids = []
 	try:
-		optlist, ibccq_args =	getopt.getopt(sys.argv[1:], "hsi:n:C:c:l:")
+		optlist, ibccq_args =	getopt.getopt(sys.argv[1:], "hpC:c:l:")
 	except getopt.GetoptError as err:
 		print (err)
 		usage()
 		sys.exit(1)
 
 	for a, o in optlist:
-		if a == "-s":
-			suppress_output = 1
-		if a == "-i":
-			iter = int(o)
-		if a == "-n":
-			num_files = int(o)
-		if a == "-c":
-			cluster = o
 		if a == "-C":
 			cluster2 = o
+		if a == "-c":
+			cluster = o
+		if a == "-p":
+			print_only = 1
 		if a == "-l":
 			swlids = str.split(o,",")
 		if a == "-h":
@@ -285,10 +226,6 @@ def main():
 	except (ImportError, NotImplementedError):
 		nthreads = 32
 
-	# testing arrays
-	#lids = [220, 55, 429, 551, 554, 561, 1165, 1168]
-	#lids = [220, 55]
-
 	# crank up thread engine on lids
 	if len(swlids) > nthreads:
 		chunk_size = (len(swlids)/nthreads)+1
@@ -308,18 +245,12 @@ def main():
 		t.join()
 	sys.stderr.write ("\n")
 
-	if suppress_output == 1:
-		while iter > 0:
-			run_simulation(switch_map)
-			iter -= 1
-	else:
+	if print_only == 1:
 		for lid in swlids:
 			sys.stdout.write ("SW "+lid+": ")
 			print switch_map[lid]
-			#if switch_map[lid].is_edge_for_ION("seqio2"):
-			#	print "YES, seqio2 is on this edge"
-			#if not switch_map[lid].is_edge_for_ION("seqio200"):
-			#	print "NO, seqio200 is not on this edge"
+	else:
+		generate_optimal_match(switch_map)
 
 if __name__ == "__main__":
 	sys.exit(main())

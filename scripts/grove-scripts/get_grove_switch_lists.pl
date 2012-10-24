@@ -109,19 +109,28 @@ close OUTPUT;
 
 # process ION switches
 my %lids = ();
+my %guids = ();
 #my $data = `ibswitches | egrep "SNR"`;
 my $data = $ibswitches;
 my @datalines = split("\n", $data);
 foreach my $line (@datalines) {
 	chomp $line;
 	if ($line =~ /.*SNR.*/) {
-		if ($line =~ /.* lid (.+) lmc/) {
-			$lids{$1} = $line;
+		if ($line =~ /Switch\s: ([0-9a-fx]*) .* lid (.+) lmc/) {
+			$guids{$1} = $line;
+			$lids{$2} = $line;
 		}
 	}
 }
 open(OUTPUT, ">$ion_switches") || die "could not open: $ion_switches";
 foreach my $key (sort {$a<=>$b} keys %lids) {
+	print OUTPUT "$key,";
+}
+print OUTPUT "\n";
+close OUTPUT;
+$ion_switches = "$ion_switches-guids";
+open(OUTPUT, ">$ion_switches") || die "could not open: $ion_switches";
+foreach my $key (sort {$a<=>$b} keys %guids) {
 	print OUTPUT "$key,";
 }
 print OUTPUT "\n";
